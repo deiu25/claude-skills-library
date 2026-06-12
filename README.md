@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Claude Skills Library
 
-## Getting Started
+A curated library of [Claude Code](https://claude.com/claude-code) skills: what each one does, **when** to reach for it, **how** to install it, and live GitHub stats (stars, forks, watchers, license, last push).
 
-First, run the development server:
+Built with Next.js 15, Tailwind CSS v4, and Motion. Hosted on Vercel.
+
+## Features
+
+- **Curated entries, not scraped lists.** Every skill has hand-written notes: when to use it, how to invoke it, and why it earns its place.
+- **Live GitHub stats** via the REST API with 6-hour ISR revalidation. Skills sharing a monorepo cost one request.
+- **Exact install commands** with one-click copy: plugin marketplaces, `npx skills`, or plain git clone.
+- **Instant client-side search and category filters** over fully static data. No database, no backend.
+- Dark-first design with a light mode, keyboard navigable, WCAG AA contrast.
+
+## Local development
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+GitHub stats work without configuration (60 unauthenticated requests/hour). For production, add a token:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cp .env.example .env.local
+# set GITHUB_TOKEN=ghp_... (no scopes needed, public repo read only)
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Adding a skill
 
-## Learn More
+Skills are typed data files. To add one:
 
-To learn more about Next.js, take a look at the following resources:
+1. Create `src/data/skills/<slug>.ts` exporting a `Skill` (see [src/data/types.ts](src/data/types.ts) for the shape and any existing file for an example).
+2. Register it in [src/data/skills/index.ts](src/data/skills/index.ts).
+3. `npm run build` to verify, then open a pull request.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Set `repo: "owner/repo"` for skills hosted on GitHub (stats appear automatically) or `repo: null` for local/private skills.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deploy
 
-## Deploy on Vercel
+One-click deploy on Vercel: import the repo, optionally set `GITHUB_TOKEN`, done. ISR handles stat freshness automatically.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## License
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT. Skill names, descriptions, and linked content belong to their respective authors.
