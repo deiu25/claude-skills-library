@@ -4,6 +4,8 @@ A curated library of [Claude Code](https://claude.com/claude-code) skills: what 
 
 Built with Next.js 15, Tailwind CSS v4, and Motion. Hosted on Vercel.
 
+**Live:** https://claude-skills-library-psi.vercel.app
+
 ## Features
 
 - **Curated entries, not scraped lists.** Every skill has hand-written notes: when to use it, how to invoke it, and why it earns its place.
