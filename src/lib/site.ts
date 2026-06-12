@@ -1,7 +1,6 @@
 export const SITE_NAME = "Claude Skills Library";
 
-/** TODO: update with the real GitHub repo URL after publishing. */
-export const SITE_REPO_URL = "https://github.com/YOUR_GITHUB_USERNAME/claude-skills-library";
+export const SITE_REPO_URL = "https://github.com/deiu25/claude-skills-library";
 
 export const SITE_URL = "https://claude-skills-library.vercel.app";
 
