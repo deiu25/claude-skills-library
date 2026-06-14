@@ -186,23 +186,26 @@ export default async function HomePage() {
                 snippet: "/design-taste-frontend build a landing page, dark, Linear-clean",
               },
             ].map((step, i) => (
-              <Reveal key={step.title} delay={i * 0.08}>
-                <li className="grid grid-cols-[auto_1fr] gap-x-5 gap-y-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-[10px] border border-line bg-surface text-accent">
-                    <step.icon size={20} aria-hidden />
-                  </div>
-                  <div className="space-y-2.5">
-                    <h3 className="pt-2 text-lg font-medium tracking-tight text-foreground">
-                      {step.title}
-                    </h3>
-                    <p className="max-w-[60ch] text-sm leading-relaxed text-muted">{step.body}</p>
-                    {step.snippet ? (
-                      <code className="inline-block rounded-[8px] border border-line bg-terminal-bg px-3.5 py-2 font-mono text-[13px] text-terminal-fg">
-                        {step.snippet}
-                      </code>
-                    ) : null}
-                  </div>
-                </li>
+              <Reveal
+                key={step.title}
+                as="li"
+                delay={i * 0.08}
+                className="grid grid-cols-[auto_1fr] gap-x-5 gap-y-3"
+              >
+                <div className="flex h-11 w-11 items-center justify-center rounded-[10px] border border-line bg-surface text-accent">
+                  <step.icon size={20} aria-hidden />
+                </div>
+                <div className="space-y-2.5">
+                  <h3 className="pt-2 text-lg font-medium tracking-tight text-foreground">
+                    {step.title}
+                  </h3>
+                  <p className="max-w-[60ch] text-sm leading-relaxed text-muted">{step.body}</p>
+                  {step.snippet ? (
+                    <code className="inline-block rounded-[8px] border border-line bg-terminal-bg px-3.5 py-2 font-mono text-[13px] text-terminal-fg">
+                      {step.snippet}
+                    </code>
+                  ) : null}
+                </div>
               </Reveal>
             ))}
           </ol>
