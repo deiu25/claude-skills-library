@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Check, MagnifyingGlass, Plus, SmileyXEyes } from "@phosphor-icons/react";
+import { useSearchParams } from "next/navigation";
+import { Check, ListChecks, MagnifyingGlass, Plus, SmileyXEyes } from "@phosphor-icons/react";
 import type { Skill, SkillCategory } from "@/data/types";
 import { CATEGORY_LABELS } from "@/data/types";
 import type { RepoStats } from "@/lib/github";
@@ -16,7 +16,6 @@ interface SkillSearchProps {
 }
 
 export function SkillSearch({ skills, statsByRepo }: SkillSearchProps) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [category, setCategory] = useState<SkillCategory | null>(
@@ -50,6 +49,11 @@ export function SkillSearch({ skills, statsByRepo }: SkillSearchProps) {
     [skills, selected],
   );
 
+  // Use the native History API, not router.replace: the `sel`/`q`/`category`
+  // params are pure client UI state. router.replace re-runs the async server
+  // page (getRepoStats) behind <Suspense>, flashing the skeleton and churning
+  // selection on every click — replaceState updates the shareable URL with no
+  // server roundtrip or remount.
   function syncUrl(nextQuery: string, nextCategory: SkillCategory | null, nextSelected: Set<string>) {
     const params = new URLSearchParams();
     if (nextQuery.trim()) params.set("q", nextQuery.trim());
@@ -57,13 +61,28 @@ export function SkillSearch({ skills, statsByRepo }: SkillSearchProps) {
     const sel = encodeSelection(nextSelected);
     if (sel) params.set("sel", sel);
     const qs = params.toString();
-    router.replace(qs ? `/skills?${qs}` : "/skills", { scroll: false });
+    window.history.replaceState(null, "", qs ? `/skills?${qs}` : "/skills");
   }
 
   function toggleSelect(slug: string) {
     const next = new Set(selected);
     if (next.has(slug)) next.delete(slug);
     else next.add(slug);
+    setSelected(next);
+    syncUrl(query, category, next);
+  }
+
+  // Add/remove the currently filtered skills as a batch; selection of skills
+  // hidden by the active filter is left untouched.
+  const allFilteredSelected = filtered.length > 0 && filtered.every((s) => selected.has(s.slug));
+
+  function toggleSelectAll() {
+    const next = new Set(selected);
+    if (allFilteredSelected) {
+      for (const s of filtered) next.delete(s.slug);
+    } else {
+      for (const s of filtered) next.add(s.slug);
+    }
     setSelected(next);
     syncUrl(query, category, next);
   }
@@ -129,10 +148,23 @@ export function SkillSearch({ skills, statsByRepo }: SkillSearchProps) {
         })}
       </div>
 
-      <p className="font-mono text-xs text-faint" role="status">
-        {filtered.length} {filtered.length === 1 ? "skill" : "skills"}
-        {selected.size > 0 ? ` · ${selected.size} selected` : ""}
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="font-mono text-xs text-faint" role="status">
+          {filtered.length} {filtered.length === 1 ? "skill" : "skills"}
+          {selected.size > 0 ? ` · ${selected.size} selected` : ""}
+        </p>
+        {filtered.length > 0 ? (
+          <button
+            type="button"
+            onClick={toggleSelectAll}
+            aria-pressed={allFilteredSelected}
+            className="btn btn-ghost text-xs"
+          >
+            <ListChecks size={15} aria-hidden />
+            {allFilteredSelected ? "Deselect all" : "Select all"}
+          </button>
+        ) : null}
+      </div>
 
       {filtered.length > 0 ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
