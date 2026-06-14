@@ -23,6 +23,18 @@ export function SiteHeader() {
           >
             Browse skills
           </Link>
+          <Link
+            href="/recommend"
+            className="hidden rounded-[10px] px-3 py-2 text-sm text-muted transition-colors hover:text-foreground sm:block"
+          >
+            Recommend
+          </Link>
+          <Link
+            href="/report"
+            className="hidden rounded-[10px] px-3 py-2 text-sm text-muted transition-colors hover:text-foreground sm:block"
+          >
+            Report
+          </Link>
           <a
             href={SITE_REPO_URL}
             target="_blank"

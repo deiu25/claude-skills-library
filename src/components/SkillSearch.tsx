@@ -2,11 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { MagnifyingGlass, SmileyXEyes } from "@phosphor-icons/react";
+import { Check, MagnifyingGlass, Plus, SmileyXEyes } from "@phosphor-icons/react";
 import type { Skill, SkillCategory } from "@/data/types";
 import { CATEGORY_LABELS } from "@/data/types";
 import type { RepoStats } from "@/lib/github";
+import { decodeSelection, encodeSelection } from "@/lib/selection";
 import { SkillCard } from "./SkillCard";
+import { SelectionBar } from "./SelectionBar";
 
 interface SkillSearchProps {
   skills: Skill[];
@@ -19,6 +21,9 @@ export function SkillSearch({ skills, statsByRepo }: SkillSearchProps) {
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [category, setCategory] = useState<SkillCategory | null>(
     (searchParams.get("category") as SkillCategory | null) ?? null,
+  );
+  const [selected, setSelected] = useState<Set<string>>(
+    () => new Set(decodeSelection(searchParams.get("sel"), skills.map((s) => s.slug))),
   );
 
   const categories = useMemo(() => {
@@ -39,12 +44,34 @@ export function SkillSearch({ skills, statsByRepo }: SkillSearchProps) {
     return [...matches].sort((a, b) => starsOf(b) - starsOf(a));
   }, [skills, query, category, statsByRepo]);
 
-  function syncUrl(nextQuery: string, nextCategory: SkillCategory | null) {
+  // Selection persists across filters; export needs the full chosen set.
+  const selectedSkills = useMemo(
+    () => skills.filter((s) => selected.has(s.slug)),
+    [skills, selected],
+  );
+
+  function syncUrl(nextQuery: string, nextCategory: SkillCategory | null, nextSelected: Set<string>) {
     const params = new URLSearchParams();
     if (nextQuery.trim()) params.set("q", nextQuery.trim());
     if (nextCategory) params.set("category", nextCategory);
+    const sel = encodeSelection(nextSelected);
+    if (sel) params.set("sel", sel);
     const qs = params.toString();
     router.replace(qs ? `/skills?${qs}` : "/skills", { scroll: false });
+  }
+
+  function toggleSelect(slug: string) {
+    const next = new Set(selected);
+    if (next.has(slug)) next.delete(slug);
+    else next.add(slug);
+    setSelected(next);
+    syncUrl(query, category, next);
+  }
+
+  function clearSelection() {
+    const next = new Set<string>();
+    setSelected(next);
+    syncUrl(query, category, next);
   }
 
   return (
@@ -60,7 +87,7 @@ export function SkillSearch({ skills, statsByRepo }: SkillSearchProps) {
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
-            syncUrl(e.target.value, category);
+            syncUrl(e.target.value, category, selected);
           }}
           placeholder="Search by name, tag, or author..."
           aria-label="Search skills"
@@ -73,7 +100,7 @@ export function SkillSearch({ skills, statsByRepo }: SkillSearchProps) {
           type="button"
           onClick={() => {
             setCategory(null);
-            syncUrl(query, null);
+            syncUrl(query, null, selected);
           }}
           className={`chip ${category === null ? "chip-active" : ""}`}
           aria-pressed={category === null}
@@ -90,7 +117,7 @@ export function SkillSearch({ skills, statsByRepo }: SkillSearchProps) {
               onClick={() => {
                 const next = category === c ? null : c;
                 setCategory(next);
-                syncUrl(query, next);
+                syncUrl(query, next, selected);
               }}
               className={`chip ${category === c ? "chip-active" : ""}`}
               aria-pressed={category === c}
@@ -104,17 +131,39 @@ export function SkillSearch({ skills, statsByRepo }: SkillSearchProps) {
 
       <p className="font-mono text-xs text-faint" role="status">
         {filtered.length} {filtered.length === 1 ? "skill" : "skills"}
+        {selected.size > 0 ? ` · ${selected.size} selected` : ""}
       </p>
 
       {filtered.length > 0 ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((skill) => (
-            <SkillCard
-              key={skill.slug}
-              skill={skill}
-              stats={skill.repo ? (statsByRepo[skill.repo] ?? null) : null}
-            />
-          ))}
+          {filtered.map((skill) => {
+            const isSelected = selected.has(skill.slug);
+            return (
+              <div key={skill.slug} className="relative">
+                <button
+                  type="button"
+                  onClick={() => toggleSelect(skill.slug)}
+                  aria-pressed={isSelected}
+                  aria-label={isSelected ? `Deselect ${skill.name}` : `Select ${skill.name}`}
+                  className={`absolute -right-2 -top-2 z-20 flex h-7 w-7 items-center justify-center rounded-full border transition-colors ${
+                    isSelected
+                      ? "border-accent bg-accent text-accent-foreground"
+                      : "border-line bg-surface text-muted hover:border-faint hover:text-foreground"
+                  }`}
+                >
+                  {isSelected ? (
+                    <Check size={14} weight="bold" aria-hidden />
+                  ) : (
+                    <Plus size={14} aria-hidden />
+                  )}
+                </button>
+                <SkillCard
+                  skill={skill}
+                  stats={skill.repo ? (statsByRepo[skill.repo] ?? null) : null}
+                />
+              </div>
+            );
+          })}
         </div>
       ) : (
         <div className="card flex flex-col items-center gap-3 px-6 py-16 text-center">
@@ -129,7 +178,7 @@ export function SkillSearch({ skills, statsByRepo }: SkillSearchProps) {
             onClick={() => {
               setQuery("");
               setCategory(null);
-              syncUrl("", null);
+              syncUrl("", null, selected);
             }}
             className="btn btn-ghost mt-2 text-sm"
           >
@@ -137,6 +186,8 @@ export function SkillSearch({ skills, statsByRepo }: SkillSearchProps) {
           </button>
         </div>
       )}
+
+      <SelectionBar selected={selectedSkills} statsByRepo={statsByRepo} onClear={clearSelection} />
     </div>
   );
 }
