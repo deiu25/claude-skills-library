@@ -10,7 +10,6 @@ import { skill as everythingClaudeCode } from "./everything-claude-code";
 import { skill as karpathyGuidelines } from "./karpathy-guidelines";
 import { skill as claudeMem } from "./claude-mem";
 import { skill as grillMe } from "./grill-me";
-import { skill as tailwindGlobalsPatterns } from "./tailwind-globals-patterns";
 import { skill as claudeHowto } from "./claude-howto";
 import { skill as ruflo } from "./ruflo";
 import { skill as awesomeDesignMd } from "./awesome-design-md";
@@ -40,7 +39,6 @@ export const skills: Skill[] = [
   skillCreator,
   karpathyGuidelines,
   grillMe,
-  tailwindGlobalsPatterns,
   claudeHowto,
   ruflo,
   awesomeDesignMd,
