@@ -28,13 +28,16 @@ export function SkillSearch({ skills, statsByRepo }: SkillSearchProps) {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return skills.filter((s) => {
+    const starsOf = (s: Skill): number => (s.repo ? (statsByRepo[s.repo]?.stars ?? 0) : 0);
+    const matches = skills.filter((s) => {
       if (category && s.category !== category) return false;
       if (!q) return true;
       const haystack = [s.name, s.tagline, s.author, ...s.tags].join(" ").toLowerCase();
       return haystack.includes(q);
     });
-  }, [skills, query, category]);
+    // Highest GitHub star count first; stable sort keeps array order on ties.
+    return [...matches].sort((a, b) => starsOf(b) - starsOf(a));
+  }, [skills, query, category, statsByRepo]);
 
   function syncUrl(nextQuery: string, nextCategory: SkillCategory | null) {
     const params = new URLSearchParams();

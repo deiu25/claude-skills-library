@@ -9,6 +9,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import { skills, getFeaturedSkills, getCategoriesWithCounts, getUniqueRepos } from "@/data/skills";
 import { CATEGORY_LABELS } from "@/data/types";
+import type { Skill } from "@/data/types";
 import { getRepoStats, formatCount } from "@/lib/github";
 import type { RepoStats } from "@/lib/github";
 import { SITE_REPO_URL } from "@/lib/site";
@@ -30,7 +31,9 @@ export default async function HomePage() {
     repos.map((r, i) => [r, statsList[i]]),
   );
 
-  const featured = getFeaturedSkills();
+  const starsOf = (s: Skill): number => (s.repo ? (statsByRepo[s.repo]?.stars ?? 0) : 0);
+  // Highest GitHub star count first; index i still drives span/accent below.
+  const featured = [...getFeaturedSkills()].sort((a, b) => starsOf(b) - starsOf(a));
   const categories = getCategoriesWithCounts();
   const totalStars = statsList.reduce((sum, s) => sum + (s?.stars ?? 0), 0);
 
