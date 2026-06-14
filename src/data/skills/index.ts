@@ -26,6 +26,11 @@ import { skill as nextDevtoolsMcp } from "./next-devtools-mcp";
 import { skill as raptor } from "./raptor";
 import { skill as claudeRed } from "./claude-red";
 import { skill as marketingskills } from "./marketingskills";
+import { skill as claudePluginsOfficial } from "./claude-plugins-official";
+import { skill as vercelAgentSkills } from "./vercel-agent-skills";
+import { skill as scientificAgentSkills } from "./scientific-agent-skills";
+import { skill as openaiSkills } from "./openai-skills";
+import { skill as claudeSkillsEnterprise } from "./claude-skills-enterprise";
 
 export const skills: Skill[] = [
   designTasteFrontend,
@@ -55,6 +60,11 @@ export const skills: Skill[] = [
   raptor,
   claudeRed,
   marketingskills,
+  claudePluginsOfficial,
+  vercelAgentSkills,
+  scientificAgentSkills,
+  openaiSkills,
+  claudeSkillsEnterprise,
 ];
 
 export function getSkill(slug: string): Skill | undefined {
