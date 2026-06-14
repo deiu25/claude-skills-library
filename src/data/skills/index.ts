@@ -11,6 +11,22 @@ import { skill as karpathyGuidelines } from "./karpathy-guidelines";
 import { skill as claudeMem } from "./claude-mem";
 import { skill as grillMe } from "./grill-me";
 import { skill as tailwindGlobalsPatterns } from "./tailwind-globals-patterns";
+import { skill as claudeHowto } from "./claude-howto";
+import { skill as ruflo } from "./ruflo";
+import { skill as awesomeDesignMd } from "./awesome-design-md";
+import { skill as codeburn } from "./codeburn";
+import { skill as designExtract } from "./design-extract";
+import { skill as stitchSkills } from "./stitch-skills";
+import { skill as claudeCodeBestPractice } from "./claude-code-best-practice";
+import { skill as specKit } from "./spec-kit";
+import { skill as gstack } from "./gstack";
+import { skill as mattpocockSkills } from "./mattpocock-skills";
+import { skill as openspec } from "./openspec";
+import { skill as bmadMethod } from "./bmad-method";
+import { skill as nextDevtoolsMcp } from "./next-devtools-mcp";
+import { skill as raptor } from "./raptor";
+import { skill as claudeRed } from "./claude-red";
+import { skill as marketingskills } from "./marketingskills";
 
 export const skills: Skill[] = [
   designTasteFrontend,
@@ -25,6 +41,22 @@ export const skills: Skill[] = [
   karpathyGuidelines,
   grillMe,
   tailwindGlobalsPatterns,
+  claudeHowto,
+  ruflo,
+  awesomeDesignMd,
+  codeburn,
+  designExtract,
+  stitchSkills,
+  claudeCodeBestPractice,
+  specKit,
+  gstack,
+  mattpocockSkills,
+  openspec,
+  bmadMethod,
+  nextDevtoolsMcp,
+  raptor,
+  claudeRed,
+  marketingskills,
 ];
 
 export function getSkill(slug: string): Skill | undefined {
