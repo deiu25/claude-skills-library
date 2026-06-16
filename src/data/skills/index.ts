@@ -31,6 +31,7 @@ import { skill as vercelAgentSkills } from "./vercel-agent-skills";
 import { skill as scientificAgentSkills } from "./scientific-agent-skills";
 import { skill as openaiSkills } from "./openai-skills";
 import { skill as claudeSkillsEnterprise } from "./claude-skills-enterprise";
+import { skill as gsdCore } from "./gsd-core";
 
 export const skills: Skill[] = [
   designTasteFrontend,
@@ -65,6 +66,7 @@ export const skills: Skill[] = [
   scientificAgentSkills,
   openaiSkills,
   claudeSkillsEnterprise,
+  gsdCore,
 ];
 
 export function getSkill(slug: string): Skill | undefined {
