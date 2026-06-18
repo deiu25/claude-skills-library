@@ -17,6 +17,10 @@
   --faint: #6b6b75;
   --accent: #15805c;
   --accent-soft: #15805c14;
+  /* Text-safe accent: --accent is only 4.24:1 on --accent-soft (AA fail).
+     This darker emerald clears 4.5:1 on the tint, white, and the body bg.
+     Used for accent-colored text/icons on light surfaces, never for fills. */
+  --accent-strong: #0e6f4d;
   --accent-foreground: #fafafa;
   --terminal-bg: #131316;
   --terminal-fg: #d4d4d8;
@@ -36,6 +40,8 @@
   --faint: #8b8b94;
   --accent: #3ecf8e;
   --accent-soft: #3ecf8e14;
+  /* Dark accent already clears 9:1 on every surface; reuse it as-is. */
+  --accent-strong: var(--accent);
   --accent-foreground: #09090b;
   --terminal-bg: #0e0e11;
   --terminal-fg: #d4d4d8;
@@ -51,6 +57,7 @@
   --color-faint: var(--faint);
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
+  --color-accent-strong: var(--accent-strong);
   --color-accent-foreground: var(--accent-foreground);
   --color-terminal-bg: var(--terminal-bg);
   --color-terminal-fg: var(--terminal-fg);
@@ -158,7 +165,7 @@ body {
 @utility chip-active {
   border-color: var(--accent);
   background: var(--accent-soft);
-  color: var(--accent);
+  color: var(--accent-strong);
 }
 
 /*
@@ -170,6 +177,19 @@ body {
   --faint: #a1a1aa;
   --muted: #d4d4d8;
   --accent: #3ecf8e;
+  --accent-strong: #3ecf8e;
+}
+
+/*
+  Scroll reveals (Reveal.tsx) start at opacity:0 and animate in via JS. When
+  scripting is off, that JS never runs and the section would ship blank, so
+  force the revealed end-state. Real users still get the entrance.
+*/
+@media (scripting: none) {
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

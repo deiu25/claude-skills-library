@@ -64,14 +64,14 @@ export default async function SkillDetailPage({ params }: PageProps) {
         <article className="space-y-10">
           <header className="space-y-4">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="font-mono text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              <h1 className="text-balance font-mono text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                 {skill.name}
               </h1>
               <span className="rounded-full border border-line px-3 py-1 font-mono text-xs text-muted">
                 {CATEGORY_LABELS[skill.category]}
               </span>
             </div>
-            <p className="max-w-[60ch] text-base leading-relaxed text-muted sm:text-lg">
+            <p className="max-w-[60ch] text-pretty text-base leading-relaxed text-muted sm:text-lg">
               {skill.tagline}
             </p>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-faint">
@@ -81,7 +81,7 @@ export default async function SkillDetailPage({ params }: PageProps) {
                   href={repoUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-muted transition-colors hover:text-accent"
+                  className="inline-flex items-center gap-1.5 text-muted transition-colors hover:text-accent-strong"
                 >
                   {skill.repo}
                   <ArrowSquareOut size={14} aria-hidden />

@@ -27,7 +27,11 @@ export function Reveal({ children, delay = 0, className, as = "div" }: RevealPro
   const MotionTag = as === "li" ? motion.li : motion.div;
 
   return (
+    // data-reveal lets the `@media (scripting: none)` guard in globals.css force
+    // the visible end-state when JS can't run, so SSR/no-script renders aren't
+    // stuck at the initial opacity:0.
     <MotionTag
+      data-reveal
       className={className}
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}

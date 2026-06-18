@@ -17,7 +17,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { HeroSearch } from "@/components/HeroSearch";
 import { TerminalBlock } from "@/components/TerminalBlock";
-import { StatsRow } from "@/components/StatsRow";
+import { SkillCard } from "@/components/SkillCard";
 import { Reveal } from "@/components/Reveal";
 
 export const revalidate = 21600;
@@ -44,10 +44,10 @@ export default async function HomePage() {
         {/* 1. Hero: asymmetric split, search as primary CTA */}
         <section className="grid grid-cols-1 items-center gap-10 py-16 sm:py-20 lg:grid-cols-[1.1fr_1fr] lg:gap-14 lg:py-24">
           <div className="flex flex-col items-start gap-6">
-            <h1 className="text-4xl font-semibold tracking-tighter text-foreground sm:text-5xl lg:text-6xl">
+            <h1 className="text-balance text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
               Claude Code skills, curated and explained.
             </h1>
-            <p className="max-w-[42ch] text-base leading-relaxed text-muted sm:text-lg">
+            <p className="max-w-[42ch] text-pretty text-base leading-relaxed text-muted sm:text-lg">
               What each skill does, when to reach for it, and how to install it. With live GitHub
               stats.
             </p>
@@ -103,12 +103,12 @@ export default async function HomePage() {
         {/* 3. Featured: asymmetric bento, exactly one cell per featured skill */}
         <section className="border-t border-line py-16 sm:py-20">
           <div className="mb-8 flex items-end justify-between gap-4">
-            <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+            <h2 className="text-balance text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
               Start with these
             </h2>
             <Link
               href="/skills"
-              className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-accent"
+              className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-accent-strong"
             >
               All skills
               <ArrowRight size={15} aria-hidden />
@@ -117,7 +117,7 @@ export default async function HomePage() {
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
             {featured.map((skill, i) => {
-              const stats = skill.repo ? statsByRepo[skill.repo] : null;
+              const stats = skill.repo ? (statsByRepo[skill.repo] ?? null) : null;
               const spans = [
                 "md:col-span-3",
                 "md:col-span-3",
@@ -125,35 +125,9 @@ export default async function HomePage() {
                 "md:col-span-2",
                 "md:col-span-2",
               ];
-              const isAccented = i === 0;
               return (
                 <Reveal key={skill.slug} delay={i * 0.06} className={spans[i] ?? "md:col-span-2"}>
-                  <Link
-                    href={`/skills/${skill.slug}`}
-                    className={`group flex h-full flex-col gap-3 rounded-[14px] border p-6 transition-all duration-200 hover:-translate-y-0.5 ${
-                      isAccented
-                        ? "border-accent/40 bg-accent-soft hover:border-accent"
-                        : "border-line bg-surface hover:border-faint"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <h3 className="font-mono text-base font-semibold tracking-tight text-foreground">
-                        {skill.name}
-                      </h3>
-                      <span className="shrink-0 rounded-full border border-line px-2.5 py-0.5 font-mono text-[11px] text-muted">
-                        {CATEGORY_LABELS[skill.category]}
-                      </span>
-                    </div>
-                    <p className="text-sm leading-relaxed text-muted">{skill.tagline}</p>
-                    <div className="mt-auto flex items-center justify-between pt-3">
-                      <StatsRow stats={stats ?? null} />
-                      <ArrowRight
-                        size={16}
-                        className="text-faint transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-accent"
-                        aria-hidden
-                      />
-                    </div>
-                  </Link>
+                  <SkillCard skill={skill} stats={stats} featured accent={i === 0} />
                 </Reveal>
               );
             })}
@@ -162,7 +136,7 @@ export default async function HomePage() {
 
         {/* 4. How it works: vertical numbered flow */}
         <section className="border-t border-line py-16 sm:py-20">
-          <h2 className="mb-10 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+          <h2 className="mb-10 text-balance text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
             From browsing to working skill in three steps
           </h2>
           <ol className="space-y-8">
@@ -215,10 +189,10 @@ export default async function HomePage() {
         <section className="border-t border-line py-16 sm:py-20">
           <div className="flex flex-col items-start gap-6 rounded-[14px] border border-line bg-surface p-8 sm:p-12 md:flex-row md:items-center md:justify-between">
             <div className="space-y-2">
-              <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+              <h2 className="text-balance text-2xl font-semibold tracking-tight text-foreground">
                 Know a skill that belongs here?
               </h2>
-              <p className="max-w-[50ch] text-sm leading-relaxed text-muted">
+              <p className="max-w-[50ch] text-pretty text-sm leading-relaxed text-muted">
                 The library is a set of typed data files. Add one file, open a pull request, done.
               </p>
             </div>

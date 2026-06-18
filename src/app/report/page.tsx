@@ -35,10 +35,10 @@ export default async function ReportPage() {
       <SiteHeader />
       <main id="main" className="mx-auto w-full max-w-4xl flex-1 px-4 py-12 sm:px-6 sm:py-16">
         <div className="mb-10 space-y-3">
-          <h1 className="text-3xl font-semibold tracking-tighter text-foreground sm:text-4xl">
+          <h1 className="text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
             Library report
           </h1>
-          <p className="max-w-[60ch] text-sm leading-relaxed text-muted sm:text-base">
+          <p className="max-w-[60ch] text-pretty text-sm leading-relaxed text-muted sm:text-base">
             A full, exportable snapshot of the library. Use it two ways: scan the coverage map to
             spot gaps in your workflow, or export the catalog and hand it to an LLM to pick the right
             skills for a task.
@@ -75,7 +75,7 @@ export default async function ReportPage() {
           <div className="flex flex-wrap gap-x-5 gap-y-2 border-t border-line pt-4 text-sm">
             <Link
               href="/skills.json"
-              className="inline-flex items-center gap-1.5 text-muted transition-colors hover:text-accent"
+              className="inline-flex items-center gap-1.5 text-muted transition-colors hover:text-accent-strong"
             >
               <FileJs size={15} aria-hidden />
               /skills.json
@@ -83,7 +83,7 @@ export default async function ReportPage() {
             </Link>
             <Link
               href="/llms.txt"
-              className="inline-flex items-center gap-1.5 text-muted transition-colors hover:text-accent"
+              className="inline-flex items-center gap-1.5 text-muted transition-colors hover:text-accent-strong"
             >
               <FileText size={15} aria-hidden />
               /llms.txt

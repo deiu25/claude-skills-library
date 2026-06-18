@@ -177,7 +177,7 @@ export function SkillSearch({ skills, statsByRepo }: SkillSearchProps) {
                   onClick={() => toggleSelect(skill.slug)}
                   aria-pressed={isSelected}
                   aria-label={isSelected ? `Deselect ${skill.name}` : `Select ${skill.name}`}
-                  className={`absolute -right-2 -top-2 z-20 flex h-7 w-7 items-center justify-center rounded-full border transition-colors ${
+                  className={`absolute -right-2 -top-2 z-20 flex h-7 w-7 items-center justify-center rounded-full border transition-colors before:absolute before:-inset-2 before:content-[''] ${
                     isSelected
                       ? "border-accent bg-accent text-accent-foreground"
                       : "border-line bg-surface text-muted hover:border-faint hover:text-foreground"

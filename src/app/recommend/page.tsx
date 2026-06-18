@@ -26,10 +26,10 @@ export default async function RecommendPage() {
       <SiteHeader />
       <main id="main" className="mx-auto w-full max-w-4xl flex-1 px-4 py-12 sm:px-6 sm:py-16">
         <div className="mb-10 space-y-3">
-          <h1 className="text-3xl font-semibold tracking-tighter text-foreground sm:text-4xl">
+          <h1 className="text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
             Which skill for your task?
           </h1>
-          <p className="max-w-[55ch] text-sm leading-relaxed text-muted sm:text-base">
+          <p className="max-w-[55ch] text-pretty text-sm leading-relaxed text-muted sm:text-base">
             Describe what you are about to do. The matcher ranks the library by what fits — no
             account, no AI call, just the catalog.
           </p>

@@ -10,10 +10,10 @@ export default function NotFound() {
       <main id="main" className="mx-auto flex w-full max-w-7xl flex-1 items-center justify-center px-4 py-24 sm:px-6">
         <div className="flex flex-col items-center gap-4 text-center">
           <Compass size={40} className="text-faint" aria-hidden />
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          <h1 className="text-balance text-2xl font-semibold tracking-tight text-foreground">
             This page does not exist.
           </h1>
-          <p className="max-w-sm text-sm leading-relaxed text-muted">
+          <p className="max-w-sm text-pretty text-sm leading-relaxed text-muted">
             The skill may have been renamed or removed. The full library is one click away.
           </p>
           <Link href="/skills" className="btn btn-primary mt-2 text-sm">

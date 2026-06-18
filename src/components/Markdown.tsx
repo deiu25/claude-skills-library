@@ -10,7 +10,7 @@ export function Markdown({ content }: MarkdownProps) {
     <div className="space-y-4 text-[15px] leading-relaxed text-muted [&_strong]:text-foreground">
       <ReactMarkdown
         components={{
-          p: ({ children }) => <p className="max-w-[65ch]">{children}</p>,
+          p: ({ children }) => <p className="max-w-[65ch] text-pretty">{children}</p>,
           ol: ({ children }) => (
             <ol className="ml-5 max-w-[65ch] list-decimal space-y-1.5">{children}</ol>
           ),
