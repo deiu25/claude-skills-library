@@ -14,10 +14,12 @@ import {
 import { skills, getSkill } from "@/data/skills";
 import { CATEGORY_LABELS } from "@/data/types";
 import { getRepoStats, formatCount, formatRelativeDate } from "@/lib/github";
+import { toSkillMarkdown } from "@/lib/report";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { TerminalBlock } from "@/components/TerminalBlock";
 import { Markdown } from "@/components/Markdown";
+import { CopyForClaudeButton } from "@/components/CopyForClaudeButton";
 
 export const revalidate = 21600;
 
@@ -48,18 +50,22 @@ export default async function SkillDetailPage({ params }: PageProps) {
   const repoUrl = skill.repo
     ? `https://github.com/${skill.repo}${skill.repoPath ? `/tree/HEAD/${skill.repoPath}` : ""}`
     : null;
+  const llmMarkdown = toSkillMarkdown(skill, stats);
 
   return (
     <>
       <SiteHeader />
       <main id="main" className="mx-auto w-full max-w-4xl flex-1 px-4 py-12 sm:px-6 sm:py-16">
-        <Link
-          href="/skills"
-          className="mb-8 inline-flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
-        >
-          <ArrowLeft size={15} aria-hidden />
-          All skills
-        </Link>
+        <div className="mb-8 flex items-center justify-between gap-3">
+          <Link
+            href="/skills"
+            className="inline-flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
+          >
+            <ArrowLeft size={15} aria-hidden />
+            All skills
+          </Link>
+          <CopyForClaudeButton text={llmMarkdown} />
+        </div>
 
         <article className="space-y-10">
           <header className="space-y-4">

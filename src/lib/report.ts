@@ -140,6 +140,32 @@ export function toMarkdownReport(skills: Skill[], statsByRepo?: StatsByRepo): st
 }
 
 /**
+ * Compact Markdown for a single skill — the per-page "Copy for LLM" payload.
+ * Mirrors the per-entry shape of toMarkdownReport so a one-skill copy and the
+ * full report read the same. Optional sections are omitted when their field is
+ * empty so a local skill (no repo) or an untagged skill stays clean.
+ */
+export function toSkillMarkdown(skill: Skill, stats?: RepoStats | null): string {
+  const stars = skill.repo ? stats?.stars ?? null : null;
+  const starNote = stars !== null ? ` — ${stars}★` : "";
+  const lines: string[] = [
+    `# ${skill.name}${starNote}`,
+    skill.tagline,
+    "",
+    `- Category: ${CATEGORY_LABELS[skill.category]}`,
+    `- Install: \`${skill.install.command}\``,
+  ];
+  if (skill.tags.length > 0) lines.push(`- Tags: ${skill.tags.join(", ")}`);
+  if (skill.whenToUse.length > 0) {
+    lines.push("- When to use:");
+    for (const use of skill.whenToUse) lines.push(`  - ${use}`);
+  }
+  lines.push(`- Author: ${skill.author}`);
+  if (skill.repo) lines.push(`- Source: https://github.com/${skill.repo}`);
+  return lines.join("\n").trimEnd() + "\n";
+}
+
+/**
  * llms.txt format (https://llmstxt.org/): an H1, an optional blockquote,
  * then category sections of `- [name](url): description` links.
  */

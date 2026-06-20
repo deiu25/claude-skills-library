@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Skill } from "@/data/types";
 import type { StatsByRepo } from "@/lib/report";
-import { toCheatSheet, toJsonCatalog, toLlmsTxt, toMarkdownReport } from "@/lib/report";
+import { toCheatSheet, toJsonCatalog, toLlmsTxt, toMarkdownReport, toSkillMarkdown } from "@/lib/report";
 
 function makeSkill(overrides: Partial<Skill> & Pick<Skill, "slug" | "name" | "category">): Skill {
   return {
@@ -75,6 +75,32 @@ describe("toMarkdownReport", () => {
     expect(md).toContain("## Design (1)");
     expect(md).toContain("### Alpha — 100★");
     expect(md).toContain("- Install: `copy it`");
+  });
+});
+
+describe("toSkillMarkdown", () => {
+  it("emits an H1, tagline, category and install for a single skill", () => {
+    const md = toSkillMarkdown(SKILLS[1]!); // beta: no repo, has whenToUse
+    expect(md).toContain("# Beta");
+    expect(md).toContain("A skill");
+    expect(md).toContain("- Category: Testing");
+    expect(md).toContain("- Install: `copy it`");
+    expect(md).toContain("- When to use:");
+    expect(md).toContain("  - When testing");
+  });
+
+  it("appends a star count and source link when repo stats are present", () => {
+    const md = toSkillMarkdown(SKILLS[0]!, STATS["owner/alpha"]); // alpha: repo + tags
+    expect(md).toContain("# Alpha — 100★");
+    expect(md).toContain("- Tags: x");
+    expect(md).toContain("- Source: https://github.com/owner/alpha");
+  });
+
+  it("omits stars, tags, when-to-use, and source when those fields are empty", () => {
+    const md = toSkillMarkdown(SKILLS[1]!); // beta: no repo, no tags
+    expect(md).not.toContain("★");
+    expect(md).not.toContain("- Tags:");
+    expect(md).not.toContain("- Source:");
   });
 });
 
