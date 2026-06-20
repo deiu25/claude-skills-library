@@ -6,7 +6,9 @@ export type SkillCategory =
   | "research"
   | "productivity"
   | "domain"
-  | "meta";
+  | "meta"
+  | "mcp"
+  | "resource";
 
 export type InstallMethod = "manual-copy" | "npx-skills" | "plugin" | "marketplace";
 
@@ -69,4 +71,6 @@ export const CATEGORY_LABELS: Record<SkillCategory, string> = {
   productivity: "Productivity",
   domain: "Domain",
   meta: "Meta",
+  mcp: "MCP servers",
+  resource: "Resources & lists",
 };

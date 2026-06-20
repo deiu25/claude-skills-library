@@ -35,7 +35,98 @@ import { skill as gsdCore } from "./gsd-core";
 import { skill as impeccable } from "./impeccable";
 import { skill as graphify } from "./graphify";
 
+import { skill as wshobsonAgents } from "./wshobson-agents";
+import { skill as superclaude } from "./superclaude";
+import { skill as claudeCodeTemplates } from "./claude-code-templates";
+import { skill as claudeEngineer } from "./claude-engineer";
+import { skill as yourClaudeEngineer } from "./your-claude-engineer";
+import { skill as addyosmaniAgentSkills } from "./addyosmani-agent-skills";
+import { skill as n8nSkills } from "./n8n-skills";
+import { skill as awsAgentSkills } from "./aws-agent-skills";
+import { skill as obsidianSkills } from "./obsidian-skills";
+import { skill as claudeScientificSkills } from "./claude-scientific-skills";
+import { skill as claudeScientificWriter } from "./claude-scientific-writer";
+import { skill as contextEngineeringSkills } from "./context-engineering-skills";
+import { skill as devBrowser } from "./dev-browser";
+import { skill as pgAiguide } from "./pg-aiguide";
+import { skill as guizangPptSkill } from "./guizang-ppt-skill";
+import { skill as guizangSocialCardSkill } from "./guizang-social-card-skill";
+import { skill as claudeCodeToolkitAai } from "./claude-code-toolkit-aai";
+import { skill as claudeSkillsMarketplace } from "./claude-skills-marketplace";
+import { skill as claudeTaskMaster } from "./claude-task-master";
+import { skill as claudePluginsCommunity } from "./claude-plugins-community";
+import { skill as markdownifyMcp } from "./markdownify-mcp";
+import { skill as exaMcpServer } from "./exa-mcp-server";
+import { skill as perplexityMcp } from "./perplexity-mcp";
+import { skill as chromeDevtoolsMcp } from "./chrome-devtools-mcp";
+import { skill as specWorkflowMcp } from "./spec-workflow-mcp";
+import { skill as claudeContext } from "./claude-context";
+import { skill as beads } from "./beads";
+import { skill as insforge } from "./insforge";
+import { skill as claudeCodeGuide } from "./claude-code-guide";
+import { skill as claudeCodeWorkflows } from "./claude-code-workflows";
+import { skill as claudeCodeCookbook } from "./claude-code-cookbook";
+import { skill as myClaudeCodeSetup } from "./my-claude-code-setup";
+import { skill as learnClaudeCode } from "./learn-claude-code";
+import { skill as buildwithclaude } from "./buildwithclaude";
+import { skill as planningWithFiles } from "./planning-with-files";
+import { skill as claudeSdlcWizard } from "./claude-sdlc-wizard";
+import { skill as tachesCcResources } from "./taches-cc-resources";
+import { skill as awesomeClaudeCode } from "./awesome-claude-code";
+import { skill as awesomeClaudeCodeSubagents } from "./awesome-claude-code-subagents";
+import { skill as awesomeClaudeSkills } from "./awesome-claude-skills";
+import { skill as awesomeClaudeSkillsComposio } from "./awesome-claude-skills-composio";
+import { skill as awesomeMcpServers } from "./awesome-mcp-servers";
+import { skill as claudeCodeSafetyNet } from "./claude-code-safety-net";
+import { skill as harnessOptimizer } from "./harness-optimizer";
+import { skill as agentkit } from "./agentkit";
+
 export const skills: Skill[] = [
+  wshobsonAgents,
+  superclaude,
+  claudeCodeTemplates,
+  claudeEngineer,
+  yourClaudeEngineer,
+  addyosmaniAgentSkills,
+  n8nSkills,
+  awsAgentSkills,
+  obsidianSkills,
+  claudeScientificSkills,
+  claudeScientificWriter,
+  contextEngineeringSkills,
+  devBrowser,
+  pgAiguide,
+  guizangPptSkill,
+  guizangSocialCardSkill,
+  claudeCodeToolkitAai,
+  claudeSkillsMarketplace,
+  claudeTaskMaster,
+  claudePluginsCommunity,
+  markdownifyMcp,
+  exaMcpServer,
+  perplexityMcp,
+  chromeDevtoolsMcp,
+  specWorkflowMcp,
+  claudeContext,
+  beads,
+  insforge,
+  claudeCodeGuide,
+  claudeCodeWorkflows,
+  claudeCodeCookbook,
+  myClaudeCodeSetup,
+  learnClaudeCode,
+  buildwithclaude,
+  planningWithFiles,
+  claudeSdlcWizard,
+  tachesCcResources,
+  awesomeClaudeCode,
+  awesomeClaudeCodeSubagents,
+  awesomeClaudeSkills,
+  awesomeClaudeSkillsComposio,
+  awesomeMcpServers,
+  claudeCodeSafetyNet,
+  harnessOptimizer,
+  agentkit,
   designTasteFrontend,
   uiUxProMax,
   ohMyClaudecode,
