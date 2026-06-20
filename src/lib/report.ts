@@ -1,4 +1,4 @@
-import type { Skill, SkillCategory } from "@/data/types";
+import type { InstallMethod, Skill, SkillCategory } from "@/data/types";
 import { CATEGORY_LABELS } from "@/data/types";
 import type { RepoStats } from "@/lib/github";
 
@@ -202,4 +202,74 @@ export function toCheatSheet(skills: Skill[], statsByRepo?: StatsByRepo): string
     ...rows,
     "",
   ].join("\n");
+}
+
+/** Order install methods slash-command-first, then bash, then file copy. */
+const INSTALL_METHOD_ORDER: InstallMethod[] = ["marketplace", "plugin", "npx-skills", "manual-copy"];
+
+const METHOD_LABELS: Record<InstallMethod, string> = {
+  marketplace: "Marketplace skills",
+  plugin: "Plugin skills",
+  "npx-skills": "npx / CLI skills",
+  "manual-copy": "Manual-copy skills",
+};
+
+/** Group skills by install method, preserving INSTALL_METHOD_ORDER, name-sorted within a group. */
+function groupByMethod(skills: Skill[]): [InstallMethod, Skill[]][] {
+  return INSTALL_METHOD_ORDER.map((method): [InstallMethod, Skill[]] => [
+    method,
+    skills.filter((s) => s.install.method === method).sort((a, b) => a.name.localeCompare(b.name)),
+  ]).filter(([, list]) => list.length > 0);
+}
+
+/**
+ * The "Get all Skills" master prompt. Heterogeneous install methods (slash
+ * commands, bash, file copy) mean a bash script can't drive the install, so the
+ * artifact is a prompt Claude Code executes: it asks scope, skips what's already
+ * installed, then installs the rest by method. Deterministic — no timestamps.
+ */
+export function toInstallAllPrompt(skills: Skill[]): string {
+  const lines: string[] = [
+    `# Install all Claude Code skills (${skills.length})`,
+    "",
+    "You are Claude Code. Install the skills below, but FIRST follow these steps in order.",
+    "",
+    "## Step 1 — Ask me the scope",
+    'Ask: "Install GLOBAL (~/.claude) or PROJECT (.claude/ in this repo)?" Wait for my answer.',
+    "- GLOBAL  -> skills dir ~/.claude/skills/ ; enable plugins in ~/.claude/settings.json",
+    "- PROJECT -> skills dir .claude/skills/  ; enable plugins in .claude/settings.json",
+    "Note: npx/pip skills install into the environment and are effectively global either way — say so.",
+    "",
+    "## Step 2 — Check what is already installed (skip those)",
+    "- marketplace/plugin: list the marketplaces/plugins already registered in my Claude Code",
+    "  config and the enabled plugins; skip any whose source repo matches an entry below.",
+    "- npx-skills: check whether the CLI/binary is on PATH and its skill dir exists; skip if present.",
+    "- manual-copy: list the chosen-scope skills dir; skip any slug already there.",
+    "Build the set of MISSING skills before installing anything.",
+    "",
+    "## Step 3 — Install only the missing skills, by method (honor the chosen scope)",
+    "- marketplace/plugin: run the `/plugin ...` command shown. For PROJECT scope, after adding the",
+    "  marketplace enable the plugin via .claude/settings.json (enabledPlugins) instead of globally.",
+    "- npx-skills: run the command in bash.",
+    "- manual-copy: copy SKILL.md into <scope skills dir>/<slug>/ — rewrite the ~/.claude/skills path",
+    "  to .claude/skills when PROJECT scope was chosen.",
+    "",
+    "## Step 4 — Report",
+    "Summarize: already-present / installed-now / failed. Remind me to run /reload-plugins (or restart",
+    "Claude Code) so new plugins and skills load.",
+    "",
+    "---",
+    "",
+  ];
+
+  for (const [method, list] of groupByMethod(skills)) {
+    lines.push(`## ${METHOD_LABELS[method]} (${list.length})`, "");
+    for (const skill of list) {
+      const source = skill.repo ? `  (source: https://github.com/${skill.repo})` : "";
+      lines.push(`- **${skill.name}** — \`${skill.install.command}\`${source}`);
+    }
+    lines.push("");
+  }
+
+  return lines.join("\n").trimEnd() + "\n";
 }

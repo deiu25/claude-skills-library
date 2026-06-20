@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Skill } from "@/data/types";
 import type { StatsByRepo } from "@/lib/report";
-import { toCheatSheet, toJsonCatalog, toLlmsTxt, toMarkdownReport, toSkillMarkdown } from "@/lib/report";
+import { toCheatSheet, toInstallAllPrompt, toJsonCatalog, toLlmsTxt, toMarkdownReport, toSkillMarkdown } from "@/lib/report";
 
 function makeSkill(overrides: Partial<Skill> & Pick<Skill, "slug" | "name" | "category">): Skill {
   return {
@@ -110,5 +110,52 @@ describe("toCheatSheet", () => {
     const sheet = toCheatSheet(skills);
     expect(sheet).toContain("| Skill | Category | Install | When to use |");
     expect(sheet).toContain("`a \\| b`");
+  });
+});
+
+describe("toInstallAllPrompt", () => {
+  const ALL_METHODS: Skill[] = [
+    makeSkill({ slug: "mp", name: "Mp", category: "workflow", repo: "owner/mp", install: { method: "marketplace", command: "/plugin marketplace add owner/mp" } }),
+    makeSkill({ slug: "pl", name: "Pl", category: "workflow", install: { method: "plugin", command: "/plugin install pl@mkt" } }),
+    makeSkill({ slug: "nx", name: "Nx", category: "research", install: { method: "npx-skills", command: "pip install nx" } }),
+    makeSkill({ slug: "mc", name: "Mc", category: "research", install: { method: "manual-copy", command: "Copy SKILL.md into ~/.claude/skills/mc/" } }),
+  ];
+
+  it("titles with the total skill count", () => {
+    expect(toInstallAllPrompt(ALL_METHODS)).toContain("# Install all Claude Code skills (4)");
+  });
+
+  it("instructs Claude to ask global vs project scope", () => {
+    const prompt = toInstallAllPrompt(ALL_METHODS);
+    expect(prompt).toContain("GLOBAL");
+    expect(prompt).toContain("PROJECT");
+    expect(prompt).toContain("~/.claude/skills/");
+    expect(prompt).toContain(".claude/skills/");
+  });
+
+  it("tells Claude to check what is already installed and skip it", () => {
+    const prompt = toInstallAllPrompt(ALL_METHODS);
+    expect(prompt).toContain("already installed");
+    expect(prompt).toContain("skip");
+  });
+
+  it("groups skills under a heading per install method with its command", () => {
+    const prompt = toInstallAllPrompt(ALL_METHODS);
+    expect(prompt).toContain("## Marketplace skills (1)");
+    expect(prompt).toContain("## Plugin skills (1)");
+    expect(prompt).toContain("## npx / CLI skills (1)");
+    expect(prompt).toContain("## Manual-copy skills (1)");
+    expect(prompt).toContain("- **Mp** — `/plugin marketplace add owner/mp`  (source: https://github.com/owner/mp)");
+    expect(prompt).toContain("- **Nx** — `pip install nx`");
+  });
+
+  it("omits the source note for skills without a repo", () => {
+    const prompt = toInstallAllPrompt([ALL_METHODS[2]!]); // nx: no repo
+    expect(prompt).toContain("- **Nx** — `pip install nx`");
+    expect(prompt).not.toContain("(source:");
+  });
+
+  it("is deterministic across calls", () => {
+    expect(toInstallAllPrompt(ALL_METHODS)).toBe(toInstallAllPrompt(ALL_METHODS));
   });
 });

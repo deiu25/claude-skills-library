@@ -4,7 +4,7 @@ import { ArrowSquareOut, FileJs, FileText } from "@phosphor-icons/react/dist/ssr
 import { skills, getUniqueRepos } from "@/data/skills";
 import { getRepoStats } from "@/lib/github";
 import type { RepoStats } from "@/lib/github";
-import { toJsonCatalog, toMarkdownReport, toCheatSheet } from "@/lib/report";
+import { toJsonCatalog, toMarkdownReport, toCheatSheet, toInstallAllPrompt } from "@/lib/report";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { CoverageMap } from "@/components/CoverageMap";
@@ -29,6 +29,7 @@ export default async function ReportPage() {
   const markdownReport = toMarkdownReport(skills, statsByRepo);
   const cheatSheet = toCheatSheet(skills, statsByRepo);
   const jsonCatalog = JSON.stringify(toJsonCatalog(skills, statsByRepo), null, 2);
+  const installAllPrompt = toInstallAllPrompt(skills);
 
   return (
     <>
@@ -72,6 +73,31 @@ export default async function ReportPage() {
             </DownloadButton>
           </div>
 
+          <div className="space-y-3 border-t border-line pt-5">
+            <div className="space-y-1.5">
+              <h3 className="text-base font-semibold tracking-tight text-foreground">
+                Get all Skills
+              </h3>
+              <p className="max-w-[60ch] text-sm text-muted">
+                Paste this into Claude Code to install every skill — it asks global vs project and
+                skips what you already have.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2">
+                <CopyButton text={installAllPrompt} label="Copy install-all prompt" />
+                <span className="text-sm text-muted">Copy install-all prompt</span>
+              </div>
+              <DownloadButton
+                content={installAllPrompt}
+                filename="install-all-skills.md"
+                mime="text/markdown;charset=utf-8"
+              >
+                Install-all prompt
+              </DownloadButton>
+            </div>
+          </div>
+
           <div className="flex flex-wrap gap-x-5 gap-y-2 border-t border-line pt-4 text-sm">
             <Link
               href="/skills.json"
@@ -87,6 +113,14 @@ export default async function ReportPage() {
             >
               <FileText size={15} aria-hidden />
               /llms.txt
+              <ArrowSquareOut size={13} aria-hidden />
+            </Link>
+            <Link
+              href="/install-all.txt"
+              className="inline-flex items-center gap-1.5 text-muted transition-colors hover:text-accent-strong"
+            >
+              <FileText size={15} aria-hidden />
+              /install-all.txt
               <ArrowSquareOut size={13} aria-hidden />
             </Link>
           </div>
