@@ -12,6 +12,16 @@ export const skill: Skill = {
     method: "manual-copy",
     command: "Copy the skill-creator folder from anthropics/skills into ~/.claude/skills/",
   },
+  update: {
+    command: "git -C ~/.claude/skills/skill-creator pull",
+    note: "Or re-clone/re-copy from the repo if it is not a git checkout.",
+  },
+  usage: [
+    { command: "create a skill", description: "Walks through the canonical SKILL.md structure for a new skill." },
+    { command: "turn this into a skill", description: "Crystallizes the current workflow into a reusable skill." },
+    { command: "Create a skill that packages our release checklist", description: "Describe the workflow to scaffold a self-contained skill folder." },
+    { command: "Update an existing skill", description: "Add new scripts, reference files, or assets to a skill." },
+  ],
   whenToUse: [
     "You repeated the same workflow three times and want to crystallize it",
     "Turning a one-off prompt recipe into a reusable, shareable skill",

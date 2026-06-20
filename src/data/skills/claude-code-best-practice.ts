@@ -11,6 +11,16 @@ export const skill: Skill = {
     method: "manual-copy",
     command: "Clone shanraisshan/claude-code-best-practice and copy its .claude/ primitives into your project",
   },
+  update: {
+    command: "git -C claude-code-best-practice pull",
+    note: "Reference repo, not a single skill dir: pull the clone, then re-copy any .claude/ primitives you use. Or re-clone from shanraisshan/claude-code-best-practice.",
+  },
+  usage: [
+    { command: "git clone https://github.com/shanraisshan/claude-code-best-practice", description: "Clone the reference repository to browse locally." },
+    { command: "cp -r claude-code-best-practice/.claude/* your-project/.claude/", description: "Copy example primitives into your own project." },
+    { command: "/weather-orchestrator", description: "Run the bundled example showing the command -> agent -> skill pattern." },
+    { command: "Browse CONCEPTS, SKILL/AGENT COLLECTIONS, 83 TIPS AND TRICKS", description: "Read the markdown sections as a course on Claude Code primitives." },
+  ],
   whenToUse: [
     "Learning Claude Code primitives (subagents, slash commands, skills, hooks, MCP, plugins) from one organized reference",
     "Designing an orchestration architecture (command -> agent -> skill) and wanting a worked example to copy",

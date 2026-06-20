@@ -11,6 +11,19 @@ export const skill: Skill = {
     method: "plugin",
     command: "claude mcp add next-devtools npx next-devtools-mcp@latest",
   },
+  update: {
+    command: "claude mcp add next-devtools npx next-devtools-mcp@latest",
+    note: "This is an npx-launched MCP server, not a marketplace plugin: the @latest tag means re-running the add (or just restarting the client) fetches the newest version. Use npx add-mcp next-devtools-mcp@latest to update across all detected agents.",
+  },
+  usage: [
+    { command: "npx add-mcp next-devtools-mcp@latest", description: "Register/configure the server across all detected agents." },
+    { command: "init", description: "Set up Next.js context; README recommends calling it at the start of every session." },
+    { command: "nextjs_docs", description: "Search authoritative Next.js docs (including Cache Components) from inside the agent." },
+    { command: "nextjs_index / nextjs_call", description: "Surface live runtime diagnostics (errors, routes, logs, Server Actions) from a Next.js 16+ dev server." },
+    { command: "browser_eval", description: "Run Playwright-based browser checks against the dev server." },
+    { command: "upgrade_nextjs_16", description: "Apply the official codemods to upgrade a project to Next.js 16." },
+    { command: "enable_cache_components", description: "Turn on and configure Cache Components for the project." },
+  ],
   whenToUse: [
     "Debugging a running Next.js 16+ app where you need live runtime errors, route info, logs, and Server Action diagnostics surfaced to the agent",
     "Upgrading a project to Next.js 16 using the official codemods via the upgrade_nextjs_16 tool",

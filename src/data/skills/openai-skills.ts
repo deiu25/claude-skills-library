@@ -11,6 +11,16 @@ export const skill: Skill = {
     method: "manual-copy",
     command: "$skill-installer <skill-name>   # run inside Codex; restart to load",
   },
+  update: {
+    command: "$skill-installer <skill-name>   # re-run inside Codex; restart to reload",
+    note: "Skills are installed by Codex's in-Codex installer (not git checkouts), so re-running it fetches the latest from openai/skills. .system skills ship with Codex and update with Codex itself.",
+  },
+  usage: [
+    { command: "$skill-installer <skill-name>", description: "Install a curated skill from the catalog; restart Codex to load it." },
+    { command: "$skill-installer gh-address-comments", description: "Install the gh-address-comments curated skill." },
+    { command: "$skill-installer install the create-plan skill from the .experimental folder", description: "Install an experimental skill via natural-language instruction." },
+    { command: ".system skills", description: "Ship with Codex automatically; no install step needed." },
+  ],
   whenToUse: [
     "Working in OpenAI Codex and wanting curated, ready-made skills",
     "Authoring new skills with the skill-creator (strict YAML frontmatter and tool-transport rules)",

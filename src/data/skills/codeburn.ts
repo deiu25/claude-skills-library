@@ -11,6 +11,19 @@ export const skill: Skill = {
     method: "manual-copy",
     command: "npm install -g codeburn",
   },
+  update: {
+    command: "npm install -g codeburn@latest",
+    note: "Standalone npm CLI, not a copied skill dir; re-install globally to upgrade (or brew upgrade codeburn if installed via Homebrew).",
+  },
+  usage: [
+    { command: "codeburn", description: "Open the interactive 7-day token/cost dashboard." },
+    { command: "codeburn today", description: "Show today's usage summary." },
+    { command: "codeburn month", description: "Show usage for the current month." },
+    { command: "codeburn optimize", description: "Find spending waste and savings opportunities." },
+    { command: "codeburn compare", description: "Side-by-side model cost and efficiency metrics." },
+    { command: "codeburn yield", description: "Correlate sessions with git commits." },
+    { command: "codeburn export", description: "Export usage data as CSV or JSON." },
+  ],
   whenToUse: [
     "You want to see where your AI coding tokens and dollars are going across Claude Code, Cursor, Codex, and other tools",
     "You need to audit or reduce AI coding spend and find waste (retries, re-reads, unused MCP servers)",

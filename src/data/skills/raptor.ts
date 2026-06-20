@@ -12,6 +12,19 @@ export const skill: Skill = {
     command:
       "git clone https://github.com/gadievron/raptor.git && cd raptor && pip install -r requirements.txt semgrep && claude",
   },
+  update: {
+    command: "git -C raptor pull && pip install -r raptor/requirements.txt semgrep",
+    note: "RAPTOR is a full repo you clone and run Claude from inside; pull the checkout (or re-clone) and reinstall Python deps. Rebuild the devcontainer image if you use it.",
+  },
+  usage: [
+    { command: "/agentic", description: "Full workflow: scan -> validate -> exploit -> patch." },
+    { command: "/scan", description: "Static analysis with Semgrep and CodeQL." },
+    { command: "/understand --map", description: "Map the attack surface and trace data flows." },
+    { command: "/validate", description: "Multi-stage exploitability validation." },
+    { command: "/exploit", description: "Generate a proof-of-concept exploit." },
+    { command: "/patch", description: "Generate a secure fix for a finding." },
+    { command: "/fuzz", description: "Binary fuzzing with AFL++." },
+  ],
   whenToUse: [
     "You want Claude Code to autonomously scan a codebase or binary, validate exploitability, generate a PoC, and propose patches",
     "You run security research / red-team or blue-team operations and want an agentic workflow over Semgrep, CodeQL, and AFL++",

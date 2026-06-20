@@ -11,6 +11,17 @@ export const skill: Skill = {
     method: "npx-skills",
     command: "npx skills add K-Dense-AI/scientific-agent-skills",
   },
+  update: {
+    command: "npx skills add K-Dense-AI/scientific-agent-skills",
+    note: "Re-running fetches the latest version.",
+  },
+  usage: [
+    { command: "npx skills add K-Dense-AI/scientific-agent-skills", description: "Install the full skill bundle via the open skills CLI (Claude Code, Codex, Gemini CLI, Cursor, and more)." },
+    { command: "npx skills add <skill-name>", description: "Install a single skill by name instead of the whole bundle." },
+    { command: "pathml", description: "WSI pathology pipeline: load -> Macenko/Vahadane normalization -> tissue detection -> feature extraction." },
+    { command: "stable-baselines3", description: "RL training skill that forces observation spaces to np.uint8 in [0, 255]." },
+    { command: "primekg", description: "Query the PrimeKG knowledge graph for drug-target interactions and repurposing candidates." },
+  ],
   whenToUse: [
     "Running computational science pipelines (pathology WSI, single-cell, RL training) without hand-writing boilerplate",
     "Querying public scientific databases (PubChem, ChEMBL, UniProt, PrimeKG, ClinicalTrials.gov, and 70+ more)",

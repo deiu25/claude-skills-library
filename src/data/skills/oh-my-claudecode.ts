@@ -11,6 +11,17 @@ export const skill: Skill = {
     method: "marketplace",
     command: "/plugin marketplace add Yeachan-Heo/oh-my-claudecode",
   },
+  update: {
+    command: "/plugin marketplace update oh-my-claudecode",
+    note: "Then run /reload-plugins. Official marketplaces auto-update at startup.",
+  },
+  usage: [
+    { command: "/oh-my-claudecode:autopilot", description: "Autonomous end-to-end execution until done." },
+    { command: "/oh-my-claudecode:ultrawork", description: "Parallel multi-agent implementation." },
+    { command: "/oh-my-claudecode:plan", description: "Interview-based planning to gather requirements." },
+    { command: "/oh-my-claudecode:ultraqa", description: "QA cycles that loop until tests pass." },
+    { command: "/oh-my-claudecode:cancel", description: "Stop any active mode." },
+  ],
   whenToUse: [
     "Large tasks that benefit from multiple specialized agents working in parallel",
     "Autonomous work sessions (autopilot, ralph) that run until done",

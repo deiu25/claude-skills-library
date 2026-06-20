@@ -12,6 +12,20 @@ export const skill: Skill = {
     method: "npx-skills",
     command: "npx impeccable install",
   },
+  update: {
+    command: "npx impeccable install",
+    note: "Re-running the installer fetches the latest version for your harness.",
+  },
+  usage: [
+    { command: "/impeccable init", description: "Run once to write PRODUCT.md and DESIGN.md design context every command reads." },
+    { command: "/impeccable <command> <target>", description: "Single entry point for all 23 commands, e.g. /impeccable audit landing." },
+    { command: "/impeccable critique", description: "Critique the current UI against the captured design language." },
+    { command: "/impeccable polish settings", description: "Polish a specific surface (here, the settings screen)." },
+    { command: "/impeccable harden checkout", description: "Harden a flow for edge cases, a11y, and error states." },
+    { command: "/impeccable live", description: "Iterate on UI variants in-browser." },
+    { command: "/impeccable hooks on", description: "Opt in the per-project hook so the 44 deterministic detectors run after every UI edit." },
+    { command: "/impeccable pin <command>", description: "Create a standalone shortcut, e.g. /audit." },
+  ],
   whenToUse: [
     "You want AI-generated frontends to stop shipping the same tells (Inter everywhere, purple gradients, cards nested in cards, gray text on color)",
     "You need a shared design vocabulary with your agent — craft, shape, audit, critique, polish, distill, harden, animate, and more",

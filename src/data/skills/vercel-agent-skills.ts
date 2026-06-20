@@ -11,6 +11,18 @@ export const skill: Skill = {
     method: "npx-skills",
     command: "npx skills add vercel-labs/agent-skills",
   },
+  update: {
+    command: "npx skills add vercel-labs/agent-skills",
+    note: "Re-running fetches the latest version.",
+  },
+  usage: [
+    { command: "react-best-practices", description: "64 impact-ranked React/Next.js rules (Critical/High/Low) the agent enforces." },
+    { command: "web-design-guidelines", description: "Web-design rules pulled from a live source." },
+    { command: "writing-guidelines", description: "Consistent writing/copy guidelines." },
+    { command: "vercel-optimize", description: "Audit a deployed Vercel project for cost, caching (ISR), and middleware." },
+    { command: "Promise.all()", description: "React skill's fix for parallelizing fetches to kill request waterfalls." },
+    { command: "React.cache()", description: "React skill's fix for deduplicating data fetches." },
+  ],
   whenToUse: [
     "Writing or reviewing React/Next.js code against impact-ranked best-practice rules",
     "Killing request waterfalls and shipping statically-analyzable, bundle-friendly imports",

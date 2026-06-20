@@ -11,6 +11,17 @@ export const skill: Skill = {
     method: "marketplace",
     command: "/plugin marketplace add nextlevelbuilder/ui-ux-pro-max-skill",
   },
+  update: {
+    command: "/plugin marketplace update ui-ux-pro-max-skill",
+    note: "Then run /reload-plugins. Official marketplaces auto-update at startup.",
+  },
+  usage: [
+    { command: 'python3 scripts/search.py "<query>"', description: "Search the design knowledge base for matching styles, palettes, and fonts." },
+    { command: "--design-system", description: "Return a full design-system recommendation (pattern, style, palette, type, effects, checklist)." },
+    { command: '-p "My Project"', description: "Tag the recommendation with a project name." },
+    { command: 'python3 scripts/search.py "developer tools dark mode" --design-system -p "My Project"', description: "Example: full design-system query for a dark-mode dev tool." },
+    { command: "styles | colors | charts | stack", description: "Domain-specific searches to refine styles, palettes, charts, or stack guidance." },
+  ],
   whenToUse: [
     "Choosing a style, palette, or font pairing for a new product",
     "Reviewing UI code for accessibility and UX issues",

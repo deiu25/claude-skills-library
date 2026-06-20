@@ -11,6 +11,16 @@ export const skill: Skill = {
     method: "marketplace",
     command: "/plugin marketplace add obra/superpowers-marketplace",
   },
+  update: {
+    command: "/plugin marketplace update superpowers-marketplace",
+    note: "Then run /reload-plugins. Official marketplaces auto-update at startup.",
+  },
+  usage: [
+    { command: "/plugin install superpowers@superpowers-marketplace", description: "Install the superpowers plugin from the marketplace." },
+    { command: "auto-activates", description: "Framework triggers the right skill at each phase (brainstorm, plan, TDD, verify)." },
+    { command: "SKILL.md", description: "Extend the skills system with your own SKILL.md files." },
+    { command: "process skills", description: "Built-in debugging loops, root-cause analysis, and code review." },
+  ],
   whenToUse: [
     "You want a disciplined end-to-end development methodology, not ad-hoc prompting",
     "Brainstorming and refining a feature before any code is written",

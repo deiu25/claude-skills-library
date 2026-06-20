@@ -11,6 +11,18 @@ export const skill: Skill = {
     method: "marketplace",
     command: "/plugin marketplace add forrestchang/andrej-karpathy-skills",
   },
+  update: {
+    command: "/plugin marketplace update andrej-karpathy-skills",
+    note: "Then run /reload-plugins. Official marketplaces auto-update at startup.",
+  },
+  usage: [
+    { command: "/karpathy-guidelines", description: "Invoke the skill to apply the four principles to current work." },
+    { command: "Add to CLAUDE.md", description: "Paste the four principles as standing project rules for automatic application." },
+    { command: "Think before coding", description: "State assumptions, surface tradeoffs, push back on complexity." },
+    { command: "Simplicity first", description: "Write the minimum code that solves the problem, nothing speculative." },
+    { command: "Surgical changes", description: "Touch only what you must; clean up only your own mess." },
+    { command: "Goal-driven execution", description: "Define success criteria and loop until verified." },
+  ],
   whenToUse: [
     "Every project: paste the principles into CLAUDE.md as standing rules",
     "When generated code keeps growing speculative abstractions and unrequested features",

@@ -12,6 +12,16 @@ export const skill: Skill = {
     method: "manual-copy",
     command: "Copy a brand's DESIGN.md from design-md/<brand>/ into your project root",
   },
+  update: {
+    command: "git -C path/to/awesome-design-md pull && cp design-md/<brand>/DESIGN.md ./DESIGN.md",
+    note: "This is a reference repo, not a skill in ~/.claude/skills. Pull your clone of VoltAgent/awesome-design-md (or re-download the brand's DESIGN.md from GitHub), then re-copy it over your project's DESIGN.md.",
+  },
+  usage: [
+    { command: "Browse design-md/<brand>/", description: "Pick a brand (e.g. stripe, vercel, apple, claude) from the ~73 available." },
+    { command: "cp design-md/<brand>/DESIGN.md ./DESIGN.md", description: "Copy that brand's DESIGN.md into your project root." },
+    { command: '"build me a page that looks like this"', description: "Tell your AI coding agent to use the copied DESIGN.md." },
+    { command: "DESIGN.md", description: "Plain-text design-system file; agent-agnostic (Claude Code, Cursor, Codex, Gemini CLI, Stitch)." },
+  ],
   whenToUse: [
     "You want generated UI to visually match an established brand (Stripe, Vercel, Linear, Apple) without exporting Figma or building a token schema",
     "You need a ready-made DESIGN.md to drop into a project so any coding agent has instant color/typography/component context",

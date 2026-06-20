@@ -12,6 +12,18 @@ export const skill: Skill = {
     method: "npx-skills",
     command: "npx @opengsd/gsd-core@latest",
   },
+  update: {
+    command: "npx @opengsd/gsd-core@latest",
+    note: "Re-running fetches the latest version.",
+  },
+  usage: [
+    { command: "/gsd-new-project", description: "Scaffold a new GSD project and start the phase loop." },
+    { command: "Discuss", description: "Phase 1: lock scope and intent before any planning." },
+    { command: "Plan", description: "Phase 2: break the work into parallelizable waves." },
+    { command: "Execute", description: "Phase 3: run waves in fresh-context subagents (~200k each)." },
+    { command: "Verify", description: "Phase 4: run built-in checks as a gate before shipping." },
+    { command: "Ship", description: "Phase 5: finalize and deliver the verified work." },
+  ],
   whenToUse: [
     "You want a disciplined, repeatable phase loop (Discuss, Plan, Execute, Verify, Ship) instead of ad-hoc prompting",
     "Your agent sessions degrade from 'context rot' on long tasks and you want heavy work pushed into fresh-context subagents",

@@ -11,6 +11,17 @@ export const skill: Skill = {
     method: "marketplace",
     command: "/plugin marketplace add JuliusBrussee/caveman",
   },
+  update: {
+    command: "/plugin marketplace update caveman",
+    note: "Then run /reload-plugins. Official marketplaces auto-update at startup.",
+  },
+  usage: [
+    { command: "/caveman", description: "Activate caveman mode at full (default) intensity." },
+    { command: "/caveman full", description: "Set intensity to full; other levels are lite and ultra." },
+    { command: '"caveman mode"', description: "Activate by saying caveman mode in plain prose." },
+    { command: "/caveman-stats", description: "Show real token usage and savings report for the session." },
+    { command: '"stop caveman"', description: "Revert to normal prose output." },
+  ],
   whenToUse: [
     "Long working sessions where output token cost adds up",
     "You read answers fast and do not need pleasantries",

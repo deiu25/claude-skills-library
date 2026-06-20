@@ -129,15 +129,41 @@ export default async function SkillDetailPage({ params }: PageProps) {
           </section>
 
           <section className="space-y-3">
+            <h2 className="text-xl font-semibold tracking-tight text-foreground">Update</h2>
+            <TerminalBlock title="update" copyText={skill.update.command}>
+              <p>
+                <span className="text-accent">$</span> {skill.update.command}
+              </p>
+            </TerminalBlock>
+            {skill.update.note ? (
+              <p className="max-w-[65ch] text-sm text-muted">{skill.update.note}</p>
+            ) : null}
+          </section>
+
+          <section className="space-y-3">
             <h2 className="text-xl font-semibold tracking-tight text-foreground">When to use it</h2>
             <ul className="space-y-2.5">
               {skill.whenToUse.map((item) => (
                 <li key={item} className="flex max-w-[65ch] gap-3 text-[15px] leading-relaxed text-muted">
-                  <span className="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden />
+                  <span className="mt-2.25 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden />
                   {item}
                 </li>
               ))}
             </ul>
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="text-xl font-semibold tracking-tight text-foreground">Commands &amp; flags</h2>
+            <dl className="space-y-2.5">
+              {skill.usage.map((item) => (
+                <div key={item.command} className="flex max-w-[70ch] flex-col gap-1 sm:flex-row sm:gap-4">
+                  <dt className="shrink-0 font-mono text-[13px] text-accent-strong sm:w-56">
+                    {item.command}
+                  </dt>
+                  <dd className="text-[15px] leading-relaxed text-muted">{item.description}</dd>
+                </div>
+              ))}
+            </dl>
           </section>
 
           <section className="space-y-3">

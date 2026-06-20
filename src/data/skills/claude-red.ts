@@ -11,6 +11,18 @@ export const skill: Skill = {
     method: "manual-copy",
     command: "git clone https://github.com/SnailSploit/claude-red ~/.claude/skills/claude-red",
   },
+  update: {
+    command: "git -C ~/.claude/skills/claude-red pull",
+    note: "Or re-clone/re-copy from the repo if it is not a git checkout.",
+  },
+  usage: [
+    { command: "git clone https://github.com/SnailSploit/claude-red ~/.claude/skills/claude-red", description: "Install the whole library into your skills directory." },
+    { command: "git clone --filter=blob:none --sparse https://github.com/SnailSploit/claude-red", description: "Clone with sparse checkout to pull only selected categories." },
+    { command: "git sparse-checkout set Skills/web Skills/active-directory", description: "Limit the checkout to specific attack-surface categories." },
+    { command: "./install.sh --category web", description: "Run the interactive installer for a single category." },
+    { command: "cat Skills/web/offensive-sqli/SKILL.md | claude --system-file -", description: "Pipe a single SKILL.md into a Claude session." },
+    { command: "(mention an attack surface, e.g. SQL injection)", description: "Conversational triggers auto-load the matching skill." },
+  ],
   whenToUse: [
     "Conducting authorized penetration testing or red-team engagements and wanting Claude primed with attack methodology",
     "Researching a specific attack surface like SQL injection, JWT exploitation, Kerberoasting, or EDR evasion",

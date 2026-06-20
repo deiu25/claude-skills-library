@@ -12,6 +12,19 @@ export const skill: Skill = {
     command:
       "git clone --depth 1 https://github.com/garrytan/gstack.git ~/.claude/skills/gstack && cd ~/.claude/skills/gstack && ./setup",
   },
+  update: {
+    command: "git -C ~/.claude/skills/gstack pull && cd ~/.claude/skills/gstack && ./setup",
+    note: "Or re-clone/re-copy from the repo if it is not a git checkout; re-run ./setup after pulling.",
+  },
+  usage: [
+    { command: "/office-hours <idea>", description: "Reframe and interrogate the idea before planning." },
+    { command: "/autoplan", description: "Run CEO, engineering, and design planning reviews together." },
+    { command: "/review", description: "Staff-engineer bug hunt over the implementation." },
+    { command: "/qa <staging-url>", description: "Real-browser QA against a live or staging URL." },
+    { command: "/ship", description: "Open a pull request for the change." },
+    { command: "/land-and-deploy", description: "Merge and deploy the shipped PR." },
+    { command: "/cso", description: "Run a security audit of the change." },
+  ],
   whenToUse: [
     "You are a solo builder who wants Claude Code to act as a full engineering team (CEO, architect, designer, QA lead, security officer)",
     "You want a repeatable sprint process: think, plan, build, review, test, ship, reflect, instead of ad-hoc prompting",

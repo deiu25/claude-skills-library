@@ -12,6 +12,18 @@ export const skill: Skill = {
     method: "npx-skills",
     command: 'npx skills add https://github.com/Leonxlnx/taste-skill --skill "design-taste-frontend"',
   },
+  update: {
+    command: 'npx skills add https://github.com/Leonxlnx/taste-skill --skill "design-taste-frontend"',
+    note: "Re-running the installer fetches the latest version.",
+  },
+  usage: [
+    { command: "/design-taste-frontend <brief>", description: "Invoke explicitly with a design brief, e.g. dark, premium SaaS feel." },
+    { command: '"use design-taste-frontend for this page"', description: "Mention it in any frontend request to activate the skill." },
+    { command: "Design Read", description: "It outputs a one-line design read before generating anything." },
+    { command: "DESIGN_VARIANCE", description: "Dial that gates how far layouts deviate from defaults." },
+    { command: "MOTION_INTENSITY", description: "Dial that gates how much GSAP/Motion animation is applied." },
+    { command: "VISUAL_DENSITY", description: "Dial that gates spacing and content density per section." },
+  ],
   whenToUse: [
     "Building a new landing page, marketing site, or portfolio",
     "Redesigning an existing site that looks generic or AI-generated",

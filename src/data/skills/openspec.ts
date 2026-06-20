@@ -11,6 +11,16 @@ export const skill: Skill = {
     method: "plugin",
     command: "npm install -g @fission-ai/openspec@latest && openspec init",
   },
+  update: {
+    command: "npm install -g @fission-ai/openspec@latest && openspec init",
+    note: "Re-running the global install with @latest upgrades the CLI; re-run openspec init to refresh the scaffolded /opsx: commands.",
+  },
+  usage: [
+    { command: "openspec init", description: "Scaffold the openspec/ directory and generate the /opsx: slash commands." },
+    { command: "/opsx:propose <what-to-build>", description: "Draft a proposal with requirements/scenarios, design, and tasks." },
+    { command: "/opsx:apply", description: "Implement the tasks from the proposal." },
+    { command: "/opsx:archive", description: "Archive completed changes." },
+  ],
   whenToUse: [
     "You want AI coding assistants to agree on a spec before writing code, instead of relying on chat history",
     "Starting a new feature and want a structured proposal, requirements, design, and task checklist",

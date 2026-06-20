@@ -11,6 +11,16 @@ export const skill: Skill = {
     method: "manual-copy",
     command: "git clone https://github.com/blader/humanizer ~/.claude/skills/humanizer",
   },
+  update: {
+    command: "git -C ~/.claude/skills/humanizer pull",
+    note: "Or re-clone/re-copy from the repo if it is not a git checkout.",
+  },
+  usage: [
+    { command: "Humanize the README I just wrote", description: "Primary invocation: ask Claude to humanize a finished text." },
+    { command: "Use humanizer on docs/announcement.md", description: "Run the skill against a specific file before publishing." },
+    { command: "Review this draft for AI tells", description: "Detect promotional language, vague attributions, and AI vocabulary." },
+    { command: "Fix the em-dash overuse and rule-of-three", description: "Target specific patterns like negative parallelisms and filler phrases." },
+  ],
   whenToUse: [
     "Editing README files, blog posts, or docs drafted with AI assistance",
     "Marketing copy that needs to sound human, not generated",

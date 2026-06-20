@@ -11,6 +11,18 @@ export const skill: Skill = {
     method: "plugin",
     command: "/plugin install Manavarya09/design-extract",
   },
+  update: {
+    command: "/plugin marketplace update design-extract",
+    note: "Then run /reload-plugins. Official marketplaces auto-update at startup.",
+  },
+  usage: [
+    { command: "/extract <url>", description: "Full extraction to DTCG tokens, Tailwind, Figma vars, motion, voice." },
+    { command: "/grade <url>", description: "Generate a shareable HTML 'Design Report Card'." },
+    { command: "/battle <urlA> <urlB>", description: "Head-to-head graded battle card comparing two sites." },
+    { command: "/remix <url> --as <vocab>", description: "Restyle a site as brutalist / swiss / cyberpunk / editorial." },
+    { command: "/pack <url>", description: "Bundle every output into one design-system directory." },
+    { command: "npx designlang mcp", description: "Run the standalone MCP server instead of slash commands." },
+  ],
   whenToUse: [
     "You want to reverse-engineer a live website's colors, typography, spacing, and motion into structured design tokens",
     "You need DTCG tokens, a Tailwind config, shadcn theme, or Figma variables generated from an existing site",

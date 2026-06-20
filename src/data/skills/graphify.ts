@@ -12,6 +12,17 @@ export const skill: Skill = {
     method: "npx-skills",
     command: "pip install graphifyy && graphify install",
   },
+  update: {
+    command: "pip install -U graphifyy && graphify install",
+    note: "Re-running graphify install fetches the latest version and re-registers the skill.",
+  },
+  usage: [
+    { command: "/graphify .", description: "Graph the current directory." },
+    { command: "/graphify ./raw --mode deep", description: "Aggressive, deeper extraction." },
+    { command: "/graphify ./raw --update", description: "Merge new files into the existing graph." },
+    { command: "/graphify ./raw --watch", description: "Auto-sync the graph as files change." },
+    { command: "/graphify ./raw --wiki", description: "Emit Wikipedia-style articles from the graph." },
+  ],
   whenToUse: [
     "You drop into an unfamiliar codebase and want a map of its real structure and relationships before reading files",
     "You want to query a body of work (code, SQL schemas, docs, papers, screenshots, even video) instead of re-reading raw files every time",

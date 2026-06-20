@@ -11,6 +11,15 @@ export const skill: Skill = {
     method: "manual-copy",
     command: "Copy SKILL.md into ~/.claude/skills/grill-me/",
   },
+  update: {
+    command: "Re-copy the latest SKILL.md into ~/.claude/skills/grill-me/",
+    note: "Local skill with no upstream repo; re-copy from the source you installed it from to update.",
+  },
+  usage: [
+    { command: "grill me", description: "Enter interviewer mode and start the grilling session." },
+    { command: "Grill me on this migration plan", description: "Attach a plan or design and have it stress-tested." },
+    { command: "Grill me on my plan to move billing from Stripe Checkout to Elements", description: "Grill a specific architecture or decision end to end." },
+  ],
   whenToUse: [
     "Stress-testing a plan or architecture before committing to it",
     "You suspect your design has holes you cannot see yourself",

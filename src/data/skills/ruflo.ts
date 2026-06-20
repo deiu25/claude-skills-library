@@ -11,6 +11,17 @@ export const skill: Skill = {
     method: "marketplace",
     command: "/plugin marketplace add ruvnet/ruflo",
   },
+  update: {
+    command: "/plugin marketplace update ruflo",
+    note: "Then run /reload-plugins. Official marketplaces auto-update at startup.",
+  },
+  usage: [
+    { command: "/plugin install ruflo-core@ruflo", description: "Install the core orchestration plugin from the marketplace." },
+    { command: "/plugin install ruflo-swarm@ruflo", description: "Add the swarm plugin for self-organizing multi-agent runs." },
+    { command: "/plugin install ruflo-rag-memory@ruflo", description: "Add the HNSW-indexed vector memory (AgentDB) plugin." },
+    { command: "npx ruflo@latest init wizard", description: "CLI path: scaffold the full loop (98 agents, hooks, daemon)." },
+    { command: "claude mcp add ruflo -- npx ruflo@latest mcp start", description: "Register the Ruflo MCP server for the full orchestration toolset." },
+  ],
   whenToUse: [
     "You want to orchestrate many specialized AI agents (swarms) inside Claude Code instead of running one agent at a time",
     "You need persistent, retrievable agent memory across sessions (HNSW-indexed vector store / AgentDB)",

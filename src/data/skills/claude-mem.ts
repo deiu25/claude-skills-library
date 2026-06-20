@@ -11,6 +11,16 @@ export const skill: Skill = {
     method: "marketplace",
     command: "/plugin marketplace add thedotmack/claude-mem",
   },
+  update: {
+    command: "/plugin marketplace update claude-mem",
+    note: "Then run /reload-plugins. Official marketplaces auto-update at startup.",
+  },
+  usage: [
+    { command: "/claude-mem:mem-search", description: "Search past sessions in the memory database." },
+    { command: "/claude-mem:make-plan", description: "Create phased plans with automatic doc discovery." },
+    { command: "/claude-mem:do", description: "Execute a phased plan with subagents." },
+    { command: "/claude-mem:timeline-report", description: "Generate a narrative project history report." },
+  ],
   whenToUse: [
     "Long-running projects where context from past sessions keeps getting lost",
     "Answering questions like: did we already solve this? how did we do X last time?",

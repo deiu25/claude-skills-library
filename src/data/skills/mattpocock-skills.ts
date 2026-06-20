@@ -11,6 +11,18 @@ export const skill: Skill = {
     method: "npx-skills",
     command: "npx skills@latest add mattpocock/skills",
   },
+  update: {
+    command: "npx skills@latest add mattpocock/skills",
+    note: "Re-running the installer fetches the latest version; re-select the skills/agents you want.",
+  },
+  usage: [
+    { command: "/setup-matt-pocock-skills", description: "One-time per-repo setup to configure issue tracker and docs paths." },
+    { command: "/grill-me", description: "Interview you to reach shared understanding before coding." },
+    { command: "/tdd", description: "Enforce a real red-green-refactor TDD loop." },
+    { command: "/diagnose", description: "Run a disciplined debugging loop for a hard bug or perf regression." },
+    { command: "/improve-codebase-architecture", description: "Guided architectural deepening for a ball-of-mud codebase." },
+    { command: "/to-prd, /to-issues, /triage, /zoom-out, /prototype, /handoff", description: "Productivity and misc slash commands from the collection." },
+  ],
   whenToUse: [
     "You want Claude to interview you and reach shared understanding before writing code (grill-me / grill-with-docs)",
     "You want to enforce a real TDD red-green-refactor loop instead of one-shot code generation (tdd)",

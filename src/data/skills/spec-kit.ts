@@ -11,6 +11,21 @@ export const skill: Skill = {
     method: "plugin",
     command: "uv tool install specify-cli --from git+https://github.com/github/spec-kit.git",
   },
+  update: {
+    command: "uv tool install specify-cli --force --from git+https://github.com/github/spec-kit.git",
+    note: "Re-running with --force upgrades the specify-cli tool to the latest commit; then re-run specify init in your project to refresh the scaffolded /speckit.* commands.",
+  },
+  usage: [
+    { command: "specify init my-project --integration claude", description: "Scaffold a new Spec-Driven Development project for Claude Code." },
+    { command: 'specify init --integration-options="--skills"', description: "Scaffold the workflow as agent skills instead of slash-command files." },
+    { command: "/speckit.constitution", description: "Establish project principles before specifying." },
+    { command: "/speckit.specify", description: "Describe WHAT to build (the spec)." },
+    { command: "/speckit.clarify", description: "Resolve ambiguities in the spec." },
+    { command: "/speckit.plan", description: "Define the technical approach for the spec." },
+    { command: "/speckit.tasks", description: "Break the plan into discrete tasks." },
+    { command: "/speckit.analyze", description: "Cross-artifact consistency check before implementing." },
+    { command: "/speckit.implement", description: "Execute the generated tasks." },
+  ],
   whenToUse: [
     "Starting a new feature or project and you want to define the spec, plan, and tasks before any code is generated",
     "You want a repeatable workflow (constitution to spec to plan to tasks to implement) driving Claude Code rather than ad-hoc prompting",

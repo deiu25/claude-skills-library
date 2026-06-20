@@ -12,6 +12,17 @@ export const skill: Skill = {
     method: "manual-copy",
     command: "Clone luongnv89/claude-howto, then copy a skill from 03-skills/ into ~/.claude/skills/",
   },
+  update: {
+    command: "git -C ~/.claude/skills/<skill> pull",
+    note: "These skills are copied out of the luongnv89/claude-howto repo, not git checkouts; re-clone the repo and re-copy the skill from 03-skills/ to get the latest version.",
+  },
+  usage: [
+    { command: "git clone https://github.com/luongnv89/claude-howto.git", description: "Clone the full tutorial + template repository." },
+    { command: "cp 01-slash-commands/optimize.md /path/to/project/.claude/commands/", description: "Copy a slash command template into a project." },
+    { command: "cp -r 03-skills/code-review-specialist ~/.claude/skills/", description: "Copy a ready-made skill into your global skills dir." },
+    { command: "ls 03-skills/", description: "Browse shipped skills: code-review-specialist, doc-generator, brand-voice, refactor, blog-draft, claude-md." },
+    { command: "open LEARNING-ROADMAP", description: "Follow the structured 10-module learning path (01-slash-commands through 10-cli)." },
+  ],
   whenToUse: [
     "You are new to Claude Code and want a structured, hands-on learning path covering every feature",
     "You want ready-made templates for slash commands, CLAUDE.md memory, skills, subagents, hooks, or plugins to drop into a project",

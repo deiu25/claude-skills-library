@@ -11,6 +11,16 @@ export const skill: Skill = {
     method: "marketplace",
     command: "/plugin marketplace add alirezarezvani/claude-skills",
   },
+  update: {
+    command: "/plugin marketplace update claude-code-skills",
+    note: "Then run /reload-plugins. Official marketplaces auto-update at startup.",
+  },
+  usage: [
+    { command: "/plugin install engineering-skills@claude-code-skills", description: "Install the engineering domain skill pack." },
+    { command: "/plugin install marketing-skills@claude-code-skills", description: "Install the marketing domain skill pack." },
+    { command: "/plugin install c-level-skills@claude-code-skills", description: "Install the C-level advisory skill pack." },
+    { command: "/plugin install <domain>-skills@claude-code-skills", description: "Install any of the 17 domains on demand." },
+  ],
   whenToUse: [
     "You need domain skills beyond code — finance, marketing, product, compliance, C-level advisory",
     "Workflows that demand deterministic execution via bundled stdlib-only Python tools (no pip)",

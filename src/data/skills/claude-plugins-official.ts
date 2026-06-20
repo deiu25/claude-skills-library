@@ -11,6 +11,16 @@ export const skill: Skill = {
     method: "marketplace",
     command: "/plugin marketplace add anthropics/claude-plugins-official",
   },
+  update: {
+    command: "/plugin marketplace update claude-plugins-official",
+    note: "Then run /reload-plugins. Official marketplaces auto-update at startup.",
+  },
+  usage: [
+    { command: "/plugin marketplace add anthropics/claude-plugins-official", description: "Register the official Anthropic marketplace." },
+    { command: "/plugin install {plugin-name}@claude-plugins-official", description: "Install any plugin from the marketplace by name." },
+    { command: "/plugin marketplace update claude-plugins-official", description: "Pull the latest plugin/skill listings from the marketplace." },
+    { command: "/reload-plugins", description: "Reload installed plugins after an update." },
+  ],
   whenToUse: [
     "You want vetted, Anthropic-managed plugins instead of hunting across random repos",
     "Discovering bundled skills (git workflows, security analysis with Semgrep/CodeRabbit, framework helpers)",

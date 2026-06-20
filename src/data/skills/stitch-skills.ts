@@ -12,6 +12,16 @@ export const skill: Skill = {
     method: "plugin",
     command: "npx plugins add google-labs-code/stitch-skills --scope project --target claude-code",
   },
+  update: {
+    command: "/plugin marketplace update stitch-skills",
+    note: "Then run /reload-plugins. Official marketplaces auto-update at startup.",
+  },
+  usage: [
+    { command: "stitch-design", description: "Code-to-design, generate-design, manage-design-system, extract-design-md, upload-to-stitch." },
+    { command: "stitch-build", description: "Emit React, React Native, Remotion walkthrough videos, and shadcn/ui code." },
+    { command: "stitch-utilities", description: "design-md, enhance-prompt, stitch-loop, and taste-design helpers." },
+    { command: "Stitch MCP server", description: "Prerequisite: must be configured and running for the skills to do the actual work." },
+  ],
   whenToUse: [
     "You use Google Stitch to design UIs and want your coding agent to drive it (generate screens from text/images, manage themes)",
     "You want to convert existing frontend code or static HTML into Stitch designs, or turn Stitch designs into React / React Native components",

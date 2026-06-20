@@ -11,6 +11,18 @@ export const skill: Skill = {
     method: "marketplace",
     command: "/plugin marketplace add affaan-m/ECC",
   },
+  update: {
+    command: "/plugin marketplace update ECC",
+    note: "Then run /reload-plugins. Official marketplaces auto-update at startup.",
+  },
+  usage: [
+    { command: "Enable plugin after marketplace add", description: "Activates dozens of agents and skills that fire contextually." },
+    { command: "/everything-claude-code:code-review", description: "Run a code review over the current branch or diff." },
+    { command: "/everything-claude-code:tdd", description: "Drive a test-driven development workflow." },
+    { command: "/everything-claude-code:plan", description: "Generate an implementation plan for a feature." },
+    { command: "Language reviewers (TS/Python/Go/Rust/Java)", description: "Auto-fire after edits in their matching language." },
+    { command: "Pattern skills (laravel/postgres/frontend)", description: "Load automatically when the project stack matches." },
+  ],
   whenToUse: [
     "You want language-specific reviewers (TypeScript, Python, Go, Rust, Java) on tap",
     "Build-error resolvers that fix failing builds with minimal diffs",

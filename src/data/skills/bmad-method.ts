@@ -11,6 +11,17 @@ export const skill: Skill = {
     method: "plugin",
     command: "npx bmad-method install --modules bmm --tools claude-code",
   },
+  update: {
+    command: "npx bmad-method install",
+    note: "BMad ships its own npx installer, not a Claude plugin marketplace; re-running it fetches and reinstalls the latest version (scope with --modules bmm --tools claude-code).",
+  },
+  usage: [
+    { command: "npx bmad-method install", description: "Interactive installer; run again to update an existing install." },
+    { command: "npx bmad-method install --modules bmm --tools claude-code", description: "Install the core BMM module scoped to Claude Code." },
+    { command: "bmad-help", description: "In-session skill that surfaces guidance on the generated agents and workflows." },
+    { command: "Party Mode", description: "Brings multiple agent personas (PM, Architect, Developer, UX) into one session." },
+    { command: "PM / Architect / Developer / UX agents", description: "Invoke the generated role agents and multi-stage workflows inside Claude Code." },
+  ],
   whenToUse: [
     "You want a structured, scale-adaptive agile process (analysis, PM, architecture, implementation) driven by AI agents inside Claude Code",
     "Starting a greenfield project and want generated PRD, architecture, and task workflows rather than ad-hoc prompting",

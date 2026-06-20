@@ -11,6 +11,18 @@ export const skill: Skill = {
     method: "marketplace",
     command: "/plugin marketplace add coreyhaines31/marketingskills",
   },
+  update: {
+    command: "/plugin marketplace update marketingskills",
+    note: "Then run /reload-plugins. Official marketplaces auto-update at startup.",
+  },
+  usage: [
+    { command: "/plugin install marketing-skills", description: "Install the plugin after adding the marketplace." },
+    { command: "npx skills add coreyhaines31/marketingskills", description: "CLI install of the full pack (works in Claude Code, Cursor, Codex, Windsurf)." },
+    { command: "npx skills add coreyhaines31/marketingskills --skill cro copywriting", description: "Install only selected skills from the pack." },
+    { command: "/cro", description: "Invoke the conversion-rate-optimization skill directly." },
+    { command: "/emails", description: "Invoke the email/sequence-writing skill directly." },
+    { command: "/seo-audit", description: "Invoke the technical SEO audit skill directly." },
+  ],
   whenToUse: [
     "You want AI help with marketing tasks like landing-page CRO, homepage copy, or cold email sequences",
     "You need SEO work (technical audits, AI SEO, programmatic SEO, schema, site architecture)",
