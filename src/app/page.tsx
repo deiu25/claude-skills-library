@@ -13,16 +13,15 @@ import type { Skill } from "@/data/types";
 import { getRepoStats, formatCount } from "@/lib/github";
 import type { RepoStats } from "@/lib/github";
 import { SITE_REPO_URL } from "@/lib/site";
+import { toInstallAllPrompt, toMarkdownReport } from "@/lib/report";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { HeroSearch } from "@/components/HeroSearch";
-import { TerminalBlock } from "@/components/TerminalBlock";
+import { HeroInstall } from "@/components/HeroInstall";
 import { SkillCard } from "@/components/SkillCard";
 import { Reveal } from "@/components/Reveal";
 
 export const revalidate = 21600;
-
-const heroSkill = skills[0]; // design-taste-frontend: real content for the hero terminal
 
 export default async function HomePage() {
   const repos = getUniqueRepos();
@@ -36,6 +35,8 @@ export default async function HomePage() {
   const featured = [...getFeaturedSkills()].sort((a, b) => starsOf(b) - starsOf(a));
   const categories = getCategoriesWithCounts();
   const totalStars = statsList.reduce((sum, s) => sum + (s?.stars ?? 0), 0);
+  const installAllPrompt = toInstallAllPrompt(skills);
+  const markdownReport = toMarkdownReport(skills, statsByRepo);
 
   return (
     <>
@@ -64,24 +65,13 @@ export default async function HomePage() {
           </div>
 
           <Reveal>
-            <TerminalBlock title="~/.claude/skills" copyText={heroSkill.install.command}>
-              <div className="space-y-3">
-                <p>
-                  <span className="text-accent">$</span> {heroSkill.install.command}
-                </p>
-                <div className="border-t border-line/40 pt-3 text-faint">
-                  <p>---</p>
-                  <p>
-                    name: <span className="text-terminal-fg">{heroSkill.slug}</span>
-                  </p>
-                  <p className="whitespace-pre-wrap">
-                    description: <span className="text-terminal-fg">{heroSkill.tagline}</span>
-                  </p>
-                  <p>---</p>
-                </div>
-                <p className="text-accent">skill installed. available next session.</p>
-              </div>
-            </TerminalBlock>
+            <HeroInstall
+              installPrompt={installAllPrompt}
+              markdownReport={markdownReport}
+              skillCount={skills.length}
+              categoryCount={categories.length}
+              starsLabel={formatCount(totalStars)}
+            />
           </Reveal>
         </section>
 
