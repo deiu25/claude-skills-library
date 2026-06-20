@@ -42,3 +42,6 @@ next-env.d.ts
 
 # local agent tooling cache (oh-my-claudecode / claude-mem)
 .omc/
+
+# graphify build output
+graphify-out/

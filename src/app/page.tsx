@@ -175,7 +175,7 @@ export default async function HomePage() {
                   </h3>
                   <p className="max-w-[60ch] text-sm leading-relaxed text-muted">{step.body}</p>
                   {step.snippet ? (
-                    <code className="inline-block rounded-[8px] border border-line bg-terminal-bg px-3.5 py-2 font-mono text-[13px] text-terminal-fg">
+                    <code className="inline-block rounded-lg border border-line bg-terminal-bg px-3.5 py-2 font-mono text-[13px] text-terminal-fg">
                       {step.snippet}
                     </code>
                   ) : null}

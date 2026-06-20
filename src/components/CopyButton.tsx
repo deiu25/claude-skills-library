@@ -26,7 +26,7 @@ export function CopyButton({ text, label = "Copy to clipboard" }: CopyButtonProp
       type="button"
       onClick={copy}
       aria-label={copied ? "Copied" : label}
-      className="relative flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-[8px] border border-line text-muted transition-colors before:absolute before:-inset-1 before:content-[''] hover:border-faint hover:text-foreground active:scale-[0.98]"
+      className="relative flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-line text-muted transition-colors before:absolute before:-inset-1 before:content-[''] hover:border-faint hover:text-foreground active:scale-[0.98]"
     >
       {copied ? (
         <Check size={16} weight="bold" className="text-accent" aria-hidden />

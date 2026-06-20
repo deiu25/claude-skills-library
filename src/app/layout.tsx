@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { SITE_URL } from "@/lib/site";
+import { SITE_DESCRIPTION, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,8 +19,7 @@ export const metadata: Metadata = {
     default: "Claude Skills Library",
     template: "%s | Claude Skills Library",
   },
-  description:
-    "A curated library of Claude Code skills: what each one does, when to use it, and how to install it.",
+  description: SITE_DESCRIPTION,
 };
 
 const themeInitScript = `

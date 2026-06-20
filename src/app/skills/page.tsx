@@ -39,7 +39,7 @@ export default async function SkillsPage() {
         <Suspense
           fallback={
             <div className="space-y-6" aria-busy="true" aria-label="Loading skills">
-              <div className="h-11 animate-pulse rounded-[8px] border border-line bg-surface" />
+              <div className="h-11 animate-pulse rounded-lg border border-line bg-surface" />
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {Array.from({ length: 6 }, (_, i) => (
                   <div key={i} className="card h-44 animate-pulse" />
