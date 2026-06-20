@@ -33,6 +33,7 @@ import { skill as openaiSkills } from "./openai-skills";
 import { skill as claudeSkillsEnterprise } from "./claude-skills-enterprise";
 import { skill as gsdCore } from "./gsd-core";
 import { skill as impeccable } from "./impeccable";
+import { skill as graphify } from "./graphify";
 
 export const skills: Skill[] = [
   designTasteFrontend,
@@ -69,6 +70,7 @@ export const skills: Skill[] = [
   claudeSkillsEnterprise,
   gsdCore,
   impeccable,
+  graphify,
 ];
 
 export function getSkill(slug: string): Skill | undefined {
