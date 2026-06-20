@@ -40,6 +40,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# local editor config
+.vscode/
+
 # local agent tooling cache (oh-my-claudecode / claude-mem)
 .omc/
 
