@@ -45,6 +45,7 @@ One-click deploy on Vercel: import the repo and set `GITHUB_TOKEN`. The catalog 
 | [DESIGN.md](DESIGN.md) | Design tokens and component rules |
 | [PRD.md](PRD.md) | Requirements, non-goals, acceptance criteria |
 | [PRODUCT.md](PRODUCT.md) | Users, positioning, product principles |
+| [ROADMAP.md](ROADMAP.md) | Planned accounts, user skills, marketplace and sync CLI, phase by phase |
 | [RUNBOOK.md](RUNBOOK.md) | Deploys, rollbacks, incidents |
 | [SECURITY.md](SECURITY.md) | Reporting a vulnerability |
 | [CHANGELOG.md](CHANGELOG.md) | Notable changes |

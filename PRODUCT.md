@@ -13,6 +13,7 @@ web
 - **Claude Code users extending their setup.** They arrive with a task ("I need a design skill", "how do I install this plugin?") and want to pick, install and invoke the right skill in minutes, without reading a dozen READMEs.
 - **Agents and scripts.** They read `/llms.txt`, `/skills.json` and `/install-all.txt`, or a page pasted through "Copy for Claude".
 - **Contributors.** They add a skill by opening a pull request with one typed data file.
+- **Skill authors and teams (planned).** They keep private skills, publish or sell them, and sync what they have installed. [ROADMAP.md](ROADMAP.md) builds this in phases.
 
 ## Product Purpose
 
@@ -26,12 +27,12 @@ Curated entries, not scraped lists. Every entry is written by hand, with when-to
 
 - Visitors come from Claude Code work. They copy a command into a terminal, or paste a prompt into Claude Code ("Copy for Claude", "Get all Skills").
 - Install paths differ per skill: a plugin marketplace, a plugin, `npx skills`, or a manual copy.
-- The site is English-only and works without an account.
+- The site is English-only. Browsing, search, recommendations and exports work without an account.
 
 ## Capabilities and Constraints
 
 - Browse, search, filter by category, multi-select, and share a selection by URL. Detail page per skill, a task-based recommender, a coverage report, and exports.
-- No accounts, no backend, no database, and no AI call at request time. GitHub stats can be missing at any moment, and every surface must work without them.
+- The catalog needs no account, no database and no AI call at request time; accounts exist only for a user's own skills, selling and sync (planned, [ROADMAP.md](ROADMAP.md)). GitHub stats can be missing at any moment, and every surface must work without them.
 - Content is the hand-written catalog in `src/data/skills/`. Skill names, descriptions and linked content belong to their authors.
 
 ## Brand Commitments
@@ -50,7 +51,7 @@ Curated entries, not scraped lists. Every entry is written by hand, with when-to
 
 1. **Curated over comprehensive.** An entry is included because it earns its place, not because it exists.
 2. **Exact over approximate.** A command comes from upstream and runs as pasted; where no single command exists, the entry gives one plain instruction.
-3. **Nothing to sign up for.** Static pages, no backend, no account.
+3. **Nothing to sign up for to browse.** The catalog is static pages. An account is only for keeping, selling or syncing your own skills.
 4. **Readable by agents as well as people.** The home page, `/report`, every skill page and any selection on `/skills` export straight into an LLM.
 5. **Accessible by default.** Contrast, keyboard use and motion preferences are requirements, not polish.
 
