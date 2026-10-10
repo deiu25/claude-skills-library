@@ -46,5 +46,8 @@ next-env.d.ts
 # local agent tooling cache (oh-my-claudecode / claude-mem)
 .omc/
 
+# personal Claude Code settings (project rules in .claude/rules/ are shared)
+.claude/settings.local.json
+
 # graphify build output
 graphify-out/
