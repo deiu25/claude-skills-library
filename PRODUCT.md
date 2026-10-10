@@ -13,7 +13,7 @@ web
 - **Claude Code users extending their setup.** They arrive with a task ("I need a design skill", "how do I install this plugin?") and want to pick, install and invoke the right skill in minutes, without reading a dozen READMEs.
 - **Agents and scripts.** They read `/llms.txt`, `/skills.json` and `/install-all.txt`, or a page pasted through "Copy for Claude".
 - **Contributors.** They add a skill by opening a pull request with one typed data file.
-- **Skill authors and teams (planned).** They keep private skills, publish or sell them, and sync what they have installed. [ROADMAP.md](ROADMAP.md) builds this in phases.
+- **Skill authors and teams (planned).** They keep private skills, build playbooks, publish or sell both, and sync what they have installed. [ROADMAP.md](ROADMAP.md) builds this in phases.
 
 ## Product Purpose
 
