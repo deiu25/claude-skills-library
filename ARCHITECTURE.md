@@ -2,7 +2,7 @@
 
 How the Claude Skills Library is built. Read it before you change data flow, caching, routes or a shared module. What the product must do is in [PRD.md](PRD.md); how it looks is in [DESIGN.md](DESIGN.md).
 
-Accounts, user skills, a marketplace and personal libraries are being added phase by phase; [ROADMAP.md](ROADMAP.md) holds their target design. Everything below describes the code as it is, and each phase updates it when it changes the code.
+Accounts, user skills, a marketplace, personal libraries and playbooks are being added phase by phase; [ROADMAP.md](ROADMAP.md) holds their target design. Everything below describes the code as it is, and each phase updates it when it changes the code.
 
 ## Bird's-eye view
 

@@ -1,4 +1,4 @@
-# Roadmap: accounts, user skills, marketplace and personal libraries
+# Roadmap: accounts, user skills, marketplace, libraries and playbooks
 
 | | |
 |---|---|
@@ -10,7 +10,8 @@ The curated catalog stays as it is: static, hand-written, reviewed in git. Aroun
 - accounts;
 - private skills that users upload;
 - a marketplace where authors present and sell skills;
-- a personal library of what each user saved, installed globally and installed per project.
+- a personal library of what each user saved, installed globally and installed per project;
+- playbooks: for each kind of project, the skills for every stage in order, exported so Claude Code walks through them.
 
 This file holds the decisions, the target design, the rules every merge keeps, and the phases. Each phase is one Claude Code session.
 
@@ -18,9 +19,14 @@ This file holds the decisions, the target design, the rules every merge keeps, a
 
 Paste into a new Claude Code session in this repository:
 
-> Read AGENTS.md and ROADMAP.md. Implement only the first phase whose status is `todo`, on a branch `feat/<phase-slug>`. Before calling a Better Auth, Drizzle, Neon or Stripe API, read its current docs; for Next.js, read the bundled docs. Stop when the phase's "Done when" passes, set its status to `done` in ROADMAP.md, and deploy it the way RUNBOOK.md describes.
+> Read AGENTS.md and ROADMAP.md, then implement one phase: the one named after this prompt, or, if none is named, the first phase in Status whose status is `todo` and whose prerequisites are `done`. Work on a branch `feat/<phase-slug>`. Before calling a Better Auth, Drizzle, Neon or Stripe API, read its current docs; for Next.js, read the bundled docs. Stop when the phase's "Done when" passes, set its status to `done` in ROADMAP.md, and deploy it the way RUNBOOK.md describes.
 
 **Owner** lines name what only the owner can do: accounts, billing, DNS and secrets. A session stops and asks when one of them is missing.
+
+**Parallel sessions.**
+- Give each session its own git worktree, so no session switches another's branch: `git worktree add ../claude-skills-library-<phase> -b feat/<phase-slug> origin/main`.
+- Name each session's phase after the prompt, and pick phases that touch different files.
+- Before merging into `main`, fetch and merge `origin/main`, because another session may have merged first.
 
 ## Status
 
@@ -42,8 +48,15 @@ Paste into a new Claude Code session in this repository:
 | P13 | Payments go-live | todo |
 | P14 | Reviews and public stacks | todo |
 | P15 | Teams | todo |
+| P16 | Curated playbooks (static) | todo |
+| P17 | My playbooks: the builder | todo |
+| P18 | Shared playbooks: publish, copy, report | todo |
+| P19 | Apply playbooks from the CLI | todo |
+| P20 | Paid and team playbooks | todo |
 
 The order follows the owner's priorities: accounts, then private skills, then presenting and selling, then the lists. P10–P12 need P1 to P5, so they can move ahead of P6–P9. The exception is P12's pull of bought skills, which needs P9. P13 waits for the paperwork, not for P10–P12.
+
+Playbooks (P16–P20) are a second track. P16 needs nothing; each later playbook phase lists what it needs.
 
 ## Decisions
 
@@ -58,6 +71,7 @@ The order follows the owner's priorities: accounts, then private skills, then pr
 | Rate limits | Better Auth's limiter with `storage: "database"`. App endpoints use Upstash Ratelimit and fail closed in production |
 | Catalog | Unchanged and curated. What users publish lives in a separate, labelled Community area, and never reaches `/skills.json`, `/llms.txt` or `/install-all.txt` |
 | Anonymous visitors | Catalog pages stay prerendered, set no cookie and call no API; Next.js route prefetches are the only requests after load. The header's account control loads only when a `localStorage` flag says the visitor has signed in before |
+| Playbooks | A playbook is an ordered path through one kind of project: stages (Discovery, Design, Build, Verify, Launch), each with its skills in order, and each step naming the exact command it runs. Curated playbooks are static like the catalog; users build, share, copy and sell their own. Every playbook exports as a Claude Code skill that walks the stages and keeps its progress in the project. The name is "playbook", not "path", because path already means file and URL paths throughout the code (`paths:`, `repoPath`, `revalidatePath`), and "workflow" is taken by Claude Code |
 
 ## Target design
 
@@ -82,9 +96,10 @@ The order follows the owner's priorities: accounts, then private skills, then pr
 |---|---|
 | Every route that exists today | Unchanged: static or ISR, with `/opengraph-image` rendered on demand. The five catalog pages add `export const dynamic = "error"` in P2 |
 | `/sign-in`, `/sign-up`, `/forgot-password`, `/reset-password`, `/two-factor` | Dynamic, in an `(auth)` route group |
-| `/dashboard/**` | Dynamic: skills, library, projects, purchases, sales, settings, admin, org |
-| `/community`, `/u/[handle]`, `/u/[handle]/[slug]`, `/u/[handle]/stacks/[slug]` | ISR. `generateStaticParams` returns `[]` and writes call `revalidatePath`. A database error renders an empty state. While sign-up is closed, these routes return `notFound()` |
+| `/dashboard/**` | Dynamic: skills, library, projects, playbooks, purchases, sales, settings, admin, org |
+| `/community`, `/u/[handle]`, `/u/[handle]/[slug]`, `/u/[handle]/stacks/[slug]`, `/u/[handle]/playbooks/[slug]` | ISR. `generateStaticParams` returns `[]` and writes call `revalidatePath`. A database error renders an empty state. While sign-up is closed, these routes return `notFound()` |
 | `/privacy`, `/terms`, `/terms/marketplace` | Static |
+| `/playbooks`, `/playbooks/[slug]` | Static, like the catalog pages, with `dynamic = "error"` (P16) |
 | `/api/auth/[...all]`, `/api/stripe/webhook`, `/api/v1/sync`, `/api/v1/library`, `/api/skills/[id]/download`, `/api/me/export` | Dynamic route handlers |
 
 ### Reuse
@@ -95,6 +110,7 @@ The order follows the owner's priorities: accounts, then private skills, then pr
 - **`SkillSearch` and `SelectionBar`** already track a selection (`sel`), which becomes "Save selected".
 - **`CATEGORY_LABELS`** (`src/data/types.ts`) supplies the Community categories. The slug pattern in `src/lib/selection.ts` (`SLUG_RE`, not exported yet) validates slugs.
 - **A catalog entry's `repo` and `repoPath`** match a synced install to that entry.
+- **A catalog entry's `usage` items** (a command and its description) are the commands a playbook step can name. `toInstallAllPrompt` also builds a playbook's install prompt.
 
 ### Data model
 
@@ -113,6 +129,9 @@ App ids are `uuid`, keys into the auth tables are `text`, times are `timestamptz
 | P11 | Generated: `apikey` |
 | P14 | `review`: skill `CASCADE`, author `SET NULL`, purchase (unique), rating (`CHECK` 1–5), body, hidden |
 | P15 | Generated: `organization`, `member`, `invitation`, `session.activeOrganizationId`. `skill` and `project` gain a nullable `organization_id` |
+| P17 | `playbook`: owner → user `SET NULL`, slug, name, tagline, description, tags, visibility (`private`, `unlisted`, `public`), status (`draft`, `published`, `removed`), template slug (the curated source), `forked_from` → playbook `SET NULL`, version; unique (owner, slug).<br>`playbook_stage`: playbook `CASCADE`, position, name, goal, done when.<br>`playbook_step`: stage `CASCADE`, position, kind (`catalog`, `skill`, `github`, `web`, `note`), catalog slug, skill → skill `SET NULL`, url, label, command, when, why, optional; a `CHECK` for exactly one reference per kind (a `note` has none).<br>Every reorder rewrites the positions in one transaction |
+| P18 | `playbook` gains `published_at`. `report.target_type` accepts `playbook` |
+| P20 | `playbook` gains `price_cents`, `currency` and a nullable `organization_id`. `purchase` gains a nullable `playbook_id`, with a `CHECK` that skill and playbook are never both set |
 
 **Account deletion.** It cascades to everything the user owns.
 - Skills that never sold are deleted.
@@ -382,6 +401,92 @@ Any time after P9, once the paperwork is done.
   - A member can read the organization's private skill.
   - A removed member is refused on their next request.
 
+### P16 — Curated playbooks
+Needs nothing: it can run alongside P1, but not alongside P2, because both edit the header.
+- **Ships:**
+  - `Playbook`, `PlaybookStage` and `PlaybookStep` types next to `Skill`. One file per playbook in `src/data/playbooks/`, registered in `src/data/playbooks/index.ts` the way catalog entries are.
+  - A stage has a goal and a "done when". A step names a catalog entry, the exact command to run (one of that entry's `usage` commands), why it runs, an optional "when" condition, and whether it is optional.
+  - Two or three starter playbooks, written with the owner from catalog entries. For example, to be confirmed, a Next.js app:
+    - Discovery: grill-me, spec-kit;
+    - Design: impeccable, design-taste-frontend, ui-ux-pro-max;
+    - Build: superpowers, vercel-agent-skills, next-devtools-mcp;
+    - Verify: dev-browser, chrome-devtools-mcp, claude-code-safety-net;
+    - Launch: marketingskills.
+  - `src/lib/playbooks.ts`, with tests, building four exports from one playbook:
+    - **The playbook skill:** a SKILL.md named `playbook-<slug>`. It walks the stages in order and invokes each step's skill or command. At each stage's "done when" it stops to ask the user. It keeps its progress in `.claude/playbooks/<slug>.md` in the project, so a later session resumes where the last one stopped.
+    - **The install prompt** for every skill the playbook uses, built with `toInstallAllPrompt`.
+    - **A CLAUDE.md routing block:** each stage and its skills, in order.
+    - **Markdown** for "Copy for Claude".
+  - `/playbooks` and `/playbooks/[slug]`:
+    - static, with `dynamic = "error"`;
+    - a stage timeline;
+    - step cards with the command to copy;
+    - an export panel to copy the exports or download the SKILL.md.
+  - A "Playbooks" link in the header, plus entries in the sitemap and `/llms.txt`.
+  - CONTRIBUTING.md says how to add a playbook. DESIGN.md gets the timeline and the step card.
+- **Owner:** confirm the starter playbooks' stages, skills and order.
+- **Done when:**
+  - A test fails when a step names a slug that is not in the registry. It also fails on a command missing from that entry's `usage`: the command is added to the entry first, copied from upstream.
+  - The generated SKILL.md matches a golden file and stays within the skill limits: a name of up to 64 characters from `[a-z0-9-]`, a description of up to 1024.
+  - Installed in a scratch project, the playbook skill starts when asked to start a Next.js project, walks Discovery and writes its progress file. This is checked by hand, and the result is reported.
+  - The build lists `/playbooks` and `/playbooks/[slug]` as static.
+
+### P17 — My playbooks
+Needs P4.
+- **Ships:**
+  - `playbook`, `playbook_stage` and `playbook_step`.
+  - `/dashboard/playbooks`: the list of the user's playbooks.
+  - New playbooks start blank or as a copy of a curated one.
+  - The editor:
+    - adds, edits, removes and reorders stages and steps, with buttons that work from the keyboard;
+    - has a step picker that searches catalog entries (with their commands) and the user's skills, and from P10 on, their library. It also takes a GitHub or web URL, or a text-only note;
+    - shows a live preview of the generated SKILL.md;
+    - warns about empty stages and steps whose skill is missing.
+  - The exports come from P16's functions: a playbook from the database maps onto the same types.
+  - Account deletion deletes the user's playbooks.
+  - Playbooks stay private in this phase; publishing comes in P18.
+- **Done when:**
+  - A playbook copied from a curated one exports the same SKILL.md as the original.
+  - Another user gets 404 on it, and an action replayed with someone else's id fails.
+  - An e2e test reorders steps from the keyboard.
+
+### P18 — Shared playbooks
+Needs P6, P7 and P17.
+- **Ships:**
+  - Public and unlisted playbooks at `/u/[handle]/playbooks/[slug]` (ISR, same rules as listings), and a Playbooks tab in Community.
+  - "Use this playbook": copies a playbook into the user's account. The copy keeps `forked_from` and credits the author, and the source shows how many times it was copied.
+  - A scan gate on publishing: P4's scan runs over the generated SKILL.md and every note, and a critical finding blocks publishing.
+  - Publishing needs every referenced platform skill to be public or for sale. A paid one shows "requires purchase".
+  - Reports and removals go through P7 (`report.target_type = 'playbook'`).
+- **Done when:**
+  - A copy keeps its credit and survives the deletion of its source.
+  - A playbook whose note pipes a download into a shell cannot be published.
+  - An unpublished playbook returns 404.
+
+### P19 — Apply playbooks from the CLI
+Needs P11 and P17. Pulling platform skills needs P12.
+- **Ships:**
+  - `playbook apply <handle>/<slug> [--global] [--dry-run]`:
+    - writes the playbook skill into the project's `.claude/skills/playbook-<slug>/`, or into `~/.claude/skills/` with `--global`;
+    - pulls platform skills through P12;
+    - prints an install prompt for third-party skills instead of running their install commands.
+  - `playbook status`: which of the playbook's skills are installed, missing or outdated, from a local scan.
+  - Coverage on the playbook page for each synced project ("9 of 12 installed"), with an install prompt for the rest.
+- **Done when:**
+  - `--dry-run` lists exactly the files it would write.
+  - `apply` writes nothing outside `.claude/`.
+  - The coverage on the page matches a synced project.
+
+### P20 — Paid and team playbooks
+Needs P9 (P13 to sell live), P15 and P18.
+- **Ships:**
+  - A price on a playbook, sold through the P8–P9 checkout. Buying grants the playbook, not the paid skills it names; those keep their own "requires purchase".
+  - Account deletion keeps a sold playbook as `removed`, as it does for a sold skill.
+  - Playbooks owned by an organization and shared with its members, through `canRead`.
+- **Done when:**
+  - A test purchase grants the playbook exactly once, and a non-buyer gets 403 on its export.
+  - A member sees the organization's playbook, and a removed member is refused on their next request.
+
 ## Verification
 
 Every phase checks the following, on top of its "Done when":
@@ -398,6 +503,7 @@ Every phase checks the following, on top of its "Done when":
 - **Stripe reach.** From a platform in the EEA, cross-border payouts reach sellers only in the US, UK, EEA, Canada and Switzerland, and only without `on_behalf_of`. Stripe acting as merchant of record does not support Connect. P8 confirms both.
 - **Domain.** Passkeys, OAuth callbacks and the email sender all bind to it. Choose it before P3.
 - **Supply chain.** A bought skill runs code on the buyer's machine. The scan, reports and a clear disclaimer reduce the risk. Plaintext cannot be copy-protected, and the seller terms must say so.
+- **Playbooks are instructions.** A shared playbook becomes text that Claude follows on someone else's machine. P18's scan gate, the SKILL.md preview before export, and reports reduce the risk. The CLI never runs a third-party install command.
 - **Packages (better-auth 1.7, checked 2026-10-10).**
   - The CLI is the `auth` package; `@better-auth/cli` is stale.
   - Generate the schema with `npx auth@latest generate --config src/lib/auth/auth.ts --output src/lib/db/auth-schema.ts`, then run drizzle-kit.
