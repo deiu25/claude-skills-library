@@ -6,7 +6,7 @@
 | Owner | Badulescu Andrei ([@deiu25](https://github.com/deiu25)) |
 | Last reviewed | 2026-10-10 |
 
-What the product must do, and what it must not do. Who it is for and why it exists are in [PRODUCT.md](PRODUCT.md); how it is built is in [ARCHITECTURE.md](ARCHITECTURE.md).
+What the product must do, and what it must not do. Who it is for and why it exists are in [PRODUCT.md](PRODUCT.md); how it is built is in [ARCHITECTURE.md](ARCHITECTURE.md); the accounts and marketplace work is planned in [ROADMAP.md](ROADMAP.md).
 
 ## Problem
 
@@ -18,13 +18,18 @@ Claude Code skills, plugins and MCP servers are spread across hundreds of GitHub
 2. Every entry explains, in hand-written prose, when to use the skill, how to invoke it and why it earns its place.
 3. Where a skill installs with a command, the entry gives that command exactly as it runs; where none exists, a one-line instruction.
 4. The whole catalog can be handed to an LLM in one step: Markdown, JSON, `llms.txt` or an install-all prompt.
+5. A signed-in user keeps all their skills in one library: the ones they wrote, bought or saved from GitHub and the web, and what is installed globally and in each project.
+6. An author presents a skill on its own page and sells it through the site.
+
+Goals 5 and 6 are planned; [ROADMAP.md](ROADMAP.md) builds them in phases.
 
 ## Non-goals
 
-- User accounts, ratings, comments or any other user-generated content.
-- A backend, a database or a request-time AI call. Search, recommendations and exports stay in the browser.
-- Scraped or generated entries. The catalog is curated by hand.
-- Hosting skill files. The site links to each skill's source and installs from there.
+- Comments, forums or messages between users. Reviews come only from verified buyers.
+- A request-time AI call. Search, recommendations and exports of the catalog stay in the browser.
+- Scraped or generated catalog entries. The catalog is curated by hand; skills that users publish appear separately, as Community.
+- Hosting files for catalog entries. An entry links to its source and installs from there; the site stores only the skills users upload.
+- Analytics or tracking. Sellers see their own sales, never data about visitors.
 - Localisation. The site is English-only.
 
 ## Users
@@ -71,23 +76,37 @@ Described in [PRODUCT.md](PRODUCT.md#users): Claude Code users choosing skills, 
 - **FR-16** `/skills.json` (a versioned JSON catalog with star counts), `/llms.txt` (llmstxt.org format) and `/install-all.txt` (a prompt Claude Code runs), all static and regenerated with the site.
 - **FR-17** `/sitemap.xml` lists every skill page, and `/robots.txt` allows all crawlers.
 
+### Accounts and user content (planned)
+
+Each line becomes its own section here when its [ROADMAP.md](ROADMAP.md) phase ships.
+
+- **FR-18** Accounts: email and password with verification and reset, GitHub sign-in, two-factor, passkeys, active sessions, data export and account deletion (P1–P3).
+- **FR-19** Private skills: a user writes or uploads a skill folder, keeps its versions, and sees a security scan of it (P4–P5).
+- **FR-20** Community: public profiles and skill pages, a Community browse kept apart from the catalog, reports and moderation (P6–P7).
+- **FR-21** Selling: sellers onboard with Stripe, buyers pay by card and download what they bought, and a refund revokes access (P8, P9, P13).
+- **FR-22** Library: skills saved from the catalog, Community, GitHub or any URL; projects; global and per-project installs; export as an install prompt (P10).
+- **FR-23** Sync CLI: an `npx` command authenticated with an API key reports installed skills, pulls owned skills and flags outdated ones (P11–P12).
+- **FR-24** Reviews from verified buyers and public project stacks (P14); teams that share private skills (P15).
+
 ## Non-functional requirements
 
 - **NFR-1 Freshness.** The first request after each 6-hour window triggers a background refresh of the GitHub stats; requests after it get the new data.
-- **NFR-2 Resilience.** When GitHub rejects a request or is down, every page still renders and every build still succeeds; stats are hidden or marked unavailable. A response that hangs is not covered (see ARCHITECTURE.md, Known limits).
-- **NFR-3 Performance.** Pages are prerendered, and the core features make no network request after load.
+- **NFR-2 Resilience.** When GitHub rejects a request or is down, every page still renders and every build still succeeds; stats are hidden or marked unavailable. A response that hangs is not covered (see ARCHITECTURE.md, Known limits). The catalog never depends on a database: a database outage leaves every catalog page and endpoint working, and only the migration step of a deploy needs it.
+- **NFR-3 Performance.** Catalog pages are prerendered. For anonymous visitors the core features run in the browser and call no API; Next.js route prefetches are the only requests after load.
 - **NFR-4 Accessibility.** WCAG AA contrast for text in both themes, full keyboard navigation, a skip link, and support for reduced motion, reduced transparency and increased contrast.
-- **NFR-5 Privacy.** No analytics, cookies or tracking. The only thing stored on the client is the theme choice in `localStorage`.
-- **NFR-6 Security.** The server accepts no user input. `GITHUB_TOKEN` is the only secret and never reaches the client.
+- **NFR-5 Privacy.** No analytics or tracking. Anonymous visitors get no cookie; the browser stores only the theme choice in `localStorage` and, after a sign-in, a flag saying the visitor has signed in before. Signed-in users get one strictly necessary session cookie and can export and delete their data.
+- **NFR-6 Security.** The server accepts input only on authenticated routes and the payment webhook; it validates every input and checks ownership on every write. No secret reaches the client; RUNBOOK.md lists them.
 - **NFR-7 Licensing.** The code is MIT. Skill names, descriptions and linked content belong to their authors, and the footer says so.
 
 ## Acceptance criteria for any change
 
 - The quality gates pass: `npm test`, `npm run lint`, `npx tsc --noEmit`, `npm run build`.
 - Every route in this document still renders, with GitHub stats and without them.
+- Catalog routes stay static in the build output, and an anonymous catalog page sets no cookie.
 - A new or edited entry meets FR-1 to FR-4, and its install command matches the upstream README on the day it is written.
 
 ## Open questions
 
 - **Usage measurement.** With no analytics, there is no evidence of which skills or features people use. Adding any measurement changes NFR-5.
 - **Entry freshness.** Nothing checks that an install command still works after its upstream project changes.
+- **Selling setup.** VAT, the platform fee and the marketplace terms are settled with an accountant before payments go live (ROADMAP.md, P13).

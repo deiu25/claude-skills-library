@@ -6,7 +6,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # Claude Skills Library
 
-A curated catalog of Claude Code skills, live at https://claude-skills-library-psi.vercel.app. Next.js 16 App Router, React 19, Tailwind CSS v4, strict TypeScript. The catalog is static data in `src/data/skills/`; there is no backend. A push to `main` deploys to production.
+A curated catalog of Claude Code skills, live at https://claude-skills-library-psi.vercel.app. Next.js 16 App Router, React 19, Tailwind CSS v4, strict TypeScript. The catalog is static data in `src/data/skills/`. Accounts, user skills and a marketplace are being built around it, one phase at a time, from [ROADMAP.md](ROADMAP.md). A push to `main` deploys to production.
 
 ## Commands
 
@@ -30,12 +30,13 @@ A change is done when test, lint, type check and build all pass.
 | Copy, audience, positioning | [PRODUCT.md](PRODUCT.md) |
 | Catalog entries, branches, pull requests | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | Deploys, rollbacks, production problems | [RUNBOOK.md](RUNBOOK.md) |
+| Auth, the database, user skills, payments, the sync CLI | [ROADMAP.md](ROADMAP.md): decisions, merge rules, the next phase |
 | Any Next.js API | `node_modules/next/dist/docs/`; caching here follows `01-app/02-guides/caching-without-cache-components.md` |
 
 ## Gotchas
 
 - `cacheComponents` is off. Cache with route segment config and `fetch(..., { next: { revalidate } })`; don't add `"use cache"`.
-- `export const revalidate = 21600` must stay a literal in every route, because Next.js reads it statically. Change it together with `REVALIDATE_SECONDS` in `src/lib/github.ts`.
+- `export const revalidate = 21600` must stay a literal in every catalog route, because Next.js reads it statically. Change it together with `REVALIDATE_SECONDS` in `src/lib/github.ts`.
 - `getRepoStats` returns `null` on any failure. Every page must render without stats, and a GitHub error must never fail a page or a build.
 - A file in `src/data/skills/` does nothing until it is imported and appended to `skills` in `src/data/skills/index.ts`.
 - `/skills` writes its URL state (`q`, `category`, `sel`) with `window.history.replaceState`. `router.replace` re-runs the server page and flashes the loading skeleton.
@@ -54,6 +55,7 @@ A change is done when test, lint, type check and build all pass.
 ## Boundaries
 
 - Leave the `nextjs-agent-rules` block at the top of this file alone; Next.js manages it.
-- Never commit `.env*` files or print `GITHUB_TOKEN`.
-- No backend, database, auth or request-time AI call (non-goals in PRD.md), and no analytics or tracking (PRD.md, NFR-5). Change PRD.md and ARCHITECTURE.md first if one of these has to change.
+- Never commit a `.env*` file other than `.env.example`, which holds variable names only, and never print a secret: `GITHUB_TOKEN` and every key RUNBOOK.md lists.
+- Backend work (auth, database, user content, payments) follows ROADMAP.md: one phase per session, under its merge rules. Catalog pages stay prerendered and cookie-free for anonymous visitors (PRD.md, NFR-3 and NFR-5).
+- No request-time AI call, and no analytics or tracking (PRD.md, NFR-5).
 - `main` is production. Push to it only when every check passes.

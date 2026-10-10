@@ -2,6 +2,8 @@
 
 How the Claude Skills Library is built. Read it before you change data flow, caching, routes or a shared module. What the product must do is in [PRD.md](PRD.md); how it looks is in [DESIGN.md](DESIGN.md).
 
+Accounts, user skills, a marketplace and personal libraries are being added phase by phase; [ROADMAP.md](ROADMAP.md) holds their target design. Everything below describes the code as it is, and each phase updates it when it changes the code.
+
 ## Bird's-eye view
 
 A curated catalog of Claude Code skills, published as a mostly static Next.js site.
@@ -57,7 +59,7 @@ Pure modules, plus the one clipboard hook. All unit tests live here.
 
 ### `src/components/`
 
-One component per file, named export. Client components (`"use client"`): `SkillSearch`, `SelectionBar`, `SkillRecommender`, `HeroSearch`, `HeroInstall`, `ThemeToggle`, `NavLink`, `Reveal`, `CopyButton`, `CopyForClaudeButton`, `DownloadButton`. The rest render on the server.
+One component per file, named export. Client components (`"use client"`): `SkillSearch`, `SelectionBar`, `SkillRecommender`, `HeroSearch`, `HeroInstall`, `ThemeToggle`, `NavLink`, `Reveal`, `CopyButton`, `CopyForClaudeButton`, `DownloadButton`. The rest render on the server; `SkillCard` and `StatsRow` also ship to the browser, because `SkillSearch` and `SkillRecommender` import them.
 
 ## Invariants
 
@@ -65,12 +67,12 @@ These hold today. Breaking one is an architecture decision, not a refactor: upda
 
 1. **No runtime backend.** All data is the registry plus GitHub stats fetched at build or revalidation time. The only secret is the optional `GITHUB_TOKEN`.
 2. **GitHub is optional.** `getRepoStats` returns `null` on any failure (rate limit, 404, network error, malformed JSON) and never throws. Every consumer renders without stats, and a GitHub outage must never fail a build.
-3. **One cache window, written in several places.** The 6-hour window is `REVALIDATE_SECONDS` in `github.ts` and the literal `21600` in each route's `export const revalidate`. Next.js requires that value to be statically analyzable, so routes cannot import the constant. Change all of them together.
+3. **One cache window, written in several places.** The 6-hour window is `REVALIDATE_SECONDS` in `github.ts` and the literal `21600` in each catalog route's `export const revalidate`. Next.js requires that value to be statically analyzable, so routes cannot import the constant. Change all of them together.
 4. **The previous caching model.** `cacheComponents` is off. Caching uses route segment config (`revalidate`, `dynamic`) and `fetch(..., { next: { revalidate } })`. The matching docs are `node_modules/next/dist/docs/01-app/02-guides/caching-without-cache-components.md`. Do not add `"use cache"` without migrating on purpose.
 5. **Deterministic serializers.** `report.ts` writes no timestamps by default (`generatedAt` defaults to `""`), so builds and tests are reproducible.
 6. **`/skills` state lives in the URL.** `q`, `category` and `sel` are written with `window.history.replaceState`, not `router.replace`: the router call re-runs the async server page behind `<Suspense>` and flashes the skeleton on every click.
 7. **Slugs are unique kebab-case** (`[a-z0-9-]+`). They are route params, sitemap entries and the `sel` encoding; `selection.ts` drops anything else.
-8. **No request-time AI or third-party calls.** The recommender and every export run on the catalog in the browser.
+8. **No AI call, and no third-party call while serving a request.** GitHub is fetched at build and in background revalidation. The recommender and the selection export run in the browser; the other exports are built on the server at build or revalidation time.
 
 ## Cross-cutting concerns
 
