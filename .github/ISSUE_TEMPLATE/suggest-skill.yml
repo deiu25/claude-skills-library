@@ -1,0 +1,31 @@
+name: Suggest a skill
+description: Propose a Claude Code skill, plugin or MCP server for the library.
+title: "Suggest: "
+body:
+  - type: input
+    id: source
+    attributes:
+      label: Source
+      description: The GitHub repository, or another public link.
+      placeholder: https://github.com/owner/repo
+    validations:
+      required: true
+  - type: textarea
+    id: when
+    attributes:
+      label: When is it the right tool?
+      description: The situations where you reach for it, and why it deserves a place in a curated list.
+    validations:
+      required: true
+  - type: input
+    id: install
+    attributes:
+      label: Install command
+      description: Exactly as the upstream README gives it, if you know it.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched the library and it is not listed yet.
+          required: true

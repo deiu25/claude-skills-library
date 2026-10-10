@@ -1,0 +1,283 @@
+---
+name: Claude Skills Library
+description: A curated library of Claude Code skills. Dark-first, zinc neutrals, one emerald accent.
+colors:
+  primary: "#3ecf8e" # the spec's required role name for `accent`; code uses `accent`
+  background: "#09090b"
+  surface: "#131316"
+  surface-raised: "#1b1b1f"
+  line: "#27272a"
+  foreground: "#f4f4f5"
+  muted: "#a1a1aa"
+  faint: "#8b8b94"
+  accent: "#3ecf8e"
+  accent-soft: "#3ecf8e14"
+  accent-strong: "#3ecf8e"
+  accent-foreground: "#09090b"
+  terminal-bg: "#0e0e11"
+  terminal-fg: "#d4d4d8"
+  background-light: "#fafafa"
+  surface-light: "#ffffff"
+  surface-raised-light: "#f4f4f5"
+  line-light: "#e4e4e7"
+  foreground-light: "#18181b"
+  muted-light: "#52525b"
+  faint-light: "#6b6b75"
+  accent-light: "#15805c"
+  accent-soft-light: "#15805c14"
+  accent-strong-light: "#0e6f4d"
+  accent-foreground-light: "#fafafa"
+  terminal-bg-light: "#131316"
+  line-high-contrast: "#71717a"
+typography:
+  display:
+    fontFamily: "Geist, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "60px"
+    fontWeight: 600
+    lineHeight: 1
+    letterSpacing: "-0.06em"
+  headline:
+    fontFamily: "Geist, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "36px"
+    fontWeight: 600
+    lineHeight: 1.11
+    letterSpacing: "-0.05em"
+  title:
+    fontFamily: "Geist, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "20px"
+    fontWeight: 600
+    lineHeight: 1.4
+    letterSpacing: "-0.02em"
+  body:
+    fontFamily: "Geist, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "16px"
+    fontWeight: 400
+    lineHeight: 1.625
+  label:
+    fontFamily: "Geist, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "12px"
+    fontWeight: 400
+    lineHeight: 1.33
+  code:
+    fontFamily: "Geist Mono, ui-monospace, monospace"
+    fontSize: "13px"
+    fontWeight: 400
+    lineHeight: 1.625
+rounded:
+  card: "14px"
+  button: "10px"
+  control: "8px"
+  code: "6px"
+  pill: "9999px"
+spacing:
+  page-x: "16px"
+  page-x-wide: "24px"
+  page-y: "48px"
+  page-y-wide: "64px"
+  grid-gap: "16px"
+components:
+  button-primary:
+    backgroundColor: "{colors.accent}"
+    textColor: "{colors.accent-foreground}"
+    rounded: "{rounded.button}"
+    padding: "0 20px"
+    height: "44px"
+  button-ghost:
+    backgroundColor: "transparent"
+    textColor: "{colors.foreground}"
+    rounded: "{rounded.button}"
+    padding: "0 20px"
+    height: "44px"
+  button-ghost-hover:
+    backgroundColor: "{colors.surface-raised}"
+    textColor: "{colors.foreground}"
+    rounded: "{rounded.button}"
+  skill-card:
+    backgroundColor: "{colors.surface}"
+    rounded: "{rounded.card}"
+    padding: "20px"
+  skill-card-accent:
+    backgroundColor: "{colors.accent-soft}"
+    rounded: "{rounded.card}"
+    padding: "24px"
+  chip:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.muted}"
+    rounded: "{rounded.pill}"
+    padding: "6px 14px"
+  chip-active:
+    backgroundColor: "{colors.accent-soft}"
+    textColor: "{colors.accent-strong}"
+    rounded: "{rounded.pill}"
+    padding: "6px 14px"
+  input:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.foreground}"
+    rounded: "{rounded.control}"
+    padding: "0 14px"
+    height: "44px"
+  terminal:
+    backgroundColor: "{colors.terminal-bg}"
+    textColor: "{colors.terminal-fg}"
+    rounded: "{rounded.card}"
+    padding: "16px"
+---
+
+# Design System: Claude Skills Library
+
+The tokens above are normative. In code they live in `src/app/globals.css`, which stays the source of truth: change a value there first, then here. Plain keys are the dark theme, which is the default; `-light` keys are the light theme. Components reference the plain keys, and the CSS variables swap to the light values when `.dark` is absent from `<html>`.
+
+## Overview
+
+A quiet developer tool. Dark by default, zinc neutrals, one desaturated emerald accent, and Geist Mono for anything a visitor can type or copy. Structure comes from surface steps and 1px lines, not shadows; the only depth is translucent material on chrome that floats over content. Interaction follows Apple's lead: controls answer on pointer-down, motion settles like a critically damped spring without overshoot, and every effect has a fallback for reduced motion, reduced transparency and increased contrast.
+
+**Key Characteristics:**
+
+- Dark-first, with a complete light theme switched by a `.dark` class on `<html>`.
+- One accent hue, used for actions, focus, selection and active states.
+- Monospace for commands, slugs, skill names and code.
+- Flat at rest. Translucent material only on the sticky header and floating panels.
+- A 44px minimum hit target on buttons, inputs and the theme toggle.
+
+## Colors
+
+Zinc neutrals with a single emerald accent, locked site-wide.
+
+### Primary
+
+- **Emerald** (`primary` in this file, `accent` in code; #3ecf8e dark, #15805c light): primary buttons, focus rings, text selection, active chips, list bullets, the `$` prompt in terminal blocks.
+- **Emerald Tint** (the accent at 8% alpha): fill of active chips and the accent skill card.
+- **Text-Safe Emerald** (#3ecf8e dark, #0e6f4d light): accent-colored text, such as link hover and the active chip label.
+
+### Neutral
+
+- **Page** (#09090b dark, #fafafa light): the page background.
+- **Surface** (#131316 dark, #ffffff light): cards, inputs, chips.
+- **Raised Surface** (#1b1b1f dark, #f4f4f5 light): ghost-button hover fill, inline code.
+- **Line** (#27272a dark, #e4e4e7 light): every border and divider. Under `prefers-contrast: more` it becomes #71717a in both themes.
+- **Foreground** (#f4f4f5 dark, #18181b light): headings and primary text.
+- **Muted** (#a1a1aa dark, #52525b light): body copy and secondary text.
+- **Faint** (#8b8b94 dark, #6b6b75 light): metadata, labels, icons at rest, hover borders.
+- **Terminal** (#0e0e11 dark, #131316 light, text #d4d4d8): command panels, dark in both themes.
+
+### Named Rules
+
+**The One Accent Rule.** Emerald is the only hue. A new state uses the accent, its tint or a neutral, never a second color.
+
+**The Text-Safe Accent Rule.** In the light theme the plain accent reaches only 4.24:1 on its own tint, so accent-colored text on the tint (active chips, the accent card) uses Text-Safe Emerald. On plain surfaces the plain accent clears 4.5:1 and is used for icons; Text-Safe Emerald stays the default for accent-colored text.
+
+**The Pinned Terminal Rule.** The terminal panel is dark in both themes and pins its own faint, muted and accent values through the `terminal` utility, so light-theme tokens never land on the dark panel.
+
+## Typography
+
+**Display Font:** Geist (with `ui-sans-serif, system-ui, sans-serif`), loaded through `next/font`
+**Body Font:** Geist
+**Label/Mono Font:** Geist Mono (with `ui-monospace, monospace`)
+
+**Character:** a neutral grotesque for reading, and a monospace that marks what you can type.
+
+### Hierarchy
+
+- **Display** (600, 36px on mobile, 48px from `sm`, 60px from `lg`; line-height 1.11 at 36px, 1 from 48px): the home hero headline only.
+- **Headline** (600, 30px, 36px from `sm`): page titles. On a skill's own page the title is set in mono.
+- **Title** (600, 20px to 30px): section headings.
+- **Subtitle** (500, 18px): step titles. Skill card titles are mono 600 at 15px, 16px when featured.
+- **Body** (400, 14px, 16px from `sm`, line-height 1.625): intros and descriptions. Prose on a skill page is 15px. Line length: 42ch in the home hero, 50 to 60ch for intros, 65 to 70ch for prose.
+- **Label** (400, 12px): stat labels and metadata.
+- **Code** (Geist Mono 400, 13px): commands, usage items, inline code.
+
+### Named Rules
+
+**The Tracking-Follows-Size Rule.** Letter-spacing tightens as size grows, following Geist's own heading scale: -0.02em at 20px, -0.04em at 24 to 30px, -0.05em at 36px, -0.06em from 48px. Smaller headings use `tracking-tight`; body text keeps the default. Mono headings use `tracking-tight`, and small mono text stays at 0.
+
+**The Mono-Means-Typeable Rule.** Monospace marks text a visitor can type or copy: commands, slugs, skill names, file names. It is never decoration.
+
+## Layout
+
+- Two container widths: 1280px for the home page and the skill grid, 896px for reading pages (skill detail, recommend, report).
+- Side gutters of 16px, 24px from `sm`. Inner pages (browse, skill, recommend, report) pad 48px top and bottom, 64px from `sm`; the home and 404 pages set their own section spacing.
+- The skill grid has one column, two from `md` and three from `lg`, with 16px gaps.
+- The home hero splits into two asymmetric columns from `lg` (1.1fr and 1fr); featured skills form an asymmetric bento below it.
+- Header and footer frame every page.
+
+## Elevation & Depth
+
+Flat by default. Depth comes from three surface steps (page, surface, raised surface) and 1px lines. Shadows appear only on floating material.
+
+### Shadow Vocabulary
+
+- **Floating** (`box-shadow: 0 16px 40px -12px rgb(0 0 0 / 0.6)` dark, `0 12px 32px -12px rgb(24 24 27 / 0.22)` light), always with a 1px inset top highlight: the selection bar and its export panel.
+
+### Materials
+
+- **Material:** the page color at 85% opacity behind a 20px blur at 180% saturation. Used by the sticky header, whose bottom hairline fades in over the first 48px of scroll.
+- **Thick material:** the surface color at 78% opacity behind a 32px blur, with a 1px line border and the floating shadow. Used by floating panels.
+
+### Named Rules
+
+**The Flat-At-Rest Rule.** Cards and inputs never carry a shadow. Only material that floats over content does.
+
+**The Solid Fallback Rule.** Under `prefers-reduced-transparency` or `prefers-contrast: more`, both materials become solid surfaces.
+
+## Shapes
+
+Five radii, one job each: cards and panels 14px; buttons and the theme toggle 10px; inputs and small controls such as the icon copy button and command snippets 8px; inline code 6px; pills for chips, badges and dots. Every border is a 1px line. Active chips and the accent card border in emerald.
+
+## Components
+
+### Buttons
+
+- **Shape:** gently rounded (10px), at least 44px tall, 20px side padding, weight 500.
+- **Primary:** emerald fill with dark text in the dark theme and light text in the light theme. Hover brightens it by 8%.
+- **Ghost:** transparent with a 1px line border. Hover raises the fill to Raised Surface and moves the border to Faint.
+- **Press:** shrinks to 0.97 on pointer-down within 80ms and releases over 200ms.
+
+### Chips
+
+- **Style:** pill, 1px line border, Surface fill, Muted 13px text, about 34px tall. Hover moves the border to Faint and the text to Foreground.
+- **State:** active chips take an emerald border, Emerald Tint fill and Text-Safe Emerald text. Used for category filters and tags.
+
+### Cards / Containers
+
+- **Corner Style:** 14px.
+- **Background:** Surface; the accent variant uses Emerald Tint with an emerald border at 40%.
+- **Shadow Strategy:** none (see Elevation & Depth).
+- **Border:** 1px line, Faint on hover.
+- **Internal Padding:** 20px, 24px for featured cards.
+- Skill cards lift 2px on hover and press to 0.98, shallower than buttons because they are larger.
+
+### Inputs / Fields
+
+- **Style:** 8px radius, 1px line border, Surface fill, at least 44px tall, 14px side padding, Muted placeholder.
+- **Focus:** the border turns emerald. No glow.
+
+### Navigation
+
+- A sticky header on thin material: the mono wordmark on the left, then Browse skills, Recommend and Report (the last two from `sm`), the GitHub source link and the theme toggle. The current section carries `aria-current`.
+
+### Terminal Block
+
+- A fixed dark panel with a mono title bar and a copy button, for real commands and real file content only, never a staged transcript.
+
+### Focus
+
+- Every focusable element except text inputs shows a 2px emerald outline offset by 2px on `:focus-visible`. Inputs mark focus with an emerald border instead.
+
+## Do's and Don'ts
+
+### Do:
+
+- **Do** use the token utilities (`bg-surface`, `text-muted`, `border-line`, `text-accent-strong`). Components hold no raw hex; the Open Graph image is the one exception, because it renders outside the stylesheet.
+- **Do** put custom hover CSS inside `@media (hover: hover)`, as the utilities in `globals.css` do, so states don't stick after a tap.
+- **Do** transition the individual `scale` and `translate` properties, as the `press` utility does. Tailwind v4 moves elements with those properties, not with `transform`.
+- **Do** wrap entrance animation in `Reveal`, which honours reduced motion and stays visible without JavaScript.
+- **Do** use Phosphor icons: 12 to 16px beside text, 18 to 22px in controls and the header, 36 to 40px in empty states; `aria-hidden` when decorative.
+- **Do** give every new control a 44px hit area: its own size, or a pseudo-element halo for a small icon button.
+
+### Don't:
+
+- **Don't** add a second accent color.
+- **Don't** set accent-colored text in the plain accent on the Emerald Tint; use Text-Safe Emerald.
+- **Don't** give a resting card a shadow.
+- **Don't** introduce a sixth radius.
+- **Don't** put `.press` on small icon targets: the shrink takes their hit-area halo with it.
