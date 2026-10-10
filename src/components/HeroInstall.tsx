@@ -62,7 +62,7 @@ export function HeroInstall({
           className="btn btn-primary w-full text-sm"
         >
           {prompt.copied ? (
-            <Check size={16} weight="bold" aria-hidden />
+            <Check size={16} weight="bold" className="animate-pop-in" aria-hidden />
           ) : (
             <Copy size={16} aria-hidden />
           )}
@@ -77,7 +77,7 @@ export function HeroInstall({
             className="btn btn-ghost text-sm"
           >
             {markdown.copied ? (
-              <Check size={16} weight="bold" className="text-accent" aria-hidden />
+              <Check size={16} weight="bold" className="animate-pop-in text-accent" aria-hidden />
             ) : (
               <Copy size={16} aria-hidden />
             )}

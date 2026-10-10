@@ -8,9 +8,15 @@ export function SiteFooter() {
         <p className="text-sm text-muted">
           MIT licensed. Skill names and content belong to their authors.
         </p>
-        <nav aria-label="Footer" className="flex items-center gap-5 text-sm">
+        <nav aria-label="Footer" className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
           <Link href="/skills" className="text-muted transition-colors hover:text-foreground">
             All skills
+          </Link>
+          <Link href="/recommend" className="text-muted transition-colors hover:text-foreground">
+            Recommend
+          </Link>
+          <Link href="/report" className="text-muted transition-colors hover:text-foreground">
+            Report
           </Link>
           <a
             href={SITE_REPO_URL}

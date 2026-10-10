@@ -48,7 +48,7 @@ export function CoverageMap({ skills, statsByRepo }: CoverageMapProps) {
         {summary.map((item) => (
           <div key={item.label} className="flex flex-col gap-1 bg-surface p-4">
             <dt className="text-xs text-faint">{item.label}</dt>
-            <dd className="font-mono text-lg font-semibold tracking-tight text-foreground">
+            <dd className="font-mono text-lg font-semibold text-foreground">
               {item.value}
             </dd>
           </div>

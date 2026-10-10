@@ -7,7 +7,7 @@ interface MarkdownProps {
 /** Renders curated skill markdown with the site's typography. */
 export function Markdown({ content }: MarkdownProps) {
   return (
-    <div className="space-y-4 text-[15px] leading-relaxed text-muted [&_strong]:text-foreground">
+    <div className="space-y-4 text-[0.9375rem] leading-relaxed text-muted [&_strong]:text-foreground">
       <ReactMarkdown
         components={{
           p: ({ children }) => <p className="max-w-[65ch] text-pretty">{children}</p>,
@@ -20,10 +20,10 @@ export function Markdown({ content }: MarkdownProps) {
           code: ({ children, className }) => {
             const isBlock = typeof className === "string";
             if (isBlock) {
-              return <code className="font-mono text-[13px]">{children}</code>;
+              return <code className="font-mono text-[0.8125rem]">{children}</code>;
             }
             return (
-              <code className="rounded-[6px] border border-line bg-surface-raised px-1.5 py-0.5 font-mono text-[13px] text-foreground">
+              <code className="rounded-[6px] border border-line bg-surface-raised px-1.5 py-0.5 font-mono text-[0.8125rem] text-foreground">
                 {children}
               </code>
             );

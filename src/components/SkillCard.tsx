@@ -22,19 +22,19 @@ export function SkillCard({ skill, stats, featured = false, accent = false }: Sk
   return (
     <Link
       href={`/skills/${skill.slug}`}
-      className={`group flex h-full flex-col gap-3 transition-[transform,border-color,background-color,color] duration-200 hover:-translate-y-0.5 ${surface} ${
+      className={`press group flex h-full flex-col gap-3 [--press-scale:0.98] hover:-translate-y-0.5 ${surface} ${
         featured ? "p-6" : "p-5"
       }`}
     >
       <div className="flex items-start justify-between gap-3">
         <h3
-          className={`font-mono font-semibold tracking-tight text-foreground ${
-            featured ? "text-base" : "text-[15px]"
+          className={`font-mono font-semibold text-foreground ${
+            featured ? "text-base" : "text-[0.9375rem]"
           }`}
         >
           {skill.name}
         </h3>
-        <span className="shrink-0 rounded-full border border-line px-2.5 py-0.5 font-mono text-[11px] text-muted">
+        <span className="shrink-0 rounded-full border border-line px-2.5 py-0.5 font-mono text-[0.6875rem] text-muted">
           {CATEGORY_LABELS[skill.category]}
         </span>
       </div>
@@ -54,7 +54,7 @@ export function SkillCard({ skill, stats, featured = false, accent = false }: Sk
         )}
         <ArrowRight
           size={16}
-          className="shrink-0 text-faint transition-[transform,color] duration-200 group-hover:translate-x-0.5 group-hover:text-accent"
+          className="shrink-0 text-faint transition-[translate,color] duration-200 group-hover:translate-x-0.5 group-hover:text-accent"
           aria-hidden
         />
       </div>

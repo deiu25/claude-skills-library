@@ -16,7 +16,7 @@ export function TerminalBlock({ title = "terminal", copyText, children }: Termin
         <span className="font-mono text-xs text-faint">{title}</span>
         {copyText ? <CopyButton text={copyText} label="Copy command" /> : null}
       </div>
-      <div className="overflow-x-auto p-4 font-mono text-[13px] leading-relaxed text-terminal-fg">
+      <div className="overflow-x-auto p-4 font-mono text-[0.8125rem] leading-relaxed text-terminal-fg">
         {children}
       </div>
     </div>

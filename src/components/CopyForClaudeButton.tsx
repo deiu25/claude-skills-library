@@ -19,7 +19,7 @@ export function CopyForClaudeButton({ text }: CopyForClaudeButtonProps) {
       className="btn btn-ghost text-sm"
     >
       {copied ? (
-        <Check size={16} weight="bold" className="text-accent" aria-hidden />
+        <Check size={16} weight="bold" className="animate-pop-in text-accent" aria-hidden />
       ) : (
         <Copy size={16} aria-hidden />
       )}

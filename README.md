@@ -12,7 +12,7 @@ Built with Next.js 15, Tailwind CSS v4, and Motion. Hosted on Vercel.
 - **Live GitHub stats** via the REST API with 6-hour ISR revalidation. Skills sharing a monorepo cost one request.
 - **Exact install commands** with one-click copy: plugin marketplaces, `npx skills`, or plain git clone.
 - **Instant client-side search and category filters** over fully static data. No database, no backend.
-- Dark-first design with a light mode, keyboard navigable, WCAG AA contrast.
+- Dark-first design with a light mode, keyboard navigable, WCAG AA contrast. Honors reduced motion, reduced transparency and increased contrast.
 
 ## Local development
 

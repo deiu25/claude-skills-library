@@ -6,3 +6,12 @@ export const SITE_URL = "https://claude-skills-library-psi.vercel.app";
 
 export const SITE_DESCRIPTION =
   "A curated library of Claude Code skills: what each one does, when to use it, and how to install it.";
+
+/**
+ * aria-current for a nav link: "page" when it points at the page you are on,
+ * "true" when you are on a page nested under its section, otherwise unset.
+ */
+export function ariaCurrent(pathname: string, href: string): "page" | "true" | undefined {
+  if (pathname === href) return "page";
+  return pathname.startsWith(`${href}/`) ? "true" : undefined;
+}

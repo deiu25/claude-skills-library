@@ -24,10 +24,18 @@
   --accent-foreground: #fafafa;
   --terminal-bg: #131316;
   --terminal-fg: #d4d4d8;
+  /* Floating material: a bright top edge (light catching it) and a soft drop. */
+  --material-edge: rgb(255 255 255 / 0.7);
+  --shadow-floating: 0 12px 32px -12px rgb(24 24 27 / 0.22);
 
   --radius-card: 14px;
   --radius-button: 10px;
   --radius-input: 8px;
+
+  /* Settles like a critically damped spring: fast start, no overshoot. */
+  --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
+
+  color-scheme: light;
 }
 
 .dark {
@@ -45,6 +53,10 @@
   --accent-foreground: #09090b;
   --terminal-bg: #0e0e11;
   --terminal-fg: #d4d4d8;
+  --material-edge: rgb(255 255 255 / 0.06);
+  --shadow-floating: 0 16px 40px -12px rgb(0 0 0 / 0.6);
+
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -68,6 +80,32 @@
   --radius-card: var(--radius-card);
   --radius-button: var(--radius-button);
   --radius-input: var(--radius-input);
+}
+
+/*
+  Type rule: tracking follows size, never one value for every size. xl and up
+  are display sizes on this site (body copy stops at lg), so they carry Geist's
+  own heading tracking, measured on vercel.com/geist/typography: -0.02em at
+  20px, -0.04em at 24-32px, -0.06em from 40px. 4xl (36px) sits between the
+  32 and 40 steps. Smaller headings keep tracking-tight. Mono is off this
+  scale: mono headings keep tracking-tight, small mono text stays at 0.
+*/
+@theme {
+  --text-xl--letter-spacing: -0.02em;
+  --text-2xl--letter-spacing: -0.04em;
+  --text-3xl--letter-spacing: -0.04em;
+  --text-4xl--letter-spacing: -0.05em;
+  --text-5xl--letter-spacing: -0.06em;
+  --text-6xl--letter-spacing: -0.06em;
+
+  --animate-pop-in: pop-in 240ms var(--ease-out-quint) both;
+
+  @keyframes pop-in {
+    from {
+      opacity: 0;
+      scale: 0.6;
+    }
+  }
 }
 
 body {
@@ -101,20 +139,20 @@ body {
   border-radius: var(--radius-button);
   font-weight: 500;
   cursor: pointer;
-  transition: transform 150ms ease, background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+  transition: scale 200ms var(--ease-out-quint), background-color 150ms ease, border-color 150ms ease, color 150ms ease;
   min-height: 44px;
   padding-inline: 1.25rem;
-}
-.btn:active {
-  transform: scale(0.98);
 }
 
 @utility btn-primary {
   background: var(--accent);
   color: var(--accent-foreground);
 }
-.btn-primary:hover {
-  filter: brightness(1.08);
+/* Hover only where a pointer can hover; on touch it sticks after the tap. */
+@media (hover: hover) {
+  .btn-primary:hover {
+    filter: brightness(1.08);
+  }
 }
 
 @utility btn-ghost {
@@ -122,9 +160,11 @@ body {
   background: transparent;
   color: var(--foreground);
 }
-.btn-ghost:hover {
-  border-color: var(--faint);
-  background: var(--surface-raised);
+@media (hover: hover) {
+  .btn-ghost:hover {
+    border-color: var(--faint);
+    background: var(--surface-raised);
+  }
 }
 
 @utility input-base {
@@ -155,17 +195,44 @@ body {
   font-size: 0.8125rem;
   padding: 0.375rem 0.875rem;
   cursor: pointer;
-  transition: border-color 150ms ease, color 150ms ease, background-color 150ms ease;
+  transition: scale 200ms var(--ease-out-quint), border-color 150ms ease, color 150ms ease, background-color 150ms ease;
 }
-.chip:hover {
-  border-color: var(--faint);
-  color: var(--foreground);
+@media (hover: hover) {
+  .chip:not(.chip-active):hover {
+    border-color: var(--faint);
+    color: var(--foreground);
+  }
 }
 
 @utility chip-active {
   border-color: var(--accent);
   background: var(--accent-soft);
   color: var(--accent-strong);
+}
+
+/*
+  Press feedback: answer on pointer-down, not on release.
+  Buttons, chips and .press controls shrink. The press lands in 80ms and lets
+  go on the slower base transition; large surfaces press shallower through
+  --press-scale. Scoped to a/button so label chips never react. Keep small
+  icon targets off .press: the shrink takes their hit-area halo with it.
+*/
+@utility press {
+  transition-property: scale, translate, color, background-color, border-color;
+  transition-duration: 200ms;
+  transition-timing-function: var(--ease-out-quint);
+}
+:is(a, button):is(.btn, .chip, .press):active {
+  scale: var(--press-scale, 0.97);
+  transition-duration: 80ms;
+}
+
+@layer base {
+  /* Preflight drops the native tap highlight, so every other link and button
+     dims on press instead: no control stays silent under a finger. */
+  :where(a[href], button:not(:disabled)):not(.btn, .chip, .press):active {
+    opacity: 0.6;
+  }
 }
 
 /*
@@ -178,6 +245,70 @@ body {
   --muted: #d4d4d8;
   --accent: #3ecf8e;
   --accent-strong: #3ecf8e;
+}
+
+/*
+  Materials: translucent layers that give structure without hiding the
+  content scrolling under them. Thin for fixed chrome; thick for floating
+  surfaces, which read as heavier: stronger blur, deeper shadow.
+*/
+/* 85% keeps muted nav text above 4.5:1 with a terminal block scrolled under it. */
+@utility material {
+  background-color: color-mix(in oklab, var(--background) 85%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+}
+
+@utility material-thick {
+  border: 1px solid var(--line);
+  background-color: color-mix(in oklab, var(--surface) 78%, transparent);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  backdrop-filter: blur(32px) saturate(180%);
+  box-shadow: inset 0 1px 0 var(--material-edge), var(--shadow-floating);
+}
+
+/*
+  Scroll edge: the header's hairline shows only once content scrolls under it,
+  not as a divider that is always on. A page too short to scroll never shows
+  it; browsers without scroll-driven animations always do.
+*/
+@utility scroll-edge {
+  border-bottom: 1px solid var(--line);
+}
+@supports (animation-timeline: scroll()) {
+  .scroll-edge {
+    border-bottom-color: transparent;
+    animation: scroll-edge linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 48px;
+  }
+}
+@keyframes scroll-edge {
+  to {
+    border-bottom-color: var(--line);
+  }
+}
+
+/* Reduced transparency and increased contrast both get solid surfaces. */
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .material {
+    background-color: var(--background);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .material-thick {
+    background-color: var(--surface);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* Increased contrast: borders clear 4:1 on the page background in both themes. */
+@media (prefers-contrast: more) {
+  :root,
+  .dark {
+    --line: #71717a;
+  }
 }
 
 /*

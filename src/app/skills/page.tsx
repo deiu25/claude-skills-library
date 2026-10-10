@@ -27,7 +27,7 @@ export default async function SkillsPage() {
       <SiteHeader />
       <main id="main" className="mx-auto w-full max-w-7xl flex-1 px-4 py-12 sm:px-6 sm:py-16">
         <div className="mb-10 space-y-3">
-          <h1 className="text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+          <h1 className="text-balance text-3xl font-semibold text-foreground sm:text-4xl">
             All skills
           </h1>
           <p className="max-w-[55ch] text-pretty text-sm leading-relaxed text-muted sm:text-base">
