@@ -45,7 +45,7 @@ export default async function HomePage() {
         {/* 1. Hero: asymmetric split, search as primary CTA */}
         <section className="grid grid-cols-1 items-center gap-10 py-16 sm:py-20 lg:grid-cols-[1.1fr_1fr] lg:gap-14 lg:py-24">
           <div className="flex flex-col items-start gap-6">
-            <h1 className="text-balance text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+            <h1 className="text-balance text-4xl font-semibold text-foreground sm:text-5xl lg:text-6xl">
               Claude Code skills, curated and explained.
             </h1>
             <p className="max-w-[42ch] text-pretty text-base leading-relaxed text-muted sm:text-lg">
@@ -64,15 +64,13 @@ export default async function HomePage() {
             </a>
           </div>
 
-          <Reveal>
-            <HeroInstall
-              installPrompt={installAllPrompt}
-              markdownReport={markdownReport}
-              skillCount={skills.length}
-              categoryCount={categories.length}
-              starsLabel={formatCount(totalStars)}
-            />
-          </Reveal>
+          <HeroInstall
+            installPrompt={installAllPrompt}
+            markdownReport={markdownReport}
+            skillCount={skills.length}
+            categoryCount={categories.length}
+            starsLabel={formatCount(totalStars)}
+          />
         </section>
 
         {/* 2. Category strip: chip row, no cards */}
@@ -93,7 +91,7 @@ export default async function HomePage() {
         {/* 3. Featured: asymmetric bento, exactly one cell per featured skill */}
         <section className="border-t border-line py-16 sm:py-20">
           <div className="mb-8 flex items-end justify-between gap-4">
-            <h2 className="text-balance text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+            <h2 className="text-balance text-2xl font-semibold text-foreground sm:text-3xl">
               Start with these
             </h2>
             <Link
@@ -126,7 +124,7 @@ export default async function HomePage() {
 
         {/* 4. How it works: vertical numbered flow */}
         <section className="border-t border-line py-16 sm:py-20">
-          <h2 className="mb-10 text-balance text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+          <h2 className="mb-10 text-balance text-2xl font-semibold text-foreground sm:text-3xl">
             From browsing to working skill in three steps
           </h2>
           <ol className="space-y-8">
@@ -165,7 +163,7 @@ export default async function HomePage() {
                   </h3>
                   <p className="max-w-[60ch] text-sm leading-relaxed text-muted">{step.body}</p>
                   {step.snippet ? (
-                    <code className="inline-block rounded-lg border border-line bg-terminal-bg px-3.5 py-2 font-mono text-[13px] text-terminal-fg">
+                    <code className="inline-block rounded-lg border border-line bg-terminal-bg px-3.5 py-2 font-mono text-[0.8125rem] text-terminal-fg">
                       {step.snippet}
                     </code>
                   ) : null}
@@ -179,7 +177,7 @@ export default async function HomePage() {
         <section className="border-t border-line py-16 sm:py-20">
           <div className="flex flex-col items-start gap-6 rounded-[14px] border border-line bg-surface p-8 sm:p-12 md:flex-row md:items-center md:justify-between">
             <div className="space-y-2">
-              <h2 className="text-balance text-2xl font-semibold tracking-tight text-foreground">
+              <h2 className="text-balance text-2xl font-semibold text-foreground">
                 Know a skill that belongs here?
               </h2>
               <p className="max-w-[50ch] text-pretty text-sm leading-relaxed text-muted">

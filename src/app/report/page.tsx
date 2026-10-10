@@ -36,7 +36,7 @@ export default async function ReportPage() {
       <SiteHeader />
       <main id="main" className="mx-auto w-full max-w-4xl flex-1 px-4 py-12 sm:px-6 sm:py-16">
         <div className="mb-10 space-y-3">
-          <h1 className="text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+          <h1 className="text-balance text-3xl font-semibold text-foreground sm:text-4xl">
             Library report
           </h1>
           <p className="max-w-[60ch] text-pretty text-sm leading-relaxed text-muted sm:text-base">
@@ -48,7 +48,7 @@ export default async function ReportPage() {
 
         <section aria-labelledby="export-heading" className="card space-y-5 p-6 sm:p-8">
           <div className="space-y-1.5">
-            <h2 id="export-heading" className="text-xl font-semibold tracking-tight text-foreground">
+            <h2 id="export-heading" className="text-xl font-semibold text-foreground">
               Export
             </h2>
             <p className="text-sm text-muted">
@@ -128,7 +128,7 @@ export default async function ReportPage() {
 
         <section aria-labelledby="coverage-heading" className="mt-12 space-y-6">
           <div className="space-y-1.5">
-            <h2 id="coverage-heading" className="text-xl font-semibold tracking-tight text-foreground">
+            <h2 id="coverage-heading" className="text-xl font-semibold text-foreground">
               Coverage
             </h2>
             <p className="text-sm text-muted">

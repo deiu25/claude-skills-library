@@ -1,15 +1,19 @@
 import Link from "next/link";
 import { GithubLogo, TerminalWindow } from "@phosphor-icons/react/dist/ssr";
 import { SITE_REPO_URL } from "@/lib/site";
+import { NavLink } from "./NavLink";
 import { ThemeToggle } from "./ThemeToggle";
+
+const NAV_LINK =
+  "rounded-[10px] px-3 py-2 text-sm text-muted transition-colors hover:text-foreground aria-[current]:bg-surface-raised aria-[current]:text-foreground";
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-background/85 backdrop-blur-sm">
+    <header className="material scroll-edge sticky top-0 z-40">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
         <Link
           href="/"
-          className="flex items-center gap-2.5 font-mono text-sm font-semibold tracking-tight text-foreground"
+          className="flex items-center gap-2.5 font-mono text-sm font-semibold text-foreground"
         >
           <TerminalWindow size={22} weight="regular" className="text-accent" aria-hidden />
           <span className="hidden sm:inline">claude-skills-library</span>
@@ -17,29 +21,20 @@ export function SiteHeader() {
         </Link>
 
         <nav aria-label="Main" className="flex items-center gap-1 sm:gap-2">
-          <Link
-            href="/skills"
-            className="rounded-[10px] px-3 py-2 text-sm text-muted transition-colors hover:text-foreground"
-          >
+          <NavLink href="/skills" className={NAV_LINK}>
             Browse skills
-          </Link>
-          <Link
-            href="/recommend"
-            className="hidden rounded-[10px] px-3 py-2 text-sm text-muted transition-colors hover:text-foreground sm:block"
-          >
+          </NavLink>
+          <NavLink href="/recommend" className={`hidden sm:block ${NAV_LINK}`}>
             Recommend
-          </Link>
-          <Link
-            href="/report"
-            className="hidden rounded-[10px] px-3 py-2 text-sm text-muted transition-colors hover:text-foreground sm:block"
-          >
+          </NavLink>
+          <NavLink href="/report" className={`hidden sm:block ${NAV_LINK}`}>
             Report
-          </Link>
+          </NavLink>
           <a
             href={SITE_REPO_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex h-11 w-11 items-center justify-center rounded-[10px] border border-line text-muted transition-colors hover:border-faint hover:text-foreground"
+            className="press flex h-11 w-11 items-center justify-center rounded-[10px] border border-line text-muted hover:border-faint hover:text-foreground"
             aria-label="GitHub repository"
           >
             <GithubLogo size={20} weight="regular" aria-hidden />

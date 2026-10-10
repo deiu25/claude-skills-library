@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { AnimatePresence } from "motion/react";
 import { Check, ListChecks, MagnifyingGlass, Plus, SmileyXEyes } from "@phosphor-icons/react";
 import type { Skill, SkillCategory } from "@/data/types";
 import { CATEGORY_LABELS } from "@/data/types";
@@ -184,7 +185,7 @@ export function SkillSearch({ skills, statsByRepo }: SkillSearchProps) {
                   }`}
                 >
                   {isSelected ? (
-                    <Check size={14} weight="bold" aria-hidden />
+                    <Check size={14} weight="bold" className="animate-pop-in" aria-hidden />
                   ) : (
                     <Plus size={14} aria-hidden />
                   )}
@@ -219,7 +220,16 @@ export function SkillSearch({ skills, statsByRepo }: SkillSearchProps) {
         </div>
       )}
 
-      <SelectionBar selected={selectedSkills} statsByRepo={statsByRepo} onClear={clearSelection} />
+      <AnimatePresence>
+        {selectedSkills.length > 0 ? (
+          <SelectionBar
+            key="selection-bar"
+            selected={selectedSkills}
+            statsByRepo={statsByRepo}
+            onClear={clearSelection}
+          />
+        ) : null}
+      </AnimatePresence>
     </div>
   );
 }

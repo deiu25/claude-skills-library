@@ -113,7 +113,7 @@ export default async function SkillDetailPage({ params }: PageProps) {
                     <item.icon size={14} aria-hidden />
                     {item.label}
                   </span>
-                  <span className="font-mono text-lg font-semibold tracking-tight text-foreground">
+                  <span className="font-mono text-lg font-semibold text-foreground">
                     {item.value}
                   </span>
                 </div>
@@ -126,7 +126,7 @@ export default async function SkillDetailPage({ params }: PageProps) {
           ) : null}
 
           <section className="space-y-3">
-            <h2 className="text-xl font-semibold tracking-tight text-foreground">Install</h2>
+            <h2 className="text-xl font-semibold text-foreground">Install</h2>
             <TerminalBlock title="install" copyText={skill.install.command}>
               <p>
                 <span className="text-accent">$</span> {skill.install.command}
@@ -135,7 +135,7 @@ export default async function SkillDetailPage({ params }: PageProps) {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-xl font-semibold tracking-tight text-foreground">Update</h2>
+            <h2 className="text-xl font-semibold text-foreground">Update</h2>
             <TerminalBlock title="update" copyText={skill.update.command}>
               <p>
                 <span className="text-accent">$</span> {skill.update.command}
@@ -147,10 +147,10 @@ export default async function SkillDetailPage({ params }: PageProps) {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-xl font-semibold tracking-tight text-foreground">When to use it</h2>
+            <h2 className="text-xl font-semibold text-foreground">When to use it</h2>
             <ul className="space-y-2.5">
               {skill.whenToUse.map((item) => (
-                <li key={item} className="flex max-w-[65ch] gap-3 text-[15px] leading-relaxed text-muted">
+                <li key={item} className="flex max-w-[65ch] gap-3 text-[0.9375rem] leading-relaxed text-muted">
                   <span className="mt-2.25 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden />
                   {item}
                 </li>
@@ -159,26 +159,26 @@ export default async function SkillDetailPage({ params }: PageProps) {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-xl font-semibold tracking-tight text-foreground">Commands &amp; flags</h2>
+            <h2 className="text-xl font-semibold text-foreground">Commands &amp; flags</h2>
             <dl className="space-y-2.5">
               {skill.usage.map((item) => (
                 <div key={item.command} className="flex max-w-[70ch] flex-col gap-1 sm:flex-row sm:gap-4">
-                  <dt className="shrink-0 font-mono text-[13px] text-accent-strong sm:w-56">
+                  <dt className="shrink-0 font-mono text-[0.8125rem] text-accent-strong sm:w-56">
                     {item.command}
                   </dt>
-                  <dd className="text-[15px] leading-relaxed text-muted">{item.description}</dd>
+                  <dd className="text-[0.9375rem] leading-relaxed text-muted">{item.description}</dd>
                 </div>
               ))}
             </dl>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-xl font-semibold tracking-tight text-foreground">How to use it</h2>
+            <h2 className="text-xl font-semibold text-foreground">How to use it</h2>
             <Markdown content={skill.howToUse} />
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-xl font-semibold tracking-tight text-foreground">
+            <h2 className="text-xl font-semibold text-foreground">
               Why it earns its place
             </h2>
             <Markdown content={skill.whyUseful} />
@@ -186,7 +186,7 @@ export default async function SkillDetailPage({ params }: PageProps) {
 
           {skill.examplePrompt ? (
             <section className="space-y-3">
-              <h2 className="text-xl font-semibold tracking-tight text-foreground">Try it</h2>
+              <h2 className="text-xl font-semibold text-foreground">Try it</h2>
               <TerminalBlock title="claude" copyText={skill.examplePrompt}>
                 <p>
                   <span className="text-accent">&gt;</span> {skill.examplePrompt}

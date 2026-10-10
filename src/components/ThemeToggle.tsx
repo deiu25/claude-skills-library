@@ -26,7 +26,12 @@ export function ThemeToggle() {
 
   function toggle() {
     const next = !getIsDark();
-    document.documentElement.classList.toggle("dark", next);
+    const apply = () => {
+      document.documentElement.classList.toggle("dark", next);
+    };
+    // Cross-fade the switch instead of a hard brightness jump.
+    if (document.startViewTransition) document.startViewTransition(apply);
+    else apply();
     try {
       localStorage.setItem("theme", next ? "dark" : "light");
     } catch {
@@ -39,7 +44,7 @@ export function ThemeToggle() {
       type="button"
       onClick={toggle}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-[10px] border border-line text-muted transition-colors hover:border-faint hover:text-foreground active:scale-[0.98]"
+      className="press flex h-11 w-11 cursor-pointer items-center justify-center rounded-[10px] border border-line text-muted hover:border-faint hover:text-foreground"
     >
       {isDark ? (
         <Sun size={20} weight="regular" aria-hidden />
