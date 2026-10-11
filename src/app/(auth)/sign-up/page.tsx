@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AuthHeading } from "@/components/auth/AuthHeading";
-import { GitHubSignIn } from "@/components/auth/GitHubSignIn";
+import { SignInOptions } from "@/components/auth/SignInOptions";
 import { SignUpForm } from "@/components/auth/SignUpForm";
 
 export const metadata: Metadata = {
@@ -14,7 +14,7 @@ export default function SignUpPage() {
       <AuthHeading title="Create an account">
         An account keeps your own skills. Browsing the library never needs one.
       </AuthHeading>
-      <GitHubSignIn />
+      <SignInOptions />
       <SignUpForm />
       <p className="mt-6 text-sm text-muted">
         Already have an account?{" "}

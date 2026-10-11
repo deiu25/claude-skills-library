@@ -37,6 +37,13 @@ test("the dashboard sends an anonymous visitor to sign in", async ({ page }) => 
   await page.goto("/dashboard");
   await expect(page).toHaveURL(/\/sign-in$/);
   await expect(page.getByRole("button", { name: "Continue with GitHub" })).toBeVisible();
+  await page.goto("/dashboard/settings");
+  await expect(page).toHaveURL(/\/sign-in$/);
+});
+
+test("account data endpoints refuse a request without a session", async ({ request }) => {
+  expect((await request.get("/api/me/export")).status()).toBe(401);
+  expect((await request.get("/api/cron/cleanup")).status()).toBe(401);
 });
 
 test("a failed GitHub sign-in is explained without echoing the URL", async ({ page }) => {

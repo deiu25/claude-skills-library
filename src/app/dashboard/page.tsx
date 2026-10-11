@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SignedInMarker } from "@/components/auth/SignedInMarker";
@@ -25,7 +26,10 @@ export default async function DashboardPage() {
             Signed in as <span className="text-foreground">{user.email}</span>.
           </p>
         </div>
-        <div className="mt-8">
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Link href="/dashboard/settings" className="btn btn-ghost text-sm">
+            Settings
+          </Link>
           <SignOutButton className="btn btn-ghost text-sm" />
         </div>
         {/* Every sign-in lands here: email, the verification link and GitHub. */}

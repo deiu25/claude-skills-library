@@ -45,6 +45,7 @@ A change is done when test, lint, type check, build and the end-to-end tests all
 - Keep `server-only` out of `src/lib/auth/auth.ts` and `src/lib/db/`: the Better Auth CLI and drizzle-kit load them in plain Node, and the CLI aborts on it.
 - Drizzle applies a migration only when it is newer than the last one applied. After rebasing onto a `main` that gained a migration, remove your branch's migration with `npx drizzle-kit drop` and run `npm run db:generate` again.
 - Without `BETTER_AUTH_SECRET`, `next build` logs "You are using the default secret" and still passes. The catalog needs no variables; account pages need `DATABASE_URL` and the secret.
+- Sign-up has no password field: the first password is chosen from the emailed link. Under `next dev` without `RESEND_API_KEY`, every account email and its link print to the server log, which is how to walk the flows locally.
 - A file in `src/data/skills/` does nothing until it is imported and appended to `skills` in `src/data/skills/index.ts`.
 - `/skills` writes its URL state (`q`, `category`, `sel`) with `window.history.replaceState`. `router.replace` re-runs the server page and flashes the loading skeleton.
 - Without `GITHUB_TOKEN`, a build needs more GitHub requests than the 60 per hour allowed anonymously, so some stats come back empty. Expected locally; production needs the token (RUNBOOK.md).

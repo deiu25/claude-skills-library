@@ -7,6 +7,7 @@ How to operate the production site. Hosting: Vercel, project `claude-skills-libr
 - A push to `main` builds and deploys to production. Any other branch pushed to GitHub gets a preview deployment.
 - To ship: run `npm test && npm run lint && npx tsc --noEmit && npm run build && npm run test:e2e`, merge the branch into `main`, push. There is no other deploy step. The e2e suite builds and serves the site on port 3000 itself, so stop any dev server first.
 - The build command in `vercel.json` applies pending migrations (`npm run db:migrate`) before `next build` whenever `DATABASE_URL_UNPOOLED` is set. A failed migration fails the deploy. Previews migrate their own Neon branch.
+- `vercel.json` also schedules `/api/cron/cleanup` once a day (Hobby runs it within the hour of 03:00 UTC). It deletes expired sessions and email links, and rate-limit rows unused for a day, and answers 401 until `CRON_SECRET` is set in Production.
 
 ## Verify a deploy
 
@@ -38,11 +39,12 @@ A rollback never undoes a migration. Migrations only add tables and columns, so 
 | `GITHUB_TOKEN` | Vercel project settings, for Production and Preview; `.env.local` for development | Raises the GitHub API limit from 60 to 5,000 requests per hour. Needs no scopes. Read on the server only. |
 | `DATABASE_URL` | Added by the Neon integration for Production and Preview, never Development: `vercel env pull` would copy production credentials into `.env.local`. Each preview gets its own branch's value | Pooled Postgres connection the app queries through. |
 | `DATABASE_URL_UNPOOLED` | Added by the Neon integration | Direct connection, used only by `npm run db:migrate`. |
-| `BETTER_AUTH_SECRET` | Production and Preview; `.env.local` | Signs sessions and email links. At least 32 random characters: `openssl rand -base64 32`. Changing it signs everyone out and voids open links. |
+| `BETTER_AUTH_SECRET` | Production and Preview; `.env.local` | Signs sessions and email links, and encrypts two-factor secrets, backup codes and GitHub tokens. At least 32 random characters: `openssl rand -base64 32`. Replacing it signs everyone out, voids open links and makes what it encrypted unreadable, so two-factor users could not finish a password sign-in. To rotate, set `BETTER_AUTH_SECRETS=1:<new secret>` and keep the old value here: the first entry signs and encrypts, the old one still decrypts. |
 | `RESEND_API_KEY`, `EMAIL_FROM` | Production and Preview | Send verification and reset emails. Resend's test sender `onboarding@resend.dev` delivers only to the Resend account owner's address. |
 | `ACCOUNTS_OPEN` | Production and Preview | `true` opens sign-up to everyone. Any other value keeps it closed. |
 | `ACCOUNTS_ALLOWLIST` | Production and Preview | Comma-separated addresses that may sign up while sign-up is closed. |
 | `NEXT_PUBLIC_ACCOUNTS_OPEN` | Production and Preview, changed together with `ACCOUNTS_OPEN` | `true` shows the header's "Sign in" link. It is built into the pages, so it changes only with a redeploy. |
+| `CRON_SECRET` | Production only | Vercel Cron sends it as `Authorization: Bearer <secret>`; without it the daily cleanup refuses to run. At least 32 random characters: `openssl rand -base64 32`. |
 | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | Production only, from the production OAuth app; `.env.local` from a second app for `localhost:3000`. Never Preview: GitHub callback URLs cannot be wildcards | Turn on GitHub sign-in. Each app's callback URL is `<origin>/api/auth/callback/github`. Without both variables the sign-in pages show no GitHub button. |
 
 The Neon integration also adds `PG*` and `POSTGRES_*` variables; the app reads only the two above. Auth takes its base URL from the request host, checked against Vercel's own `VERCEL_PROJECT_PRODUCTION_URL`, `VERCEL_BRANCH_URL` and `VERCEL_URL`, so no `BETTER_AUTH_URL` is needed.
@@ -78,6 +80,14 @@ The server log says `Email not sent:` with the reason. Check that `RESEND_API_KE
 ### GitHub sign-in fails
 
 The sign-in page shows a message, and its URL ends in `?error=<code>`. GitHub itself showing "redirect_uri is not associated with this application" means the OAuth app's callback URL does not match the domain exactly. `SIGN_UP_CLOSED` and `email_not_verified` are refusals working as intended. Any other code: check that both `GITHUB_*` variables are set for Production and that the deployment was built after they were, then read the runtime log around the callback request.
+
+### Locked out of two-factor
+
+A user who lost both the authenticator app and the backup codes cannot finish a password sign-in, and GitHub or a passkey, if they have one, still works. Only after the account's own address confirms the request by email, in the Neon console delete the user's `two_factor` row and set `user.two_factor_enabled` to false. Ten wrong codes in a row lock the check for 15 minutes on their own.
+
+### Moving the production domain
+
+Passkeys bind to the host that registered them, so every passkey stops working on the new domain; users sign in another way and add one again. Add the new callback URL to the GitHub OAuth app before the move, and update `SITE_URL` in `src/lib/site.ts`.
 
 ### Wrong or harmful catalog entry
 

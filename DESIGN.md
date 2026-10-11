@@ -194,7 +194,7 @@ Zinc neutrals with a single emerald accent, locked site-wide.
 
 ## Layout
 
-- Two container widths: 1280px for the home page and the skill grid, 896px for reading pages (skill detail, recommend, report, privacy, terms). Legal prose keeps a 70ch measure.
+- Three container widths: 1280px for the home page and the skill grid, 896px for reading pages (skill detail, recommend, report, privacy, terms, settings), and 448px for the auth pages and the account-deletion confirmation, which pad 64px top and bottom, 96px from `sm`. Legal prose keeps a 70ch measure.
 - Side gutters of 16px, 24px from `sm`. Inner pages (browse, skill, recommend, report) pad 48px top and bottom, 64px from `sm`; the home and 404 pages set their own section spacing.
 - The skill grid has one column, two from `md` and three from `lg`, with 16px gaps.
 - The home hero splits into two asymmetric columns from `lg` (1.1fr and 1fr); featured skills form an asymmetric bento below it.
@@ -259,7 +259,18 @@ Five radii, one job each: cards and panels 14px; buttons and the theme toggle 10
 - **One message per form,** between the last field and the submit button: a Surface box with a 1px line and 8px radius. Errors use `role="alert"` and a Foreground warning icon; success uses `role="status"` and an Emerald check. An error takes no second hue (The One Accent Rule).
 - **Copy:** an error names the problem and the way out. Text from the URL is never shown: a `?error=` code maps to fixed copy.
 - **Pending:** the submit button is disabled and its label says what is happening ("Signing in…").
-- **Auth pages** are top-aligned, so a message appearing never moves the heading. "Continue with GitHub" is a full-width ghost button above the email form, separated by a 1px rule with "or with email" in 12px Faint.
+- **Auth pages** are top-aligned, so a message appearing never moves the heading. "Continue with GitHub" and, on sign-in, "Sign in with a passkey" are full-width ghost buttons above the email form, separated by a 1px rule with "or with email" in 12px Faint.
+- **A standing caution** (a warning that is there on load, not the result of an action) uses the same box with the Foreground warning icon and no live region.
+
+### Settings
+
+- **Sections:** the reading width (896px), divided by 1px lines. From `md`, the title (Title, 20px) and a one-line purpose in Muted sit in the left column (1fr) and the controls in the right (1.7fr); below `md` they stack.
+- **State first:** a setting with an on/off state opens with it in Foreground at weight 500, "On" with the emerald check or "Off" with none, before any explanation.
+- **Lists** (sessions, passkeys): rows inside one Surface box with a 1px line and 8px radius, divided by 1px lines; the row's own action is a 44px text button on the right that turns Raised Surface on hover. "This browser" marks the current session in Text-Safe Emerald.
+- **One primary per state.** Every other action is ghost.
+- **Destructive actions are never emerald:** the accent means "go ahead". Deleting the account is a ghost button, confirmed on its own page with a standing caution, and reached only through an emailed link.
+- **Codes:** backup codes in a two-column mono grid inside a Surface box with a 1px line and 8px radius. A two-factor key shows as mono groups of four that never break apart, next to a copy button.
+- **QR codes** are black on white in both themes, with their quiet zone, because some authenticator apps cannot read an inverted code.
 
 ### Menus
 
@@ -287,7 +298,7 @@ Five radii, one job each: cards and panels 14px; buttons and the theme toggle 10
 
 ### Do:
 
-- **Do** use the token utilities (`bg-surface`, `text-muted`, `border-line`, `text-accent-strong`). Components hold no raw hex; the Open Graph image is the one exception, because it renders outside the stylesheet.
+- **Do** use the token utilities (`bg-surface`, `text-muted`, `border-line`, `text-accent-strong`). Components hold no raw hex; the Open Graph image is the one exception, because it renders outside the stylesheet. A QR code uses plain black and white, not the theme.
 - **Do** put custom hover CSS inside `@media (hover: hover)`, as the utilities in `globals.css` do, so states don't stick after a tap.
 - **Do** transition the individual `scale` and `translate` properties, as the `press` utility does. Tailwind v4 moves elements with those properties, not with `transform`.
 - **Do** wrap entrance animation in `Reveal`, which honours reduced motion and stays visible without JavaScript.

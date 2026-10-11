@@ -23,6 +23,13 @@ describe("cleanProfile", () => {
     expect(cleanProfile({ image: null })).toEqual({ image: null });
   });
 
+  it("keeps a bio to one line of at most 160 characters, and drops an empty one", () => {
+    expect(cleanProfile({ bio: " Builds\nagents.‮ " })).toEqual({ bio: "Builds agents." });
+    expect(cleanProfile({ bio: "b".repeat(500) }).bio).toHaveLength(160);
+    expect(cleanProfile({ bio: "  \n " })).toEqual({ bio: null });
+    expect(cleanProfile({ bio: 42 })).toEqual({ bio: null });
+  });
+
   it("leaves out fields an update does not touch", () => {
     expect(cleanProfile({})).toEqual({});
   });

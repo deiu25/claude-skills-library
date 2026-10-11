@@ -5,26 +5,30 @@ import { FormMessage } from "@/components/auth/FormMessage";
 import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
 
 export const metadata: Metadata = {
-  title: "Choose a new password",
+  title: "Choose a password",
 };
 
 interface PageProps {
-  searchParams: Promise<{ token?: string | string[]; error?: string | string[] }>;
+  searchParams: Promise<{ token?: string | string[]; error?: string | string[]; new?: string | string[] }>;
 }
 
 export default async function ResetPasswordPage({ searchParams }: PageProps) {
-  const { token, error } = await searchParams;
+  const { token, error, new: newAccount } = await searchParams;
+  // The sign-up email's link: the same form, finishing a new account.
+  const finishing = newAccount === "1";
 
   return (
     <>
-      <AuthHeading title="Choose a new password">
-        Pick a password you do not use anywhere else.
+      <AuthHeading title={finishing ? "Choose your password" : "Choose a new password"}>
+        {finishing
+          ? "This finishes creating your account. Pick a password you do not use anywhere else."
+          : "Pick a password you do not use anywhere else."}
       </AuthHeading>
       {typeof token === "string" && token && !error ? (
-        <ResetPasswordForm token={token} />
+        <ResetPasswordForm token={token} finishing={finishing} />
       ) : (
         <FormMessage tone="error">
-          This reset link is invalid or has expired.{" "}
+          This link is invalid or has expired.{" "}
           <Link href="/forgot-password" className="font-medium underline underline-offset-4">
             Request a new one
           </Link>

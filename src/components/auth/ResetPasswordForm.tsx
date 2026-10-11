@@ -7,7 +7,7 @@ import { authErrorMessage, OFFLINE_MESSAGE } from "@/lib/auth/errors";
 import { Field } from "./Field";
 import { FormMessage } from "./FormMessage";
 
-export function ResetPasswordForm({ token }: { token: string }) {
+export function ResetPasswordForm({ token, finishing }: { token: string; finishing: boolean }) {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [done, setDone] = useState(false);
@@ -33,7 +33,9 @@ export function ResetPasswordForm({ token }: { token: string }) {
   if (done) {
     return (
       <FormMessage tone="success">
-        Your password is changed, and every session that used the old one is signed out.{" "}
+        {finishing
+          ? "Your password is set, and your account is ready."
+          : "Your password is changed, and every session that used the old one is signed out."}{" "}
         <Link href="/sign-in" className="font-medium underline underline-offset-4">
           Sign in
         </Link>

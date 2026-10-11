@@ -69,14 +69,15 @@ export default function TermsPage() {
       <ul>
         <li>Creating an account, with an email address or with GitHub, means you accept these terms.</li>
         <li>
-          Keep your password and your GitHub account secure. If you think someone else has used your
-          account, write to <a href={`mailto:${OPERATOR.email}`}>{OPERATOR.email}</a>.
+          Keep your password, your GitHub account, your passkey devices and your backup codes secure. If you
+          think someone else has used your account, sign out of your other sessions in your account settings
+          and write to <a href={`mailto:${OPERATOR.email}`}>{OPERATOR.email}</a>.
         </li>
         <li>
           We may suspend or close an account that breaks these terms or the law, or that puts the site or
           other people at risk, and we tell you why by email.
         </li>
-        <li>You can stop using your account at any time and ask us to delete it.</li>
+        <li>You can stop using your account at any time, and delete it yourself in your account settings.</li>
       </ul>
 
       <h2>Acceptable use</h2>
