@@ -33,7 +33,7 @@ Paste into a new Claude Code session in this repository:
 | Phase | Scope | Status |
 |---|---|---|
 | P0 | Decisions and docs | done |
-| P1 | Database and email/password auth, sign-up closed | todo |
+| P1 | Database and email/password auth, sign-up closed | done |
 | P2 | Header, GitHub sign-in, legal pages, static guards | todo |
 | P3 | Account security and data | todo |
 | P4 | Own skills (SKILL.md) and security scan | todo |
@@ -63,7 +63,7 @@ Playbooks (P16–P20) are a second track. P16 needs nothing; each later playbook
 | Topic | Decision |
 |---|---|
 | Auth | Better Auth, stored in our own database. It covers email and password with verification and reset, GitHub sign-in, TOTP two-factor, passkeys, API keys, admin and organizations |
-| Database | Neon Postgres through the Vercel Marketplace, with Drizzle ORM and a `pg` pool registered with `attachDatabasePool`, for interactive transactions. Each preview gets its own Neon branch, cut from a seeded `dev` branch and never from production |
+| Database | Neon Postgres through the Vercel Marketplace, with Drizzle ORM and a `pg` pool registered with `attachDatabasePool`, for interactive transactions. Each preview gets its own Neon branch. Neon's Vercel integration cuts it from production and offers no other parent; the owner accepted that on 2026-10-11 while sign-up is invite-only, and P7 moves previews to a seeded `dev` branch before sign-up opens |
 | Email | Resend, with templates as plain TypeScript strings, sent inside `after()` |
 | Skill files | Postgres `bytea`, at most 1 MB and 200 files per version. Move to a private Vercel Blob store only if that cap is outgrown |
 | Selling | Stripe Connect: Express sellers (Accounts v2), Checkout with destination charges and `application_fee_amount`, and one platform webhook. Built in test mode; going live is its own phase |
@@ -95,7 +95,7 @@ Playbooks (P16–P20) are a second track. P16 needs nothing; each later playbook
 | Path | Rendering |
 |---|---|
 | Every route that exists today | Unchanged: static or ISR, with `/opengraph-image` rendered on demand. The five catalog pages add `export const dynamic = "error"` in P2 |
-| `/sign-in`, `/sign-up`, `/forgot-password`, `/reset-password`, `/two-factor` | Dynamic, in an `(auth)` route group |
+| `/sign-in`, `/sign-up`, `/forgot-password`, `/reset-password`, `/two-factor` | In an `(auth)` route group. Static forms that call `/api/auth` from the browser; `/reset-password` renders per request because it reads the token |
 | `/dashboard/**` | Dynamic: skills, library, projects, playbooks, purchases, sales, settings, admin, org |
 | `/community`, `/u/[handle]`, `/u/[handle]/[slug]`, `/u/[handle]/stacks/[slug]`, `/u/[handle]/playbooks/[slug]` | ISR. `generateStaticParams` returns `[]` and writes call `revalidatePath`. A database error renders an empty state. While sign-up is closed, these routes return `notFound()` |
 | `/privacy`, `/terms`, `/terms/marketplace` | Static |
@@ -149,7 +149,7 @@ Every phase merges to `main`, which is production, so each one keeps these rules
    - Both are enforced in `databaseHooks.user.create.before`, which covers every sign-in method.
 2. **Migrations only add.**
    - A column is dropped one phase after the code stops using it.
-   - The Vercel build command runs `drizzle-kit migrate` before `next build`, so Neon preview branching stays on.
+   - The Vercel build command runs `npm run db:migrate` before `next build`, so Neon preview branching stays on.
    - A failed migration fails the deploy and is never skipped.
    - An Instant Rollback does not undo a schema change.
 3. **`next build` never needs the database.** It passes with no database variables set, and any read at build time catches its own errors.
@@ -180,12 +180,12 @@ Every phase merges to `main`, which is production, so each one keeps these rules
   - `/api/auth/[...all]` through `toNextJsHandler`, with `nextCookies()` last.
   - The `(auth)` pages, and a bare `/dashboard` behind `requireUser()`.
   - `src/lib/email.ts` and the allowlist hook.
-  - A `vercel.json` build command that runs `drizzle-kit migrate` before `next build`, skipping it only when `DATABASE_URL_UNPOOLED` is unset.
+  - A `vercel.json` build command that runs the migrations before `next build`, skipping them only when `DATABASE_URL_UNPOOLED` is unset.
   - RUNBOOK.md: the variable table and the database rollback note.
   - `.env.example` with variable names only, tracked through a `!.env.example` exception in `.gitignore`. The file is ignored today, so the README's copy step fails on a fresh clone.
 - **Owner:**
-  - `vercel integration add neon`, with preview branching from `dev` and automatic cleanup.
-  - Before merging, set `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `RESEND_API_KEY`, `EMAIL_FROM`, `ACCOUNTS_OPEN=false` and `ACCOUNTS_ALLOWLIST` in Production and Preview.
+  - `vercel integration add neon`, connected to Production and Preview only and without Neon Auth, with preview branching and automatic cleanup.
+  - Before merging, set `BETTER_AUTH_SECRET`, `RESEND_API_KEY`, `EMAIL_FROM`, `ACCOUNTS_OPEN=false` and `ACCOUNTS_ALLOWLIST` in Production and Preview.
   - Until a domain is verified, Resend's test sender reaches only the owner's own address. That is enough while sign-up is allowlisted.
 - **Done when:**
   - `next build` passes with no database variables set.
@@ -199,7 +199,7 @@ Every phase merges to `main`, which is production, so each one keeps these rules
     - The "Sign in" link shows only with `NEXT_PUBLIC_ACCOUNTS_OPEN`.
     - The signed-in part loads through `next/dynamic`, and only when the flag is set.
     - The flag is set after sign-in and cleared on sign-out or when the session comes back null.
-  - The GitHub provider, with `?error=` messages on the sign-in page.
+  - The GitHub provider, with `?error=` messages on the sign-in page, and `account.encryptOAuthTokens` so GitHub tokens are not stored in plain text.
   - `/privacy` and `/terms`, with the owner's legal identity (never invented).
   - `dynamic = "error"` on the five catalog pages.
   - DESIGN.md: rules for form fields, errors and menus, and an updated header line.
@@ -215,6 +215,10 @@ Every phase merges to `main`, which is production, so each one keeps these rules
   - The `username` plugin, with a reserved list of handles, and a profile.
   - Linked accounts, active sessions with revoke, and email change.
   - `twoFactor`: TOTP and backup codes, plus `allowPasswordless` for users who sign in only with GitHub.
+  - Fixes deferred from the P1 security review:
+    - A password set before the email is verified must not survive verification. Today anyone can sign up as an allowlisted address with their own password, and it works once the owner opens the link.
+    - Decide whether the verification link should sign in, since it signs in whoever opens it.
+    - Pad `/request-password-reset` to a fixed response time; an unknown address answers about a millisecond faster.
   - `@better-auth/passkey`.
   - Account deletion, confirmed by email.
   - `/api/me/export`.
@@ -278,6 +282,7 @@ Every phase merges to `main`, which is production, so each one keeps these rules
     - a statement of reasons with every removal;
     - an abuse contact.
   - The `admin` plugin with `adminUserIds`, and `/dashboard/admin` to unlist and ban.
+  - Preview databases branched from a seeded `dev` branch instead of production, for example with `neondatabase/create-branch-action`.
 - **Done when:**
   - A report reaches the admin.
   - A removal sends its reason.
@@ -508,4 +513,6 @@ Every phase checks the following, on top of its "Done when":
   - The CLI is the `auth` package; `@better-auth/cli` is stale.
   - Generate the schema with `npx auth@latest generate --config src/lib/auth/auth.ts --output src/lib/db/auth-schema.ts`, then run drizzle-kit.
   - Passkeys and API keys ship as separate `@better-auth/*` packages.
-  - drizzle-kit uses `DATABASE_URL_UNPOOLED`, loaded with `loadEnvConfig` from `@next/env`.
+  - Migrations run through `scripts/migrate.mjs` on `DATABASE_URL_UNPOOLED`: `drizzle-kit migrate` 0.31 exits 1 without printing the error (checked in P1).
+  - The auth base URL comes from Vercel's system variables, so `BETTER_AUTH_URL` is not needed (checked in P1).
+  - `pg` 8 reads Neon's `sslmode=require` as `verify-full` and logs a security warning, at error level, on every cold start. `pg` 9 turns `require` into encryption without certificate checks, so set `sslmode=verify-full` before upgrading (seen in P1).

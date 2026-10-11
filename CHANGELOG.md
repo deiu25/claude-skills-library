@@ -6,6 +6,16 @@ The format follows [Keep a Changelog 2.0.0](https://keepachangelog.com/en/2.0.0/
 
 ## [Unreleased]
 
+### 2026-10-11
+
+#### Added
+
+- Accounts, first step: sign-up with email verification, sign-in and password reset. Sign-up is open only to invited addresses for now.
+
+#### Security
+
+- Next.js 16.2.12, which fixes the advisories for Server Actions and request caching that apply to this site.
+
 ### 2026-10-10
 
 #### Added
