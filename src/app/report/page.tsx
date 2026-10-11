@@ -12,6 +12,7 @@ import { CopyButton } from "@/components/CopyButton";
 import { DownloadButton } from "@/components/DownloadButton";
 
 export const revalidate = 21600;
+export const dynamic = "error";
 
 export const metadata: Metadata = {
   title: "Library report",

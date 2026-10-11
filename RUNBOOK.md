@@ -5,7 +5,7 @@ How to operate the production site. Hosting: Vercel, project `claude-skills-libr
 ## Deploy
 
 - A push to `main` builds and deploys to production. Any other branch pushed to GitHub gets a preview deployment.
-- To ship: run `npm test && npm run lint && npx tsc --noEmit && npm run build`, merge the branch into `main`, push. There is no other deploy step.
+- To ship: run `npm test && npm run lint && npx tsc --noEmit && npm run build && npm run test:e2e`, merge the branch into `main`, push. There is no other deploy step. The e2e suite builds and serves the site on port 3000 itself, so stop any dev server first.
 - The build command in `vercel.json` applies pending migrations (`npm run db:migrate`) before `next build` whenever `DATABASE_URL_UNPOOLED` is set. A failed migration fails the deploy. Previews migrate their own Neon branch.
 
 ## Verify a deploy
@@ -42,12 +42,14 @@ A rollback never undoes a migration. Migrations only add tables and columns, so 
 | `RESEND_API_KEY`, `EMAIL_FROM` | Production and Preview | Send verification and reset emails. Resend's test sender `onboarding@resend.dev` delivers only to the Resend account owner's address. |
 | `ACCOUNTS_OPEN` | Production and Preview | `true` opens sign-up to everyone. Any other value keeps it closed. |
 | `ACCOUNTS_ALLOWLIST` | Production and Preview | Comma-separated addresses that may sign up while sign-up is closed. |
+| `NEXT_PUBLIC_ACCOUNTS_OPEN` | Production and Preview, changed together with `ACCOUNTS_OPEN` | `true` shows the header's "Sign in" link. It is built into the pages, so it changes only with a redeploy. |
+| `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | Production only, from the production OAuth app; `.env.local` from a second app for `localhost:3000`. Never Preview: GitHub callback URLs cannot be wildcards | Turn on GitHub sign-in. Each app's callback URL is `<origin>/api/auth/callback/github`. Without both variables the sign-in pages show no GitHub button. |
 
 The Neon integration also adds `PG*` and `POSTGRES_*` variables; the app reads only the two above. Auth takes its base URL from the request host, checked against Vercel's own `VERCEL_PROJECT_PRODUCTION_URL`, `VERCEL_BRANCH_URL` and `VERCEL_URL`, so no `BETTER_AUTH_URL` is needed.
 
 A deployment keeps the variables it was built with. After adding or changing one, redeploy for it to take effect.
 
-To rotate the token: create a new token on GitHub, replace the value in Vercel, redeploy, then revoke the old token.
+To rotate the token: create a new token on GitHub, replace the value in Vercel, redeploy, then revoke the old token. The GitHub client secret rotates the same way, inside the OAuth app.
 
 ## Incidents
 
@@ -72,6 +74,10 @@ Sign-in or sign-up answers 500. The log line `Auth request failed: <error> <code
 ### Account emails do not arrive
 
 The server log says `Email not sent:` with the reason. Check that `RESEND_API_KEY` and `EMAIL_FROM` are set for that environment. While `EMAIL_FROM` uses Resend's test sender, mail reaches only the Resend account owner.
+
+### GitHub sign-in fails
+
+The sign-in page shows a message, and its URL ends in `?error=<code>`. GitHub itself showing "redirect_uri is not associated with this application" means the OAuth app's callback URL does not match the domain exactly. `SIGN_UP_CLOSED` and `email_not_verified` are refusals working as intended. Any other code: check that both `GITHUB_*` variables are set for Production and that the deployment was built after they were, then read the runtime log around the callback request.
 
 ### Wrong or harmful catalog entry
 

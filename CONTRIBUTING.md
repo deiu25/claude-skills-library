@@ -27,6 +27,7 @@ cp .env.example .env.local
 | `npx tsc --noEmit` | Type-check |
 | `npm run build` | Build for production and prerender every page |
 | `npm start` | Serve the production build |
+| `npm run test:e2e` | Build, serve on port 3000 and run the Playwright tests in `e2e/`. Run `npx playwright install chromium` once first |
 
 ## Adding a skill
 
@@ -59,10 +60,10 @@ No time to write the entry? [Suggest the skill](https://github.com/deiu25/claude
 ## Before you open a pull request
 
 ```bash
-npm test && npm run lint && npx tsc --noEmit && npm run build
+npm test && npm run lint && npx tsc --noEmit && npm run build && npm run test:e2e
 ```
 
-All four must pass. For a visual change, check both themes and a 375px-wide viewport, and add a screenshot to the pull request.
+All five must pass. For a visual change, check both themes and a 375px-wide viewport, and add a screenshot to the pull request.
 
 Branches pushed to this repository get a Vercel preview deployment. Merging into `main` deploys to production; [RUNBOOK.md](RUNBOOK.md) covers deploys and rollbacks.
 

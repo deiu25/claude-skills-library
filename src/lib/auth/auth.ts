@@ -5,6 +5,7 @@ import { nextCookies } from "better-auth/next-js";
 import { db } from "@/lib/db";
 import { existingAccountEmail, resetPasswordEmail, sendEmail, verificationEmail } from "@/lib/email";
 import { isSignUpAllowed } from "./allowlist";
+import { githubCredentials } from "./github";
 import { cleanProfile } from "./profile";
 
 // Exact hosts from Vercel's system variables, so every preview URL works without BETTER_AUTH_URL.
@@ -15,6 +16,8 @@ const allowedHosts = onVercel
       (host): host is string => Boolean(host),
     )
   : ["localhost:3000"];
+
+const github = githubCredentials();
 
 export const auth = betterAuth({
   baseURL: { allowedHosts, protocol: onVercel ? "https" : "http" },
@@ -37,13 +40,26 @@ export const auth = betterAuth({
       sendEmail(verificationEmail(user.email, url));
     },
   },
+  socialProviders: github ? { github } : {},
+  // GitHub access tokens are stored encrypted with BETTER_AUTH_SECRET.
+  account: { encryptOAuthTokens: true },
+  user: {
+    // An unverified GitHub email may belong to someone else, and the allowlist would admit it.
+    // Runs before a GitHub user is created or linked, and on every GitHub sign-in.
+    validateUserInfo: ({ user, source }) => {
+      if (source.oauth && !user.emailVerified) {
+        return { error: "email_not_verified", errorDescription: "Verify your email address on GitHub first." };
+      }
+    },
+  },
   // Reset and verification tokens are stored hashed: previews copy the production database.
   verification: { storeIdentifier: "hashed" },
   rateLimit: {
     storage: "database",
   },
   // Unexpected errors reach the route handler, which logs them without their query parameters.
-  onAPIError: { throw: true },
+  // A failed GitHub sign-in lands on /sign-in?error=<code>, which the page turns into a message.
+  onAPIError: { throw: true, errorURL: "/sign-in" },
   databaseHooks: {
     user: {
       create: {

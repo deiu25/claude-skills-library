@@ -7,6 +7,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { SkillRecommender } from "@/components/SkillRecommender";
 
 export const revalidate = 21600;
+export const dynamic = "error";
 
 export const metadata: Metadata = {
   title: "Recommend skills",

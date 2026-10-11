@@ -17,11 +17,12 @@ A curated catalog of Claude Code skills, live at https://claude-skills-library-p
 | Lint | `npm run lint` |
 | Type check | `npx tsc --noEmit` (there is no npm script) |
 | Production build | `npm run build` |
+| End-to-end tests (builds, then serves on port 3000) | `npm run test:e2e`; the first time, `npx playwright install chromium` |
 | SQL migration after a schema change | `npm run db:generate` |
 | Apply migrations to `DATABASE_URL_UNPOOLED` | `npm run db:migrate` |
 | Auth tables after a Better Auth config change | `npx auth@1.7.7 generate --config src/lib/auth/auth.ts --output src/lib/db/auth-schema.ts --yes`, then `npm run db:generate` |
 
-A change is done when test, lint, type check and build all pass.
+A change is done when test, lint, type check, build and the end-to-end tests all pass.
 
 ## Read before you change
 

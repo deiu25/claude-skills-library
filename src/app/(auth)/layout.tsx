@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 
@@ -17,6 +18,17 @@ export default function AuthLayout({
       {/* Top-aligned, not centred: a form message appearing must not shift the heading. */}
       <main id="main" className="mx-auto w-full max-w-md flex-1 px-4 py-16 sm:px-6 sm:py-24">
         {children}
+        <p className="mt-10 text-xs leading-relaxed text-faint">
+          Accounts follow the{" "}
+          <Link href="/terms" className="underline underline-offset-4 transition-colors hover:text-foreground">
+            terms of use
+          </Link>{" "}
+          and the{" "}
+          <Link href="/privacy" className="underline underline-offset-4 transition-colors hover:text-foreground">
+            privacy policy
+          </Link>
+          .
+        </p>
       </main>
       <SiteFooter />
     </>

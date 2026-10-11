@@ -8,6 +8,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { SkillSearch } from "@/components/SkillSearch";
 
 export const revalidate = 21600;
+export const dynamic = "error";
 
 export const metadata: Metadata = {
   title: "Browse skills",
