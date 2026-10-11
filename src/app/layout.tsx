@@ -22,11 +22,14 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
 };
 
-const themeInitScript = `
+// Runs before first paint: applies the theme, and marks a browser that has signed in before so the
+// header keeps the account menu's place (AccountSlot).
+const initScript = `
 try {
   const stored = localStorage.getItem("theme");
   const theme = stored === "light" || stored === "dark" ? stored : "dark";
   document.documentElement.classList.toggle("dark", theme === "dark");
+  if (localStorage.getItem("signedIn") === "1") document.documentElement.setAttribute("data-signed-in", "");
 } catch (_) {
   document.documentElement.classList.add("dark");
 }
@@ -44,7 +47,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <script dangerouslySetInnerHTML={{ __html: initScript }} />
       </head>
       <body className="flex min-h-full flex-col">
         <a

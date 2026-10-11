@@ -4,7 +4,7 @@
 |---|---|
 | Owner | Badulescu Andrei ([@deiu25](https://github.com/deiu25)) |
 | Decided | 2026-10-10 |
-| Next phase | P1 |
+| Next phase | P3 |
 
 The curated catalog stays as it is: static, hand-written, reviewed in git. Around it the site gains:
 - accounts;
@@ -34,7 +34,7 @@ Paste into a new Claude Code session in this repository:
 |---|---|---|
 | P0 | Decisions and docs | done |
 | P1 | Database and email/password auth, sign-up closed | done |
-| P2 | Header, GitHub sign-in, legal pages, static guards | todo |
+| P2 | Header, GitHub sign-in, legal pages, static guards | done |
 | P3 | Account security and data | todo |
 | P4 | Own skills (SKILL.md) and security scan | todo |
 | P5 | Skill files | todo |
@@ -222,6 +222,7 @@ Every phase merges to `main`, which is production, so each one keeps these rules
   - `@better-auth/passkey`.
   - Account deletion, confirmed by email.
   - `/api/me/export`.
+  - A daily cleanup that deletes expired sessions and verification rows, and rate-limit rows older than a day. `/privacy` (P2) says old rate-limit counters are not yet deleted; update its retention lines when this and self-service deletion ship.
 - **Owner:** the production domain is live. Passkeys and OAuth bind to it, and moving domains later breaks every passkey.
 - **Done when:**
   - A password sign-in asks for the TOTP code.
@@ -377,6 +378,7 @@ Any time after P9, once the paperwork is done.
     - marketplace terms;
     - a seller agreement covering the licence granted, the fact that plaintext cannot be copy-protected, and takedowns;
     - the refund and withdrawal policy.
+  - The consumer duties that start with the first sale: a link to www.anpc.ro and the SAL pictogram on the home page (OPANPC 72/2010, Ord. ANPC 449/2022), and the online withdrawal function (OUG 34/2014, as amended by OUG 18/2026).
   - The `PAYMENTS_LIVE` flag.
 - **Owner:**
   - The accountant's sign-off and any registrations.
@@ -515,4 +517,6 @@ Every phase checks the following, on top of its "Done when":
   - Passkeys and API keys ship as separate `@better-auth/*` packages.
   - Migrations run through `scripts/migrate.mjs` on `DATABASE_URL_UNPOOLED`: `drizzle-kit migrate` 0.31 exits 1 without printing the error (checked in P1).
   - The auth base URL comes from Vercel's system variables, so `BETTER_AUTH_URL` is not needed (checked in P1).
+  - `onAPIError.throw` lets OAuth redirects through and still turns an `APIError` into a response; only other errors reach the route's logging wrapper. An `APIError` from a database hook during the OAuth callback comes back as `?error=<code>` on `onAPIError.errorURL` (checked in P2).
+  - Implicit linking of a GitHub account to an existing user needs both emails verified: GitHub's, and the local one (`accountLinking.requireLocalEmailVerified`, on by default). It fails as `account_not_linked` (checked in P2).
   - `pg` 8 reads Neon's `sslmode=require` as `verify-full` and logs a security warning, at error level, on every cold start. `pg` 9 turns `require` into encryption without certificate checks, so set `sslmode=verify-full` before upgrading (seen in P1).

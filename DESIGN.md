@@ -182,7 +182,7 @@ Zinc neutrals with a single emerald accent, locked site-wide.
 - **Headline** (600, 30px, 36px from `sm`): page titles. On a skill's own page the title is set in mono.
 - **Title** (600, 20px to 30px): section headings.
 - **Subtitle** (500, 18px): step titles. Skill card titles are mono 600 at 15px, 16px when featured.
-- **Body** (400, 14px, 16px from `sm`, line-height 1.625): intros and descriptions. Prose on a skill page is 15px. Line length: 42ch in the home hero, 50 to 60ch for intros, 65 to 70ch for prose.
+- **Body** (400, 14px, 16px from `sm`, line-height 1.625): intros and descriptions. Prose on a skill page and on the legal pages is 15px. Line length: 42ch in the home hero, 50 to 60ch for intros, 65 to 70ch for prose.
 - **Label** (400, 12px): stat labels and metadata.
 - **Code** (Geist Mono 400, 13px): commands, usage items, inline code.
 
@@ -194,7 +194,7 @@ Zinc neutrals with a single emerald accent, locked site-wide.
 
 ## Layout
 
-- Two container widths: 1280px for the home page and the skill grid, 896px for reading pages (skill detail, recommend, report).
+- Two container widths: 1280px for the home page and the skill grid, 896px for reading pages (skill detail, recommend, report, privacy, terms). Legal prose keeps a 70ch measure.
 - Side gutters of 16px, 24px from `sm`. Inner pages (browse, skill, recommend, report) pad 48px top and bottom, 64px from `sm`; the home and 404 pages set their own section spacing.
 - The skill grid has one column, two from `md` and three from `lg`, with 16px gaps.
 - The home hero splits into two asymmetric columns from `lg` (1.1fr and 1fr); featured skills form an asymmetric bento below it.
@@ -206,7 +206,7 @@ Flat by default. Depth comes from three surface steps (page, surface, raised sur
 
 ### Shadow Vocabulary
 
-- **Floating** (`box-shadow: 0 16px 40px -12px rgb(0 0 0 / 0.6)` dark, `0 12px 32px -12px rgb(24 24 27 / 0.22)` light), always with a 1px inset top highlight: the selection bar and its export panel.
+- **Floating** (`box-shadow: 0 16px 40px -12px rgb(0 0 0 / 0.6)` dark, `0 12px 32px -12px rgb(24 24 27 / 0.22)` light), always with a 1px inset top highlight: the selection bar, its export panel and the account menu.
 
 ### Materials
 
@@ -219,9 +219,11 @@ Flat by default. Depth comes from three surface steps (page, surface, raised sur
 
 **The Solid Fallback Rule.** Under `prefers-reduced-transparency` or `prefers-contrast: more`, both materials become solid surfaces.
 
+**The No-Nesting Rule.** Material never sits inside material. The header's `backdrop-filter` makes it the backdrop root, so a translucent panel inside it would show the page through without blurring it. A panel that opens from the header is solid Surface with the floating shadow.
+
 ## Shapes
 
-Five radii, one job each: cards and panels 14px; buttons and the theme toggle 10px; inputs and small controls such as the icon copy button and command snippets 8px; inline code 6px; pills for chips, badges and dots. Every border is a 1px line. Active chips and the accent card border in emerald.
+Five radii, one job each: cards and panels 14px; buttons and the theme toggle 10px; inputs and small controls such as the icon copy button, command snippets and menu items 8px; inline code 6px; pills for chips, badges, dots and the account button, which carries the user's initial like an avatar. Every border is a 1px line. Active chips and the accent card border in emerald.
 
 ## Components
 
@@ -250,10 +252,28 @@ Five radii, one job each: cards and panels 14px; buttons and the theme toggle 10
 
 - **Style:** 8px radius, 1px line border, Surface fill, at least 44px tall, 14px side padding, Muted placeholder.
 - **Focus:** the border turns emerald. No glow.
+- **Label and hint:** the label sits above the field (14px, weight 500, Foreground); a hint sits below it (12px Faint), tied to the input with `aria-describedby`.
+
+### Forms and errors
+
+- **One message per form,** between the last field and the submit button: a Surface box with a 1px line and 8px radius. Errors use `role="alert"` and a Foreground warning icon; success uses `role="status"` and an Emerald check. An error takes no second hue (The One Accent Rule).
+- **Copy:** an error names the problem and the way out. Text from the URL is never shown: a `?error=` code maps to fixed copy.
+- **Pending:** the submit button is disabled and its label says what is happening ("Signing in…").
+- **Auth pages** are top-aligned, so a message appearing never moves the heading. "Continue with GitHub" is a full-width ghost button above the email form, separated by a 1px rule with "or with email" in 12px Faint.
+
+### Menus
+
+- **Pattern:** a disclosure. A button with `aria-expanded` and `aria-controls` opens a panel below it, aligned to its right edge. Not `role="menu"`: the items are plain links and buttons reached with Tab.
+- **Panel:** solid Surface, 1px line, 14px radius, the floating shadow (The No-Nesting Rule), 6px padding. A 1px line separates who is signed in from the actions.
+- **Items:** at least 44px tall, 8px radius, 14px Foreground, Raised Surface on hover.
+- **Motion:** opens with a 200ms fade and a scale from 0.95, on `--ease-out-quint`, through `@starting-style`; closes at once. Escape closes it and returns focus to its button; a press outside, or focus leaving it, closes it too.
+- **Account button:** a 44px circle on Raised Surface with a 1px line and the user's initial (14px, weight 600). An initial, never a GitHub avatar: loading one would send every page view to a third party.
 
 ### Navigation
 
-- A sticky header on thin material: the mono wordmark on the left, then Browse skills, Recommend and Report (the last two from `sm`), the GitHub source link and the theme toggle. The current section carries `aria-current`.
+- A sticky header on thin material: the mono wordmark on the left, then Browse skills, Recommend and Report (the last two from `sm`), the GitHub source link, the theme toggle and the account control. The current section carries `aria-current`.
+- **Account control:** a "Sign in" link while sign-up is open, or the account button in a browser that has signed in. Its 44px slot is reserved before hydration, so the row never shifts. While sign-up is open, the GitHub link shows only from `sm`, so the row fits 375px.
+- **Footer:** the licence line, the operator's identification in 12px Faint, and links at least 44px tall.
 
 ### Terminal Block
 

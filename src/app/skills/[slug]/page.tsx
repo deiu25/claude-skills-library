@@ -22,6 +22,7 @@ import { Markdown } from "@/components/Markdown";
 import { CopyForClaudeButton } from "@/components/CopyForClaudeButton";
 
 export const revalidate = 21600;
+export const dynamic = "error";
 
 interface PageProps {
   params: Promise<{ slug: string }>;

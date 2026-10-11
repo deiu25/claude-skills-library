@@ -22,6 +22,7 @@ import { SkillCard } from "@/components/SkillCard";
 import { Reveal } from "@/components/Reveal";
 
 export const revalidate = 21600;
+export const dynamic = "error";
 
 export default async function HomePage() {
   const repos = getUniqueRepos();

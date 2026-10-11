@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { signOut } from "@/lib/auth/actions";
+import { SignedInMarker } from "@/components/auth/SignedInMarker";
+import { SignOutButton } from "@/components/auth/SignOutButton";
 import { requireUser } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
@@ -24,11 +25,11 @@ export default async function DashboardPage() {
             Signed in as <span className="text-foreground">{user.email}</span>.
           </p>
         </div>
-        <form action={signOut} className="mt-8">
-          <button type="submit" className="btn btn-ghost text-sm">
-            Sign out
-          </button>
-        </form>
+        <div className="mt-8">
+          <SignOutButton className="btn btn-ghost text-sm" />
+        </div>
+        {/* Every sign-in lands here: email, the verification link and GitHub. */}
+        <SignedInMarker />
       </main>
       <SiteFooter />
     </>

@@ -101,11 +101,11 @@ Each line becomes its own section here when its [ROADMAP.md](ROADMAP.md) phase s
 - **NFR-4 Accessibility.** WCAG AA contrast for text in both themes, full keyboard navigation, a skip link, and support for reduced motion, reduced transparency and increased contrast.
 - **NFR-5 Privacy.** No analytics or tracking. Anonymous visitors get no cookie; the browser stores only the theme choice in `localStorage` and, after a sign-in, a flag saying the visitor has signed in before. Signed-in users get one strictly necessary session cookie and can export and delete their data.
 - **NFR-6 Security.** The server accepts input only on authenticated routes and the payment webhook; it validates every input and checks ownership on every write. No secret reaches the client; RUNBOOK.md lists them.
-- **NFR-7 Licensing.** The code is MIT. Skill names, descriptions and linked content belong to their authors, and the footer says so.
+- **NFR-7 Licensing and identity.** The code is MIT. Skill names, descriptions and linked content belong to their authors, and the footer says so. The footer also names the operator and links `/privacy` and `/terms`, which describe what the site does with data.
 
 ## Acceptance criteria for any change
 
-- The quality gates pass: `npm test`, `npm run lint`, `npx tsc --noEmit`, `npm run build`.
+- The quality gates pass: `npm test`, `npm run lint`, `npx tsc --noEmit`, `npm run build`, `npm run test:e2e`.
 - Every route in this document still renders, with GitHub stats and without them.
 - Catalog routes stay static in the build output, and an anonymous catalog page sets no cookie.
 - A new or edited entry meets FR-1 to FR-4, and its install command matches the upstream README on the day it is written.
