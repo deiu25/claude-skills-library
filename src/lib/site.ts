@@ -9,7 +9,8 @@ export const SITE_DESCRIPTION =
 
 /**
  * Who runs the site, exactly as registered with the Romanian trade register (ONRC). The registered
- * office is the owner's home, so only its locality is published, as on basetech.ro.
+ * office is the owner's home, so only its locality is published, as on basetech.ro. The phone is
+ * the company's public number, the one basetech.ro lists.
  */
 export const OPERATOR = {
   name: "Code Art Web Solutions S.R.L.",
@@ -20,6 +21,7 @@ export const OPERATOR = {
   cui: "50223815",
   shareCapital: "200 lei",
   email: "contact@basetech.ro",
+  phone: "+40 771 006 756",
 } as const;
 
 /**

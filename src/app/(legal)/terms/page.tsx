@@ -33,6 +33,9 @@ export default function TermsPage() {
         <li>
           Email: <a href={`mailto:${OPERATOR.email}`}>{OPERATOR.email}</a>
         </li>
+        <li>
+          Phone: <a href={`tel:${OPERATOR.phone.replaceAll(" ", "")}`}>{OPERATOR.phone}</a>
+        </li>
       </ul>
 
       <h2>What the site offers</h2>
