@@ -34,7 +34,7 @@ Paste into a new Claude Code session in this repository:
 |---|---|---|
 | P0 | Decisions and docs | done |
 | P1 | Database and email/password auth, sign-up closed | done |
-| P2 | Header, GitHub sign-in, legal pages, static guards | todo |
+| P2 | Header, GitHub sign-in, legal pages, static guards | done |
 | P3 | Account security and data | todo |
 | P4 | Own skills (SKILL.md) and security scan | todo |
 | P5 | Skill files | todo |
