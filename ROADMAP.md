@@ -27,7 +27,7 @@ Paste into a new Claude Code session in this repository:
 | Phase | Scope | Status |
 |---|---|---|
 | P0 | Decisions and docs | done |
-| P1 | Database and email/password auth, sign-up closed | todo |
+| P1 | Database and email/password auth, sign-up closed | done |
 | P2 | Header, GitHub sign-in, legal pages, static guards | todo |
 | P3 | Account security and data | todo |
 | P4 | Own skills (SKILL.md) and security scan | todo |
@@ -409,3 +409,4 @@ Every phase checks the following, on top of its "Done when":
   - Passkeys and API keys ship as separate `@better-auth/*` packages.
   - Migrations run through `scripts/migrate.mjs` on `DATABASE_URL_UNPOOLED`: `drizzle-kit migrate` 0.31 exits 1 without printing the error (checked in P1).
   - The auth base URL comes from Vercel's system variables, so `BETTER_AUTH_URL` is not needed (checked in P1).
+  - `pg` 8 reads Neon's `sslmode=require` as `verify-full` and logs a security warning, at error level, on every cold start. `pg` 9 turns `require` into encryption without certificate checks, so set `sslmode=verify-full` before upgrading (seen in P1).
