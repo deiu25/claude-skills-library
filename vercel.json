@@ -1,4 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "if [ -n \"$DATABASE_URL_UNPOOLED\" ]; then npm run db:migrate; fi && npm run build"
+  "buildCommand": "if [ -n \"$DATABASE_URL_UNPOOLED\" ]; then npm run db:migrate; fi && npm run build",
+  "crons": [{ "path": "/api/cron/cleanup", "schedule": "0 3 * * *" }]
 }

@@ -15,10 +15,24 @@ The format follows [Keep a Changelog 2.0.0](https://keepachangelog.com/en/2.0.0/
 - An account menu in the header once you have signed in on this browser, with your dashboard and sign out.
 - A privacy policy and terms of use, linked from the footer, which now also names the company that runs the site.
 - The company's phone number, in the footer and the terms of use.
+- Account settings: your profile with a username and a one-line bio, your email address, your password, two-factor authentication with backup codes, passkeys, your GitHub connection and your active sessions.
+- Two-factor sign-in: an account that turns it on is asked for a code from an authenticator app, or a backup code, after its password.
+- Sign in with a passkey.
+- Download your account's data as a JSON file, and delete your account yourself, confirmed by email.
+
+#### Changed
+
+- Creating an account asks only for your name and email. You choose your password from the link we email you, which also confirms the address.
 
 #### Security
 
 - Next.js 16.2.12, which fixes the advisories for Server Actions and request caching that apply to this site.
+- A password set before an address is confirmed no longer survives the confirmation, and confirmation links no longer sign anyone in.
+- A password reset request now takes the same time whether or not the address has an account.
+- Expired sessions and email links, and old sign-in attempt counters, are deleted every day.
+- A passkey must check that it is you, with a fingerprint, face or device PIN, and adding one sends you an email.
+- Changing your email address is confirmed with a button on the site, so an email scanner that opens links cannot approve it.
+- Signing in with GitHub no longer joins an existing account by its email address. Connect GitHub from your settings.
 
 ### 2026-10-10
 

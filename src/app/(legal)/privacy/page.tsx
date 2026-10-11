@@ -52,7 +52,8 @@ export default function PrivacyPage() {
       <ul>
         <li>
           <strong>Your profile:</strong> your name, your email address, whether you have confirmed it,
-          and when the account was created and last changed.
+          when the account was created and last changed, and the username and one-line bio you set, if
+          any. None of it is shown to other people yet.
         </li>
         <li>
           <strong>Your password,</strong> if you set one, only as a one-way hash, never the password itself.
@@ -63,31 +64,46 @@ export default function PrivacyPage() {
           address GitHub shares. We use them only to sign you in, and never act on GitHub for you.
         </li>
         <li>
+          <strong>Two-factor authentication,</strong> if you turn it on: the key your authenticator app
+          shares with us and your backup codes, both encrypted, and a count of wrong codes, which pauses the
+          check for 15 minutes after 10 in a row.
+        </li>
+        <li>
+          <strong>Your passkeys,</strong> if you add any: each one’s public key and identifier, the name you
+          give it, when you added it, whether it syncs between your devices, and which kind of authenticator
+          made it. The private key never leaves your device.
+        </li>
+        <li>
           <strong>Your sessions:</strong> for each browser you sign in on, a random session token, its
           expiry, the IP address and the browser’s user agent. The token sits in one cookie, which keeps
-          you signed in. During a GitHub sign-in, a second, short-lived cookie checks that the sign-in you
-          return from is the one you started.
+          you signed in. A few steps set a second cookie that expires within 10 minutes: a GitHub sign-in,
+          to check that the sign-in you return from is the one you started, a sign-in that asks for your
+          two-factor code, and signing in with or adding a passkey.
         </li>
         <li>
           <strong>Sign-in attempts:</strong> a counter per IP address and sign-in endpoint, used only to
           slow down repeated attempts.
         </li>
         <li>
-          <strong>Email links:</strong> the links that confirm your address or reset your password. A
-          reset link is stored only as a hash.
+          <strong>Email links:</strong> the links that finish a new account, reset your password, change
+          your email address or delete your account. The links to finish an account, reset a password or
+          delete an account are stored only as a hash; the links for an email change are not stored.
         </li>
       </ul>
 
       <h3>Why, and on what legal basis</h3>
       <ul>
         <li>
-          To create your account, sign you in, and send the emails an account needs: confirming your
-          address, resetting your password, and telling you when someone tries to register it again. This
-          is the service you asked for (performance of a contract, GDPR art. 6(1)(b)).
+          To create your account, sign you in the ways you choose, and send the emails an account needs:
+          finishing your account, resetting your password, confirming a change of address or a deletion,
+          telling you when a passkey is added, and telling you when someone tries to register your address
+          again. This is the service you asked
+          for (performance of a contract, GDPR art. 6(1)(b)).
         </li>
         <li>
           To protect accounts from takeover and abuse, through the IP address and user agent on your
-          sessions and the sign-in attempt counters. This is our legitimate interest in keeping accounts
+          sessions, the sign-in attempt counters and the count of wrong two-factor codes. This is our
+          legitimate interest in keeping accounts
           secure (art. 6(1)(f)), and you can object to it.
         </li>
         <li>
@@ -102,19 +118,19 @@ export default function PrivacyPage() {
       <h3>How long we keep it</h3>
       <ul>
         <li>
-          Your profile, password hash and GitHub link: until your account is deleted. Deleting it yourself
-          is coming; until then, email us and we delete it within one month.
+          Your profile and sign-in methods (password hash, GitHub link, two-factor settings, passkeys):
+          until your account is deleted. You can delete it yourself in your account settings, or email us
+          and we delete it within one month.
         </li>
         <li>
-          A session: deleted when you sign out. A session you never sign out of stops working after 7 days
-          without use, and its record stays until the account is deleted.
+          A session: deleted when you sign out, or sign it out from your account settings. A session you
+          never sign out of stops working after 7 days without use, and is deleted within a day after that.
         </li>
-        <li>Email links stop working after one hour.</li>
         <li>
-          Sign-in attempt counters: the next attempt from the same address and endpoint overwrites its
-          counter. Old counters are not yet deleted automatically; until a cleanup ships, they are used for
-          nothing else.
+          Email links stop working after one hour, and a link to delete your account after 24 hours. Stored
+          links are deleted within a day after that, and with your account.
         </li>
+        <li>Sign-in attempt counters: deleted once a counter has gone unused for a day.</li>
         <li>
           Copies: our email provider keeps each email it sends for 30 days, and our database provider keeps
           a 6-hour restore history, so deleted data leaves its backups within 6 hours.
@@ -152,7 +168,8 @@ export default function PrivacyPage() {
         You can ask us for a copy of your data, to correct it, to delete it, to restrict its use, or to
         receive it in a portable format, and you can object to processing based on our legitimate
         interest. Write to <a href={`mailto:${OPERATOR.email}`}>{OPERATOR.email}</a>; we answer within
-        one month.
+        one month. Signed in, you can also download a copy of your data and delete your account yourself,
+        in your account settings.
       </p>
       <p>
         If you think we handle your data unlawfully, you can complain to the Romanian data protection
