@@ -16,6 +16,13 @@ export function SiteFooter() {
             {OPERATOR.locality} ·{" "}
             <a href={`mailto:${OPERATOR.email}`} className="transition-colors hover:text-foreground">
               {OPERATOR.email}
+            </a>{" "}
+            ·{" "}
+            <a
+              href={`tel:${OPERATOR.phone.replaceAll(" ", "")}`}
+              className="whitespace-nowrap transition-colors hover:text-foreground"
+            >
+              {OPERATOR.phone}
             </a>
           </p>
         </div>

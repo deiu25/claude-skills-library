@@ -14,6 +14,7 @@ The format follows [Keep a Changelog 2.0.0](https://keepachangelog.com/en/2.0.0/
 - Sign in with GitHub, with a clear message when it does not finish.
 - An account menu in the header once you have signed in on this browser, with your dashboard and sign out.
 - A privacy policy and terms of use, linked from the footer, which now also names the company that runs the site.
+- The company's phone number, in the footer and the terms of use.
 
 #### Security
 
