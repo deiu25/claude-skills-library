@@ -20,8 +20,9 @@ Claude Code skills, plugins and MCP servers are spread across hundreds of GitHub
 4. The whole catalog can be handed to an LLM in one step: Markdown, JSON, `llms.txt` or an install-all prompt.
 5. A signed-in user keeps all their skills in one library: the ones they wrote, bought or saved from GitHub and the web, and what is installed globally and in each project.
 6. An author presents a skill on its own page and sells it through the site.
+7. A user follows a playbook for their kind of project: the skills for each stage, in order, exported so Claude Code walks through them.
 
-Goals 5 and 6 are planned; [ROADMAP.md](ROADMAP.md) builds them in phases.
+Goals 5 to 7 are planned; [ROADMAP.md](ROADMAP.md) builds them in phases.
 
 ## Non-goals
 
@@ -87,6 +88,10 @@ Each line becomes its own section here when its [ROADMAP.md](ROADMAP.md) phase s
 - **FR-22** Library: skills saved from the catalog, Community, GitHub or any URL; projects; global and per-project installs; export as an install prompt (P10).
 - **FR-23** Sync CLI: an `npx` command authenticated with an API key reports installed skills, pulls owned skills and flags outdated ones (P11–P12).
 - **FR-24** Reviews from verified buyers and public project stacks (P14); teams that share private skills (P15).
+- **FR-25** Playbooks:
+  - Curated playbooks need no account (P16).
+  - Users build their own (P17), share and copy them (P18), apply them with the CLI (P19), and sell them or share them in a team (P20).
+  - Every playbook exports as a Claude Code skill that walks its stages in order.
 
 ## Non-functional requirements
 

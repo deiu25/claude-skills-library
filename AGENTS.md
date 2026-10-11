@@ -33,7 +33,7 @@ A change is done when test, lint, type check and build all pass.
 | Copy, audience, positioning | [PRODUCT.md](PRODUCT.md) |
 | Catalog entries, branches, pull requests | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | Deploys, rollbacks, production problems | [RUNBOOK.md](RUNBOOK.md) |
-| Auth, the database, user skills, payments, the sync CLI | [ROADMAP.md](ROADMAP.md): decisions, merge rules, the next phase |
+| Auth, the database, user skills, payments, playbooks, the sync CLI | [ROADMAP.md](ROADMAP.md): decisions, merge rules, the next phase |
 | Any Next.js API | `node_modules/next/dist/docs/`; caching here follows `01-app/02-guides/caching-without-cache-components.md` |
 
 ## Gotchas
