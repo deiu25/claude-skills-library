@@ -17,6 +17,9 @@ A curated catalog of Claude Code skills, live at https://claude-skills-library-p
 | Lint | `npm run lint` |
 | Type check | `npx tsc --noEmit` (there is no npm script) |
 | Production build | `npm run build` |
+| SQL migration after a schema change | `npm run db:generate` |
+| Apply migrations to `DATABASE_URL_UNPOOLED` | `npm run db:migrate` |
+| Auth tables after a Better Auth config change | `npx auth@1.7.7 generate --config src/lib/auth/auth.ts --output src/lib/db/auth-schema.ts --yes`, then `npm run db:generate` |
 
 A change is done when test, lint, type check and build all pass.
 
@@ -38,6 +41,9 @@ A change is done when test, lint, type check and build all pass.
 - `cacheComponents` is off. Cache with route segment config and `fetch(..., { next: { revalidate } })`; don't add `"use cache"`.
 - `export const revalidate = 21600` must stay a literal in every catalog route, because Next.js reads it statically. Change it together with `REVALIDATE_SECONDS` in `src/lib/github.ts`.
 - `getRepoStats` returns `null` on any failure. Every page must render without stats, and a GitHub error must never fail a page or a build.
+- Keep `server-only` out of `src/lib/auth/auth.ts` and `src/lib/db/`: the Better Auth CLI and drizzle-kit load them in plain Node, and the CLI aborts on it.
+- Drizzle applies a migration only when it is newer than the last one applied. After rebasing onto a `main` that gained a migration, remove your branch's migration with `npx drizzle-kit drop` and run `npm run db:generate` again.
+- Without `BETTER_AUTH_SECRET`, `next build` logs "You are using the default secret" and still passes. The catalog needs no variables; account pages need `DATABASE_URL` and the secret.
 - A file in `src/data/skills/` does nothing until it is imported and appended to `skills` in `src/data/skills/index.ts`.
 - `/skills` writes its URL state (`q`, `category`, `sel`) with `window.history.replaceState`. `router.replace` re-runs the server page and flashes the loading skeleton.
 - Without `GITHUB_TOKEN`, a build needs more GitHub requests than the 60 per hour allowed anonymously, so some stats come back empty. Expected locally; production needs the token (RUNBOOK.md).
