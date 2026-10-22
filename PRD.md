@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Live at https://claude-skills-library-psi.vercel.app |
+| Status | Live at https://skillcellar.com |
 | Owner | Badulescu Andrei ([@deiu25](https://github.com/deiu25)) |
 | Last reviewed | 2026-10-10 |
 

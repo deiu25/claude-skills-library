@@ -12,7 +12,7 @@ export default function TermsPage() {
   return (
     <>
       <h1 className="text-balance text-3xl font-semibold text-foreground sm:text-4xl">Terms of use</h1>
-      <p className="text-sm text-faint">Last updated 11 October 2026</p>
+      <p className="text-sm text-faint">Last updated 22 October 2026</p>
       <p>
         These terms apply when you use the Claude Skills Library at {SITE_URL.replace("https://", "")}.
         How we handle personal data is in the <Link href="/privacy">privacy policy</Link>.

@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-The site deploys continuously from `main`. Only the current production deployment at https://claude-skills-library-psi.vercel.app and the latest commit on `main` receive security fixes.
+The site deploys continuously from `main`. Only the current production deployment at https://skillcellar.com and the latest commit on `main` receive security fixes.
 
 ## Reporting a vulnerability
 

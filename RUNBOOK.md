@@ -1,6 +1,6 @@
 # Runbook
 
-How to operate the production site. Hosting: Vercel, project `claude-skills-library`. Production: https://claude-skills-library-psi.vercel.app.
+How to operate the production site. Hosting: Vercel, project `claude-skills-library`. Production: https://skillcellar.com.
 
 ## Deploy
 
@@ -16,7 +16,7 @@ How to operate the production site. Hosting: Vercel, project `claude-skills-libr
 3. Skill cards show GitHub stats. To count entries without them:
 
 ```bash
-curl -s https://claude-skills-library-psi.vercel.app/skills.json \
+curl -s https://skillcellar.com/skills.json \
   | python3 -c 'import json,sys; s=json.load(sys.stdin)["skills"]; print(sum(1 for x in s if x["repo"] and x["stars"] is None), "of", sum(1 for x in s if x["repo"]), "without stats")'
 ```
 
@@ -87,7 +87,12 @@ A user who lost both the authenticator app and the backup codes cannot finish a 
 
 ### Moving the production domain
 
-Passkeys bind to the host that registered them, so every passkey stops working on the new domain; users sign in another way and add one again. Add the new callback URL to the GitHub OAuth app before the move, and update `SITE_URL` in `src/lib/site.ts`.
+Passkeys bind to the host that registered them, so every passkey stops working on the new domain; users sign in another way and add one again. Better Auth answers only on the hosts in `allowedHosts`, which take the production host from `VERCEL_PROJECT_PRODUCTION_URL` (Vercel picks the shortest custom domain) when a deployment is built. So, in this order:
+
+1. Add `https://<new domain>/api/auth/callback/github` to the GitHub OAuth app, keeping the old one.
+2. Add the domain to the project in Vercel, and `www.<new domain>` as a 308 redirect to it.
+3. Update `SITE_URL` in `src/lib/site.ts` and deploy. From this deploy on, accounts work on the new domain and stop working on the old one.
+4. As soon as that deploy is Ready, set the old domain to redirect (308) to the new one in the project's domain settings.
 
 ### Wrong or harmful catalog entry
 

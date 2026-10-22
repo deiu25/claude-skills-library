@@ -6,6 +6,12 @@ The format follows [Keep a Changelog 2.0.0](https://keepachangelog.com/en/2.0.0/
 
 ## [Unreleased]
 
+### 2026-10-22
+
+#### Changed
+
+- The site moved to skillcellar.com, and the old claude-skills-library-psi.vercel.app address redirects there. A passkey added on the old address has to be added again.
+
 ### 2026-10-11
 
 #### Added
