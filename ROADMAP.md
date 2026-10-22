@@ -284,7 +284,7 @@ Every phase merges to `main`, which is production, so each one keeps these rules
     - a statement of reasons with every removal;
     - an abuse contact.
   - The `admin` plugin with `adminUserIds`, and `/dashboard/admin` to unlist and ban.
-  - Preview databases branched from a seeded `dev` branch instead of production, for example with `neondatabase/create-branch-action`.
+  - Preview databases branched from a seeded `dev` branch instead of production, for example with `neondatabase/create-branch-action`. /privacy's sentences on test copies of the database then change to match.
 - **Done when:**
   - A report reaches the admin.
   - A removal sends its reason.

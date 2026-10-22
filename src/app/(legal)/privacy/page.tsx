@@ -119,6 +119,11 @@ export default function PrivacyPage() {
           secure (art. 6(1)(f)), and you can object to it.
         </li>
         <li>
+          To test changes to the site on a copy of the database before they go live, so that a change does
+          not break your account or lose your skills. This is our legitimate interest in a working service
+          (art. 6(1)(f)), and you can object to it.
+        </li>
+        <li>
           Nothing about you is used for advertising, sold, or used to make automated decisions about you.
         </li>
         <li>
@@ -152,7 +157,10 @@ export default function PrivacyPage() {
         </li>
         <li>
           Copies: our email provider keeps each email it sends for 30 days, and our database provider keeps
-          a 6-hour restore history, so deleted data leaves its backups within 6 hours.
+          a 6-hour restore history, so deleted data leaves its backups within 6 hours. When we test a change
+          to the site before it goes live, our database provider makes a full copy of the database for the test.
+          Data changed or deleted after the copy is made, a deleted account included, stays in the copy as
+          it was until we delete the copy, within a day after the change goes live or is dropped.
         </li>
       </ul>
 
