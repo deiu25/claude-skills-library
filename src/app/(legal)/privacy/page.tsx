@@ -148,7 +148,7 @@ export default function PrivacyPage() {
         </li>
         <li>
           Sign-in attempt counters: deleted once a counter has gone unused for a day. The record of skill
-          saves expires on its own within two days.
+          saves expires on its own two days after your last save.
         </li>
         <li>
           Copies: our email provider keeps each email it sends for 30 days, and our database provider keeps
