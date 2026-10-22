@@ -26,11 +26,25 @@ describe("pathProblem", () => {
   });
 
   it("refuses characters a file name cannot hold somewhere", () => {
-    for (const path of ["a\\b", "C:x", "a\0b", "what?.md", "a\nb", "half\uD800.md"]) {
+    for (const path of ["a\\b", "C:x", "a\0b", "what?.md", "a\nb", "half\uD800.md", "c1\u0085.md", "line\u2028.md"]) {
       expect(pathProblem(path)).toMatch(/a character a file name cannot hold/);
     }
     expect(pathProblem("")).toMatch(/between 1 and 255/);
     expect(pathProblem("a".repeat(256))).toMatch(/between 1 and 255/);
+  });
+
+  it("refuses names that hide or reorder characters, so look-alike names cannot sit side by side", () => {
+    for (const path of ["evil\u202Egnp.sh", "a\u200Bb.md", "soft\u00ADhyphen.md", "tag\u{E0041}.md", "cafe\u0301.md"]) {
+      expect(pathProblem(path)).toMatch(/a character a file name cannot hold/);
+    }
+    expect(pathProblem("café.md")).toBeNull();
+  });
+
+  it("refuses names Windows cannot use", () => {
+    for (const path of ["CON", "assets/nul.txt", "lpt1.md", "notes.", "dir /x.md"]) {
+      expect(pathProblem(path)).toMatch(/a name Windows cannot use/);
+    }
+    expect(pathProblem("console.md")).toBeNull();
   });
 
   it("refuses what npx skills leaves out", () => {
@@ -68,9 +82,20 @@ describe("filesProblem", () => {
 
 describe("textOf and isExecutable", () => {
   it("reads UTF-8 text and gives up on binary content", () => {
-    expect(textOf(new TextEncoder().encode("café\n"))).toBe("café\n");
-    expect(textOf(new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x00]))).toBeNull();
-    expect(textOf(new Uint8Array([0x61, 0xff, 0x62]))).toBeNull();
+    expect(textOf("notes.txt", new TextEncoder().encode("café\n"))).toBe("café\n");
+    expect(textOf("assets/logo.png", new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x00]))).toBeNull();
+    expect(textOf("data.bin", new Uint8Array([0x61, 0xff, 0x62]))).toBeNull();
+  });
+
+  it("reads a script or a file named as text even when one byte is not UTF-8, so the byte cannot hide it", () => {
+    const script = new TextEncoder().encode("#!/bin/sh\necho hi\n");
+    expect(textOf("x", new Uint8Array([...script, 0x00]))).toBe("#!/bin/sh\necho hi\n\0");
+    expect(textOf("notes.md", new Uint8Array([0x61, 0xff, 0x62]))).toBe("a�b");
+  });
+
+  it("reads UTF-16 with a byte-order mark, as Windows saves PowerShell", () => {
+    const utf16le = new Uint8Array([0xff, 0xfe, ...[..."ls\n"].flatMap((c) => [c.charCodeAt(0), 0])]);
+    expect(textOf("run.ps1", utf16le)).toBe("ls\n");
   });
 
   it("marks a file that starts with #! as executable", () => {

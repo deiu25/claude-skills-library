@@ -18,8 +18,12 @@ const PATH_MAX = 255;
 const SKIPPED_FOLDERS = new Set([".git", "node_modules", "__pycache__", "__pypackages__"]);
 const SKIPPED_FILES = new Set(["metadata.json", ".DS_Store", "Thumbs.db", "desktop.ini"]);
 
-// Characters no file name can hold on one of Linux, macOS or Windows, so a download unpacks anywhere.
-const UNSAFE_CHARACTER_RE = /[\u0000-\u001f\u007f\\:*?"<>|]/;
+// Characters no file name can hold on one of Linux, macOS or Windows, so a download unpacks anywhere,
+// and characters that hide or reorder a name: two names that differ only by one of them look alike
+// and sort as equal, which would make the folder's hash depend on the order the files arrived in.
+const UNSAFE_CHARACTER_RE = /[\\:*?"<>|\u2028\u2029\p{Cc}\p{Cf}\p{Default_Ignorable_Code_Point}]/u;
+// Names Windows reserves for devices, with any extension, and names it would silently trim.
+const WINDOWS_NAME_RE = /^(?:con|prn|aux|nul|com[0-9]|lpt[0-9])(?:\..*)?$|[. ]$/i;
 
 const shown = (path: string) => (path.length > 80 ? `${path.slice(0, 80)}…` : path);
 
@@ -35,7 +39,12 @@ export function pathProblem(path: string): string | null {
   if (path.startsWith("/") || path.split("/").some((segment) => segment === "" || segment === "." || segment === "..")) {
     return `${shown(path)} points outside the skill's folder.`;
   }
-  if (UNSAFE_CHARACTER_RE.test(path) || !path.isWellFormed()) return `${shown(path)} has a character a file name cannot hold.`;
+  if (UNSAFE_CHARACTER_RE.test(path) || !path.isWellFormed() || path !== path.normalize("NFC")) {
+    return `${shown(path)} has a character a file name cannot hold.`;
+  }
+  if (path.split("/").some((segment) => WINDOWS_NAME_RE.test(segment))) {
+    return `${shown(path)} has a name Windows cannot use: a device name such as CON or NUL, or one that ends in a dot or a space.`;
+  }
   if (isSkipped(path)) return `${shown(path)} is left out of skills, as npx skills leaves it out. Remove it from the upload.`;
   return null;
 }
@@ -75,19 +84,32 @@ export function filesProblem(files: FileSize[], skillMdBytes: number): string | 
 }
 
 const UTF8 = new TextDecoder("utf-8", { fatal: true });
+const LENIENT_UTF8 = new TextDecoder("utf-8");
 
-/** A file's text, or null for a binary file: one that is not UTF-8 or holds a NUL byte. */
-export function textOf(content: Uint8Array): string | null {
-  if (content.includes(0)) return null;
-  try {
-    return UTF8.decode(content);
-  } catch {
-    return null;
-  }
-}
+// Files that people, shells or Claude read as text, whatever bytes they hold.
+const TEXT_NAME_RE = /\.(?:md|markdown|mdx|txt|sh|bash|zsh|fish|ps1|psm1|bat|cmd|py|rb|pl|php|js|mjs|cjs|ts|mts|cts|jsx|tsx|json|jsonc|ya?ml|toml|ini|cfg|conf|env|xml|html?|css|sql|csv)$/i;
 
 /** A script starting with #! is marked executable, since a browser cannot read a file's mode. */
 export const isExecutable = (content: Uint8Array) => content[0] === 0x23 && content[1] === 0x21;
+
+/**
+ * A file's text for the scan, or null for a binary file. UTF-8 without a NUL byte is text, and so is
+ * UTF-16 with a byte-order mark, as Windows editors save PowerShell and batch files. A script that
+ * starts with #!, or a file named as text, is read as text whatever it holds, so one stray byte
+ * cannot take it out of the scan; a NUL in it is then flagged as a hidden character.
+ */
+export function textOf(path: string, content: Uint8Array): string | null {
+  if (content[0] === 0xff && content[1] === 0xfe) return new TextDecoder("utf-16le").decode(content);
+  if (content[0] === 0xfe && content[1] === 0xff) return new TextDecoder("utf-16be").decode(content);
+  if (!content.includes(0)) {
+    try {
+      return UTF8.decode(content);
+    } catch {
+      // Not UTF-8: text only when its start or its name says so.
+    }
+  }
+  return isExecutable(content) || TEXT_NAME_RE.test(path) ? LENIENT_UTF8.decode(content) : null;
+}
 
 /** "512 B", "12.5 KB", "1 MB". Rounded up, so a size over a limit never reads as the limit itself. */
 export function formatBytes(bytes: number): string {
@@ -122,8 +144,9 @@ export async function readSkillFolder(picked: File[]): Promise<PickedFolder> {
   const others: { path: string; file: File }[] = [];
   let skipped = 0;
   for (const file of picked) {
-    // webkitRelativePath starts with the chosen folder's own name.
-    const path = (file.webkitRelativePath || file.name).split("/").slice(1).join("/");
+    // webkitRelativePath starts with the chosen folder's own name. macOS can hand over decomposed
+    // accents, which the server refuses, so names are composed here.
+    const path = (file.webkitRelativePath || file.name).split("/").slice(1).join("/").normalize("NFC");
     if (path === "SKILL.md") skillMd = file;
     else if (isSkipped(path)) skipped++;
     else others.push({ path, file });
@@ -139,7 +162,7 @@ export async function readSkillFolder(picked: File[]): Promise<PickedFolder> {
   const files = await Promise.all(
     others.map(async ({ path, file }) => {
       const content = new Uint8Array(await file.arrayBuffer());
-      return { path, file, content, text: textOf(content) };
+      return { path, file, content, text: textOf(path, content) };
     }),
   );
   return {

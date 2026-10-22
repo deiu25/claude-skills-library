@@ -167,12 +167,11 @@ export async function getVersionArchive(userId: string, skillId: string, version
 
 /**
  * The user's skills with every kept version's SKILL.md, for /api/me/export. Each version carries
- * its risk and how many findings it had, and lists its other files with the address that
- * downloads them; the findings and the files' content stay out, which keeps the export under the
- * response size limit.
+ * its risk, how many findings and files it had and the address that downloads it with its files;
+ * the findings and the files stay out, which keeps the export under the response size limit.
  */
 export async function getSkillsExport(userId: string) {
-  const [skills, versions, files] = await Promise.all([
+  const [skills, versions] = await Promise.all([
     db
       .select({
         id: skill.id,
@@ -190,44 +189,34 @@ export async function getSkillsExport(userId: string) {
       .orderBy(skill.createdAt),
     db
       .select({
-        id: skillVersion.id,
         skillId: skillVersion.skillId,
         version: skillVersion.version,
         skillMd: skillVersion.skillMd,
         contentHash: skillVersion.contentHash,
         risk: skillVersion.risk,
         findingCount: sql<number>`jsonb_array_length(${skillVersion.findings})`.mapWith(Number),
+        fileCount: sql<number>`(select count(*) from ${skillFile} where ${skillFile.versionId} = ${skillVersion.id})`.mapWith(Number),
+        fileBytes: sql<number>`(select coalesce(sum(octet_length(${skillFile.content})), 0) from ${skillFile} where ${skillFile.versionId} = ${skillVersion.id})`.mapWith(Number),
         createdAt: skillVersion.createdAt,
       })
       .from(skillVersion)
       .innerJoin(skill, eq(skill.id, skillVersion.skillId))
       .where(eq(skill.ownerId, userId))
       .orderBy(skillVersion.version),
-    db
-      .select({
-        versionId: skillFile.versionId,
-        path: skillFile.path,
-        size: sql<number>`octet_length(${skillFile.content})`.mapWith(Number),
-        executable: skillFile.executable,
-      })
-      .from(skillFile)
-      .innerJoin(skillVersion, eq(skillVersion.id, skillFile.versionId))
-      .innerJoin(skill, eq(skill.id, skillVersion.skillId))
-      .where(eq(skill.ownerId, userId))
-      .orderBy(skillFile.path),
   ]);
   return skills.map((row) => ({
     ...row,
     versions: versions
       .filter((version) => version.skillId === row.id)
-      .map(({ id, version, skillMd, contentHash, risk, findingCount, createdAt }) => ({
+      .map(({ version, skillMd, contentHash, risk, findingCount, fileCount, fileBytes, createdAt }) => ({
         version,
         skillMd,
         contentHash,
         risk,
         findingCount,
+        fileCount,
+        fileBytes,
         createdAt,
-        files: files.filter((file) => file.versionId === id).map(({ path, size, executable }) => ({ path, size, executable })),
         download: `${SITE_URL}/api/skills/${row.id}/download?version=${version}`,
       })),
   }));
@@ -251,6 +240,6 @@ async function getFileSummaries(versionId: string): Promise<FileSummary[]> {
     .from(skillFile)
     .where(eq(skillFile.versionId, versionId));
   return rows
-    .map(({ path, content, executable }) => ({ path, size: content.length, executable, scanned: textOf(content) !== null }))
+    .map(({ path, content, executable }) => ({ path, size: content.length, executable, scanned: textOf(path, content) !== null }))
     .sort((a, b) => a.path.localeCompare(b.path));
 }

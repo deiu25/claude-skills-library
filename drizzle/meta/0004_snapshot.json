@@ -1,6 +1,6 @@
 {
-  "id": "42ed05c7-67fe-4822-bb72-29d11ee3439e",
-  "prevId": "656f9f4f-1fc2-45db-9edb-137dfa6f01c6",
+  "id": "193d6e4f-b30c-4849-aa34-5ea028314f93",
+  "prevId": "a7376b3a-68c5-4108-adb9-dd5155adf289",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -181,7 +181,7 @@
       "checkConstraints": {
         "skill_file_path_check": {
           "name": "skill_file_path_check",
-          "value": "\"skill_file\".\"path\" <> '' and \"skill_file\".\"path\" !~ '^/|(^|/)\\.\\.(/|$)' and strpos(\"skill_file\".\"path\", '\\') = 0"
+          "value": "\"skill_file\".\"path\" !~ '(^|/)\\.{0,2}(/|$)' and strpos(\"skill_file\".\"path\", '\\') = 0"
         }
       },
       "isRLSEnabled": false

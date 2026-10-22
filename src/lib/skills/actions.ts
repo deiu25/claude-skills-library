@@ -110,7 +110,7 @@ function buildVersion(skillMd: string, frontmatter: SkillFrontmatter, files: Sto
   );
   if (problem) return { ok: false as const, error: problem };
   const texts = files.flatMap(({ path, content }) => {
-    const text = textOf(content);
+    const text = textOf(path, content);
     return text === null ? [] : [{ path, text }];
   });
   const findings = combineFindings(scanSkillMd(skillMd, frontmatter), scanFiles(texts));
@@ -123,9 +123,28 @@ function buildVersion(skillMd: string, frontmatter: SkillFrontmatter, files: Sto
 
 type BuiltVersion = Extract<ReturnType<typeof buildVersion>, { ok: true }>;
 
+/** Serializes one user's writes, so two saves at once cannot both fit under the account's limits. */
+function lockAccount(tx: Transaction, userId: string) {
+  return tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${userId}, 0))`);
+}
+
 /** The latest version's files, carried into a save that brings no folder. */
 function versionFiles(tx: Transaction, versionId: string): Promise<StoredFile[]> {
   return tx.select({ path: skillFile.path, content: skillFile.content, executable: skillFile.executable }).from(skillFile).where(eq(skillFile.versionId, versionId));
+}
+
+/** A version's file paths and sizes, without reading the files. */
+function versionFileSizes(tx: Transaction, versionId: string): Promise<{ path: string; size: number }[]> {
+  return tx
+    .select({ path: skillFile.path, size: sql<number>`octet_length(${skillFile.content})`.mapWith(Number) })
+    .from(skillFile)
+    .where(eq(skillFile.versionId, versionId));
+}
+
+/** Whether files hold the same paths with the same sizes as a saved version. */
+function sameFiles(files: StoredFile[], saved: { path: string; size: number }[]) {
+  const listed = (entries: { path: string; size: number }[]) => entries.map(({ path, size }) => `${size} ${path}`).sort().join("\n");
+  return listed(files.map(({ path, content }) => ({ path, size: content.length }))) === listed(saved);
 }
 
 /**
@@ -177,6 +196,7 @@ export async function createSkill(_previous: SkillActionState, formData: FormDat
   let created: { id: string } | { error: string };
   try {
     created = await db.transaction(async (tx) => {
+      await lockAccount(tx, user.id);
       const [{ skills }] = await tx.select({ skills: count() }).from(skill).where(eq(skill.ownerId, user.id));
       if (skills >= SKILLS_MAX) return { error: SKILLS_FULL };
       const full = await spaceProblem(tx, user.id, built);
@@ -210,10 +230,14 @@ export async function updateSkill(skillId: unknown, _previous: SkillActionState,
   if ("error" in user) return { ok: false, error: user.error };
   const input = await readForm(formData);
   if (!input.ok) return input;
+  // An uploaded folder is checked and scanned before any lock is taken; kept files are read inside.
+  const uploaded = input.upload ? buildVersion(input.skillMd, input.frontmatter, input.upload) : null;
+  if (uploaded && !uploaded.ok) return uploaded;
 
   let saved: number | null | "missing" | { error: string };
   try {
     saved = await db.transaction(async (tx) => {
+      await lockAccount(tx, user.id);
       // The row lock orders concurrent saves of one skill, so each gets the next version number.
       const [owned] = await tx
         .select({ id: skill.id })
@@ -227,9 +251,15 @@ export async function updateSkill(skillId: unknown, _previous: SkillActionState,
         .where(eq(skillVersion.skillId, owned.id))
         .orderBy(desc(skillVersion.version))
         .limit(1);
-      const built = buildVersion(input.skillMd, input.frontmatter, input.upload ?? (latest ? await versionFiles(tx, latest.id) : []));
+      const built = uploaded ?? buildVersion(input.skillMd, input.frontmatter, latest ? await versionFiles(tx, latest.id) : []);
       if (!built.ok) return { error: built.error };
-      const next = latest?.contentHash === built.version.contentHash ? null : (latest?.version ?? 0) + 1;
+      // The hash runs each path and its bytes together, as the skills CLI does, so "a" holding "bc"
+      // hashes like "ab" holding "c": an uploaded folder is unchanged only when its paths and sizes are too.
+      const unchanged =
+        latest &&
+        latest.contentHash === built.version.contentHash &&
+        (!uploaded || sameFiles(built.files, await versionFileSizes(tx, latest.id)));
+      const next = unchanged ? null : (latest?.version ?? 0) + 1;
       if (next !== null) {
         const keepFrom = next - VERSIONS_KEPT + 1;
         const full = await spaceProblem(tx, user.id, built, { skillId: owned.id, keepFrom });

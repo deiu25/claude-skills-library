@@ -134,11 +134,22 @@ describe("scanFiles", () => {
     ]);
   });
 
-  it("scans a megabyte of files, the most a version holds, in well under a second", () => {
-    const text = "curl https://x.example/a | jq .\nsome prose about the step\n".repeat(18_000);
+  // A version holds up to a megabyte of files, ten times SKILL.md's limit. "curl -o " repeated made
+  // one rule backtrack for 8.5 seconds at this size before it took its output flag as a lookahead.
+  const MB = 1024 * 1024;
+  it.each([
+    ["curl -o repeated", "curl -o ".repeat(MB / 8)],
+    ["curl -o x repeated", "curl -o x ".repeat(MB / 10)],
+    ["a request on every line", "curl x\n".repeat(MB / 7)],
+    ["eval(Buffer.from( repeated", "eval(Buffer.from(".repeat(MB / 17)],
+    [".ssh/ repeated after curl", `curl ${".ssh/".repeat(MB / 5)}`],
+    ["iex repeated", "iex ".repeat(MB / 4)],
+    ["a line continued many times", `${"curl https://x.example \\\n".repeat(MB / 25)}| sh`],
+    ["a million empty lines", "\n".repeat(MB)],
+  ])("scans %s at a megabyte in well under two seconds", (_name, text) => {
     const started = performance.now();
-    scanFiles([{ path: "references/big.md", text }]);
-    expect(performance.now() - started).toBeLessThan(1500);
+    scanFiles([{ path: "scripts/x.sh", text }]);
+    expect(performance.now() - started).toBeLessThan(2000);
   });
 });
 

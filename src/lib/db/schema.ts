@@ -68,10 +68,8 @@ export const skillFile = pgTable(
   },
   (table) => [
     primaryKey({ columns: [table.versionId, table.path] }),
-    // The upload checks every path; this keeps one that escapes the folder out of the table anyway.
-    check(
-      "skill_file_path_check",
-      sql`${table.path} <> '' and ${table.path} !~ '^/|(^|/)\\.\\.(/|$)' and strpos(${table.path}, '\\') = 0`,
-    ),
+    // The upload checks every path; this keeps one that escapes the folder out of the table anyway:
+    // no empty, "." or ".." segment, which also refuses an absolute path, and no backslash.
+    check("skill_file_path_check", sql`${table.path} !~ '(^|/)\\.{0,2}(/|$)' and strpos(${table.path}, '\\') = 0`),
   ],
 );

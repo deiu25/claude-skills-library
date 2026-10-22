@@ -1,5 +1,6 @@
 import { getSession } from "@/lib/auth/session";
-import { zipVersion } from "@/lib/skills/archive";
+import { rateLimit } from "@/lib/rate-limit";
+import { folderName, zipVersion } from "@/lib/skills/archive";
 import { getVersionArchive } from "@/lib/skills/queries";
 
 /**
@@ -9,6 +10,8 @@ import { getVersionArchive } from "@/lib/skills/queries";
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();
   if (!session) return new Response(null, { status: 401 });
+  const limit = await rateLimit("skill-download", session.user.id);
+  if (limit !== "ok") return new Response(null, { status: limit === "limited" ? 429 : 503 });
 
   const version = new URL(request.url).searchParams.get("version");
   const archive = await getVersionArchive(session.user.id, (await params).id, version === null ? undefined : Number(version));
@@ -17,8 +20,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   return new Response(Buffer.from(zipVersion(archive)), {
     headers: {
       "Content-Type": "application/zip",
-      "Content-Disposition": `attachment; filename="${archive.name}-v${archive.version}.zip"`,
+      "Content-Disposition": `attachment; filename="${folderName(archive.name)}-v${archive.version}.zip"`,
       "Cache-Control": "private, no-store",
+      "X-Content-Type-Options": "nosniff",
     },
   });
 }

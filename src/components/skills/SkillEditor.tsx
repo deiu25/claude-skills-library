@@ -7,7 +7,7 @@ import { Field } from "@/components/auth/Field";
 import { FormMessage } from "@/components/auth/FormMessage";
 import { CATEGORY_LABELS } from "@/data/types";
 import { createSkill, updateSkill } from "@/lib/skills/actions";
-import { readSkillFolder, VERSION_BYTES_MAX, type FileSummary, type PickedFile } from "@/lib/skills/files";
+import { readSkillFolder, VERSION_BYTES_MAX, type FileSummary, type PickedFile, type PickedFolder } from "@/lib/skills/files";
 import { keepDraftOnFailure } from "@/lib/skills/keep-draft";
 import { combineFindings, riskOf, scanSkillMd, type Finding } from "@/lib/skills/scan";
 import { DESCRIPTION_MAX, normalizeSkillMd, parseSkillMd, SKILL_MD_MAX, TAGS_MAX } from "@/lib/skills/schemas";
@@ -77,7 +77,14 @@ export function SkillEditor({ skillId, initial }: SkillEditorProps) {
   }
 
   async function pickFolder(chosen: File[]) {
-    const folder = await readSkillFolder(chosen);
+    let folder: PickedFolder;
+    try {
+      folder = await readSkillFolder(chosen);
+    } catch {
+      // A file moved or deleted after it was chosen, or one the browser may not read.
+      setFolderError("A file in this folder could not be read. Choose the folder again.");
+      return;
+    }
     if (!folder.ok) {
       setFolderError(folder.error);
       return;

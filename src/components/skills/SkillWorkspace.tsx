@@ -57,7 +57,7 @@ export async function SkillWorkspace({ skillId }: { skillId: string }) {
         <SettingsSection
           id="versions"
           title="Versions"
-          description={`The latest ${VERSIONS_KEPT} saves that changed SKILL.md, each with the scan it got then.`}
+          description={`The latest ${VERSIONS_KEPT} saves that changed SKILL.md or the files, each with the scan it got then.`}
         >
           <ul className="divide-y divide-line rounded-[8px] border border-line bg-surface">
             {skill.versions.map((version, index) => (

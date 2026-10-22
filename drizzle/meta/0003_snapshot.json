@@ -1,5 +1,5 @@
 {
-  "id": "656f9f4f-1fc2-45db-9edb-137dfa6f01c6",
+  "id": "a7376b3a-68c5-4108-adb9-dd5155adf289",
   "prevId": "756bd538-860d-4c8b-b11d-b06d53a1014f",
   "version": "7",
   "dialect": "postgresql",
@@ -181,7 +181,7 @@
       "checkConstraints": {
         "skill_file_path_check": {
           "name": "skill_file_path_check",
-          "value": "\"skill_file\".\"path\" <> '' and \"skill_file\".\"path\" !~ '^/|(^|/)\\.\\.(/|$)' and strpos(\"skill_file\".\"path\", '\\') = 0"
+          "value": "\"skill_file\".\"path\" !~ '(^|/)\\.{0,2}(/|$)' and strpos(\"skill_file\".\"path\", '\\') = 0"
         }
       },
       "isRLSEnabled": false

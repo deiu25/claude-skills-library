@@ -6,6 +6,12 @@ const UNIX = 3;
 /** A regular file's Unix mode, in the high half of a zip entry's external attributes. */
 const unixAttributes = (executable: boolean) => ((0o100000 | (executable ? 0o755 : 0o644)) << 16) >>> 0;
 
+/**
+ * The folder a version unpacks to, and its download's file name. Names are checked on save; the
+ * guard keeps any other value from naming a path in the archive or breaking out of a header.
+ */
+export const folderName = (name: string) => (SLUG_RE.test(name) ? name : "skill");
+
 export interface ZipInput {
   name: string;
   createdAt: Date;
@@ -19,8 +25,7 @@ export interface ZipInput {
  * one version always zips to the same bytes.
  */
 export function zipVersion({ name, createdAt, skillMd, files }: ZipInput): Uint8Array {
-  // Names are checked on save; the guard keeps any other value from naming a path in the archive.
-  const folder = SLUG_RE.test(name) ? name : "skill";
+  const folder = folderName(name);
   const entry = (content: Uint8Array, executable: boolean): [Uint8Array, ZipOptions] => [
     content,
     { mtime: createdAt, os: UNIX, attrs: unixAttributes(executable) },

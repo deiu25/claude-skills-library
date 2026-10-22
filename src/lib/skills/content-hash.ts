@@ -5,9 +5,13 @@ import { createHash } from "node:crypto";
  * SKILL.md and these files: SHA-256 over each path relative to the folder, then its bytes, with the
  * paths sorted by `localeCompare`. Read from the skills CLI source, versions 1.5.21 to 1.7.2, on
  * 2026-10-22. A code-unit sort gives another hash: "references/…" sorts before "SKILL.md" here.
+ * Code units only break ties between names localeCompare calls equal, which no accepted path is,
+ * so the hash never depends on the order the files arrive in.
  */
 export function contentHash(skillMd: string, files: { path: string; content: Uint8Array }[]): string {
-  const all = [{ path: "SKILL.md", content: Buffer.from(skillMd, "utf8") }, ...files].sort((a, b) => a.path.localeCompare(b.path));
+  const all = [{ path: "SKILL.md", content: Buffer.from(skillMd, "utf8") }, ...files].sort(
+    (a, b) => a.path.localeCompare(b.path) || (a.path < b.path ? -1 : a.path > b.path ? 1 : 0),
+  );
   const hash = createHash("sha256");
   for (const file of all) hash.update(file.path).update(file.content);
   return hash.digest("hex");

@@ -222,8 +222,12 @@ const LINE_RULES: LineRule[] = [
   {
     rule: "pipe-to-shell",
     severity: "high",
+    // The output flag is a lookahead: as a sequence of bounded quantifiers this rule backtracked for
+    // seconds over a megabyte of "curl -o " repeated.
     matches: re(
-      new RegExp(String.raw`${DOWNLOAD}[^&\n]{0,200}\s(?:-o|-O|--output)\s{0,5}\S{1,200}[^&\n]{0,200}&&\s{0,10}(?:${SHELL}|${STDIN_INTERPRETER}|chmod\s{1,5}\+x)`),
+      new RegExp(
+        String.raw`${DOWNLOAD}(?=[^&\n]{0,200}\s(?:-o|-O|--output))[^&\n]{0,400}&&\s{0,10}(?:${SHELL}|${STDIN_INTERPRETER}|chmod\s{1,5}\+x)`,
+      ),
     ),
     message: RUNS_DOWNLOAD,
   },

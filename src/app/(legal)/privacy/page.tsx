@@ -16,7 +16,7 @@ export default function PrivacyPage() {
       <p>
         This page says what the Claude Skills Library does with personal data. In short: browsing sets
         no cookies and tracks nothing, and an account keeps only what it needs to sign you in safely and
-        the skills you write.
+        the skills you write or upload.
       </p>
 
       <h2>Who is responsible</h2>
@@ -86,13 +86,14 @@ export default function PrivacyPage() {
           slow down repeated attempts.
         </li>
         <li>
-          <strong>Your skills,</strong> if you write any: the latest 20 saved versions of each SKILL.md, the
-          category and tags you choose, and the security check that ran on each version. They are private:
-          only you can open them.
+          <strong>Your skills,</strong> if you write or upload any: the latest 20 saved versions of each
+          skill, each with its SKILL.md and the files you upload with it, the category and tags you choose,
+          and the security check that ran on each version. They are private: only you can open or download
+          them.
         </li>
         <li>
-          <strong>Skill saves:</strong> your account’s id and a count of your recent saves, used only to slow
-          down repeated saves.
+          <strong>Skill saves and downloads:</strong> your account’s id and a count of your recent saves and
+          skill downloads, used only to slow down repeated ones.
         </li>
         <li>
           <strong>Email links:</strong> the links that finish a new account, reset your password, change
@@ -104,7 +105,7 @@ export default function PrivacyPage() {
       <h3>Why, and on what legal basis</h3>
       <ul>
         <li>
-          To create your account, sign you in the ways you choose, keep the skills you write, and send the
+          To create your account, sign you in the ways you choose, keep the skills you write or upload, and send the
           emails an account needs:
           finishing your account, resetting your password, confirming a change of address or a deletion,
           telling you when a passkey is added, and telling you when someone tries to register your address
@@ -114,7 +115,7 @@ export default function PrivacyPage() {
         <li>
           To protect accounts from takeover and abuse, through the IP address and user agent on your
           sessions, the sign-in attempt counters, the count of wrong two-factor codes and the record of
-          skill saves. This is our
+          skill saves and downloads. This is our
           legitimate interest in keeping accounts
           secure (art. 6(1)(f)), and you can object to it.
         </li>
@@ -153,7 +154,7 @@ export default function PrivacyPage() {
         </li>
         <li>
           Sign-in attempt counters: deleted once a counter has gone unused for a day. The record of skill
-          saves expires on its own two days after your last save.
+          saves and downloads expires on its own two days after your last save or download.
         </li>
         <li>
           Copies: our email provider keeps each email it sends for 30 days, and our database provider keeps
@@ -180,7 +181,7 @@ export default function PrivacyPage() {
           own service is used, as a controller in its own right.
         </li>
         <li>
-          <strong>Upstash, Inc.</strong> (United States): keeps the record of skill saves, provided through
+          <strong>Upstash, Inc.</strong> (United States): keeps the record of skill saves and downloads, provided through
           the Vercel Marketplace.
         </li>
         <li>
@@ -200,7 +201,8 @@ export default function PrivacyPage() {
         receive it in a portable format, and you can object to processing based on our legitimate
         interest. Write to <a href={`mailto:${OPERATOR.email}`}>{OPERATOR.email}</a>; we answer within
         one month. Signed in, you can also download a copy of your data and delete your account yourself,
-        in your account settings.
+        in your account settings. For every saved version of a skill, the copy gives the address where it
+        downloads as a zip with its files; the skill&rsquo;s pages have the same downloads.
       </p>
       <p>
         If you think we handle your data unlawfully, you can complain to the Romanian data protection
