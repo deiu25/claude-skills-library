@@ -17,7 +17,7 @@ export async function SkillList({ userId }: { userId: string }) {
           <h2 className="text-xl font-semibold tracking-tight text-foreground">No skills yet</h2>
           <p className="max-w-[60ch] text-pretty text-sm leading-relaxed text-muted">
             Write or paste a SKILL.md. Its frontmatter is checked and the file is scanned for risky commands as you
-            type, and every saved change is kept as a version. Your skills are private.
+            type, and your latest saved changes are kept as versions. Your skills are private.
           </p>
         </div>
       </div>

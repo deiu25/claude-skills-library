@@ -8,6 +8,11 @@ export const DESCRIPTION_MAX = 1024;
 export const SKILL_MD_MAX = 100_000;
 export const TAGS_MAX = 6;
 export const TAG_MAX = 30;
+/** The latest versions a skill keeps; a save beyond them deletes the oldest. */
+export const VERSIONS_KEPT = 20;
+export const SKILLS_MAX = 50;
+/** SKILL.md characters an account stores across every kept version, which keeps its data export under Vercel's 4.5 MB response limit. */
+export const ACCOUNT_CHARACTERS_MAX = 1_500_000;
 
 // Lowercase letters and digits with single hyphens between them: the name becomes a URL segment
 // (/u/<handle>/<name>) and the folder the skill installs into.
@@ -16,7 +21,7 @@ const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 // Routes beside a user's skills: /u/<handle>/stacks/<slug> and /u/<handle>/playbooks/<slug>.
 const RESERVED_NAMES = new Set(["stacks", "playbooks"]);
 
-const FRONTMATTER_RE = /^﻿?---[ \t]*\n(?:([\s\S]*?)\n)?---[ \t]*(?:\n|$)/;
+const FRONTMATTER_RE = /^\uFEFF?---[ \t]*\n(?:([\s\S]*?)\n)?---[ \t]*(?:\n|$)/;
 
 const frontmatterSchema = z.looseObject({
   name: z
@@ -42,6 +47,20 @@ export function normalizeSkillMd(source: string): string {
   return source.replace(/\r\n?/g, "\n");
 }
 
+/** Whether every key and string in the parsed frontmatter fits Postgres jsonb: no NUL, no half surrogate pair. */
+function storable(value: unknown): boolean {
+  const stack: unknown[] = [value];
+  while (stack.length) {
+    const item = stack.pop();
+    if (typeof item === "string") {
+      if (item.includes("\0") || !item.isWellFormed()) return false;
+    } else if (item !== null && typeof item === "object") {
+      for (const [key, child] of Object.entries(item)) stack.push(key, child);
+    }
+  }
+  return true;
+}
+
 /** Splits a SKILL.md into its YAML frontmatter and Markdown body, and checks the fields Claude Code needs. */
 export function parseSkillMd(source: string): ParsedSkillMd {
   const text = normalizeSkillMd(source);
@@ -53,18 +72,29 @@ export function parseSkillMd(source: string): ParsedSkillMd {
     return { ok: false, problems: ["Start SKILL.md with frontmatter: a --- line, name and description, then another --- line."] };
   }
 
+  // Postgres stores neither a NUL character in text nor one, or half a surrogate pair, in jsonb.
+  if (text.includes("\0") || !text.isWellFormed()) {
+    return { ok: false, problems: ["SKILL.md contains a character that cannot be stored: a NUL, or half of an emoji or other paired character."] };
+  }
+
   let data: unknown;
   try {
-    // Known tags outside the core schema (!!binary, !!timestamp) stay strings, and the default alias
-    // limit refuses exponential entity expansion.
-    data = parse(match[1] ?? "", { schema: "core", resolveKnownTags: false, logLevel: "error" });
+    // Known tags outside the core schema (!!binary, !!timestamp) stay strings. Aliases are refused:
+    // each one would be stored expanded, so a few could multiply the frontmatter many times over.
+    data = parse(match[1] ?? "", { schema: "core", resolveKnownTags: false, logLevel: "error", maxAliasCount: 0 });
   } catch (error) {
     const line = error instanceof YAMLError ? error.linePos?.[0].line : undefined;
     // The frontmatter starts on the second line of the file.
-    return { ok: false, problems: [`The frontmatter is not valid YAML${line ? ` (line ${line + 1})` : ""}.`] };
+    return {
+      ok: false,
+      problems: [`The frontmatter is not valid YAML${line ? ` (line ${line + 1})` : ""}. Put quotes around a value that contains “: ”.`],
+    };
   }
   if (typeof data !== "object" || data === null || Array.isArray(data)) {
     return { ok: false, problems: ["Write the frontmatter as key: value lines, with a name and a description."] };
+  }
+  if (!storable(data)) {
+    return { ok: false, problems: ["The frontmatter contains a character that cannot be stored, such as an escaped NUL."] };
   }
 
   const result = frontmatterSchema.safeParse(data);

@@ -112,7 +112,8 @@ export interface OwnedVersion {
 /** One saved version of one of the signed-in user's skills. Cached per request, like getOwnedSkill. */
 export const getOwnedVersion = cache(async (skillId: string, version: number): Promise<OwnedVersion> => {
   const user = await requireUser();
-  if (!skillIdSchema.safeParse(skillId).success || !Number.isSafeInteger(version) || version < 1) notFound();
+  // A version number is a Postgres integer: anything outside 1 to 2^31 - 1 cannot exist.
+  if (!skillIdSchema.safeParse(skillId).success || !Number.isInteger(version) || version < 1 || version > 2 ** 31 - 1) notFound();
   const [row] = await db.select({ ownerId: skill.ownerId, name: skill.name }).from(skill).where(eq(skill.id, skillId));
   if (!row || !canEdit(user, row)) notFound();
   const content = await getVersionContent(skillId, version);
@@ -120,7 +121,11 @@ export const getOwnedVersion = cache(async (skillId: string, version: number): P
   return { skillId, name: row.name, version, ...content };
 });
 
-/** The user's skills with every version's SKILL.md and scan, for /api/me/export. */
+/**
+ * The user's skills with every kept version's SKILL.md, for /api/me/export. Each version carries
+ * its risk and how many findings it had; the findings themselves follow from the file, and leaving
+ * them out keeps the export under the response size limit.
+ */
 export async function getSkillsExport(userId: string) {
   const [skills, versions] = await Promise.all([
     db
@@ -145,7 +150,7 @@ export async function getSkillsExport(userId: string) {
         skillMd: skillVersion.skillMd,
         contentHash: skillVersion.contentHash,
         risk: skillVersion.risk,
-        findings: skillVersion.findings,
+        findingCount: sql<number>`jsonb_array_length(${skillVersion.findings})`.mapWith(Number),
         createdAt: skillVersion.createdAt,
       })
       .from(skillVersion)
@@ -157,7 +162,7 @@ export async function getSkillsExport(userId: string) {
     ...row,
     versions: versions
       .filter((version) => version.skillId === row.id)
-      .map(({ version, skillMd, contentHash, risk, findings, createdAt }) => ({ version, skillMd, contentHash, risk, findings, createdAt })),
+      .map(({ version, skillMd, contentHash, risk, findingCount, createdAt }) => ({ version, skillMd, contentHash, risk, findingCount, createdAt })),
   }));
 }
 

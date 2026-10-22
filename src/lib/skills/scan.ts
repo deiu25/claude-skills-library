@@ -4,6 +4,9 @@
 // Unicode, pipe-to-shell, credential and base64 patterns; agentshield and Claude Code's permission
 // docs for allowed-tools; anti-trojan-source for the bidirectional controls. A finding is a flag to
 // read, never a verdict: a skill with no findings is not proven safe.
+//
+// Every quantifier that can repeat is bounded, because the scan runs on every keystroke in the
+// browser and on every save on the server, over up to 100,000 characters an author controls.
 
 export type Severity = "low" | "medium" | "high" | "critical";
 export type Risk = "none" | Severity;
@@ -43,13 +46,23 @@ export function riskOf(findings: Finding[]): Risk {
   return findings.reduce<Risk>((risk, finding) => (rank(finding.severity) > rank(risk) ? finding.severity : risk), "none");
 }
 
+/** Text from the file quoted in a message, cut short so a finding never outgrows its line. */
+const quote = (text: string, max = 60) => (text.length > max ? `${text.slice(0, max)}…` : text);
+
+/** "a, b, c and 4 more" */
+function listSome(items: string[], max: number): string {
+  return items.length > max ? `${items.slice(0, max).join(", ")} and ${items.length - max} more` : items.join(", ");
+}
+
 // ── Unicode ──────────────────────────────────────────────────────────────────────────────────
 
 const codepoint = (cp: number) => `U+${cp.toString(16).toUpperCase().padStart(4, "0")}`;
 
-// The England, Scotland and Wales flags are the one legitimate use of tag characters.
-const SUBDIVISION_FLAG_RE = /\u{1F3F4}[\u{E0030}-\u{E0039}\u{E0061}-\u{E007A}]{2,6}\u{E007F}/gu;
-const IGNORABLE_RE = new RegExp("[\\p{Default_Ignorable_Code_Point}\\u2028\\u2029]", "u");
+// The England, Scotland and Wales flags are the only legitimate use of tag characters.
+const SUBDIVISION_FLAG_RE = /\u{1F3F4}\u{E0067}\u{E0062}(?:\u{E0065}\u{E006E}\u{E0067}|\u{E0073}\u{E0063}\u{E0074}|\u{E0077}\u{E006C}\u{E0073})\u{E007F}/gu;
+const IGNORABLE_RE = new RegExp("\\p{Default_Ignorable_Code_Point}", "u");
+// Ordinary in real text: the soft hyphen in pasted prose, and the direction marks of Arabic and Hebrew.
+const ORDINARY = new Set([0x00ad, 0x061c, 0x200e, 0x200f]);
 
 type Hidden = "bidi" | "tag" | "selector" | "joiner" | "invisible";
 
@@ -60,6 +73,11 @@ function classify(cp: number, char: string): Hidden | null {
   if ((cp >= 0xfe00 && cp <= 0xfe0f) || (cp >= 0xe0100 && cp <= 0xe01ef)) return "selector";
   // Joiners shape emoji sequences and Persian or Indic words, so only a run of them counts.
   if (cp === 0x200c || cp === 0x200d) return "joiner";
+  if (ORDINARY.has(cp)) return null;
+  // Control characters other than tab and line breaks, such as the escape that starts a terminal
+  // sequence able to hide text when the file is printed.
+  if ((cp < 0x20 && cp !== 0x09 && cp !== 0x0a && cp !== 0x0d) || (cp >= 0x7f && cp <= 0x9f)) return "invisible";
+  if (cp === 0x2028 || cp === 0x2029) return "invisible";
   return IGNORABLE_RE.test(char) ? "invisible" : null;
 }
 
@@ -79,7 +97,7 @@ function unicodeFindings(text: string, line: number): Finding[] {
   let longestHiddenRun = 0;
 
   // A byte-order mark is allowed as the file's first character.
-  const chars = (line === 1 ? text.replace(/^﻿/, "") : text).replace(SUBDIVISION_FLAG_RE, "");
+  const chars = (line === 1 ? text.replace(/^\uFEFF/, "") : text).replace(SUBDIVISION_FLAG_RE, "");
   for (const char of chars) {
     const cp = char.codePointAt(0)!;
     const kind = classify(cp, char);
@@ -93,7 +111,7 @@ function unicodeFindings(text: string, line: number): Finding[] {
     if (kind === "invisible") invisible.add(cp);
     if (kind === "tag") {
       tags++;
-      if (cp >= 0xe0020 && cp <= 0xe007e) hiddenText += String.fromCharCode(cp - 0xe0000);
+      if (cp >= 0xe0020 && cp <= 0xe007e && hiddenText.length <= 80) hiddenText += String.fromCharCode(cp - 0xe0000);
     }
   }
 
@@ -106,13 +124,13 @@ function unicodeFindings(text: string, line: number): Finding[] {
     });
   }
   if (tags) {
-    const shown = hiddenText.trim().slice(0, 80);
+    const shown = hiddenText.trim();
     findings.push({
       rule: "hidden-unicode",
       severity: "critical",
       line,
       message: shown
-        ? `Text hidden in ${plural(tags, "invisible tag character")}, which Claude reads and people cannot see: “${shown}${hiddenText.trim().length > 80 ? "…" : ""}”`
+        ? `Text hidden in ${plural(tags, "invisible tag character")}, which Claude reads and people cannot see: “${quote(shown, 80)}”`
         : `${plural(tags, "invisible tag character")}, which can carry text Claude reads and people cannot see.`,
     });
   }
@@ -131,7 +149,7 @@ function unicodeFindings(text: string, line: number): Finding[] {
       // A long run can spell a message in binary.
       severity: longestHiddenRun >= 10 ? "high" : "medium",
       line,
-      message: `Invisible character${names.length === 1 ? "" : "s"} (${names.length ? names.join(", ") : "zero-width joiners in a row"})${
+      message: `Invisible character${names.length === 1 ? "" : "s"} (${names.length ? listSome(names, 8) : "zero-width joiners in a row"})${
         longestHiddenRun >= 10 ? `, ${longestHiddenRun} in a row, which can encode hidden text` : ""
       }: text that looks the same can differ.`,
     });
@@ -144,146 +162,193 @@ function unicodeFindings(text: string, line: number): Finding[] {
 interface LineRule {
   rule: RuleId;
   severity: Severity;
-  pattern: RegExp;
+  matches: (text: string) => boolean;
   message: string;
 }
 
-const SHELL = String.raw`(?:sudo\s+(?:-\S+\s+)*)?(?:ba|da|fi|k|z|tc|c|a)?sh\b`;
-const INTERPRETER = String.raw`(?:sudo\s+)?(?:python[0-9.]*|perl|ruby|node|php|deno|bun|pwsh|powershell)\b`;
-const DOWNLOAD = String.raw`\b(?:curl|wget|fetch)\b`;
-const BASE64_DECODE = String.raw`\bbase64\s+(?:-d|--decode|-D)\b`;
-// Root, system folders and home, alone or with /* after them.
-const ROOT_OR_HOME = String.raw`["']?(?:\/(?:(?:bin|boot|dev|etc|home|lib|lib64|opt|proc|root|sbin|srv|sys|usr|var)\/?)?\*?|~\/?\*?|\$\{?HOME\}?\/?\*?)["']?(?=\s|$|[;&|)])`;
+const re = (pattern: RegExp) => (text: string) => pattern.test(text);
+
+const SHELL = String.raw`(?:sudo\s{1,5}(?:-\S{1,20}\s{1,5}){0,5})?(?:ba|da|fi|k|z|tc|c|a)?sh\b`;
+const INTERPRETER = String.raw`(?:python[0-9.]{0,4}|perl|ruby|node|php|deno|bun|pwsh|powershell)\b`;
+// An interpreter that reads its program from the pipe; with -c, -e or -m it runs code from its own
+// arguments and only reads data, as in `curl … | python3 -m json.tool`.
+const STDIN_INTERPRETER = String.raw`(?:sudo\s{1,5})?${INTERPRETER}(?!\s{1,5}(?:-[cem]\b|--eval\b))`;
+const DOWNLOAD = String.raw`\b(?:curl|wget)\b`;
+const BASE64_DECODE = String.raw`\bbase64\s{1,5}(?:-d|--decode|-D)\b`;
 
 const RUNS_DOWNLOAD = "Downloads a script and runs it at once, with no chance to read it first.";
 const RUNS_ENCODED = "Decodes base64 and runs the result, so it cannot be read before it runs.";
+
+// rm with both a recursive and a force option, and root, a system folder or home among its operands.
+const ROOT_OR_HOME = /^["']?(?:\/(?:(?:bin|boot|dev|etc|home|lib|lib64|opt|proc|root|sbin|srv|sys|usr|var)\/?)?\*?|~\/?\*?|\$\{?HOME\}?\/?\*?)["']?$/;
+function deletesRootOrHome(text: string): boolean {
+  for (const match of text.matchAll(/\brm\s+([^;&|\n]{1,300})/g)) {
+    let recursive = false;
+    let force = false;
+    const operands: string[] = [];
+    for (const word of match[1].trim().split(/\s+/).slice(0, 20)) {
+      if (word === "--recursive") recursive = true;
+      else if (word === "--force") force = true;
+      else if (/^-[a-zA-Z]+$/.test(word)) {
+        recursive ||= /[rR]/.test(word);
+        force ||= word.includes("f");
+      } else if (!word.startsWith("-")) operands.push(word);
+    }
+    if (recursive && force && operands.some((operand) => ROOT_OR_HOME.test(operand))) return true;
+  }
+  return false;
+}
 
 const LINE_RULES: LineRule[] = [
   {
     rule: "pipe-to-shell",
     severity: "high",
-    pattern: new RegExp(String.raw`${DOWNLOAD}[^|\n]*\|\s*(?:${SHELL}|${INTERPRETER})`, "i"),
+    matches: re(new RegExp(String.raw`${DOWNLOAD}[^|\n]{0,300}\|\s{0,10}(?:${SHELL}|${STDIN_INTERPRETER})`)),
     message: RUNS_DOWNLOAD,
   },
   {
     rule: "pipe-to-shell",
     severity: "high",
-    pattern: new RegExp(String.raw`(?:${SHELL}|${INTERPRETER}|\bsource|(?:^|[\s;&|])\.)\s+(?:-c\s+)?["']?(?:<\(|\$\()\s*(?:curl|wget)\b`, "i"),
+    matches: re(
+      new RegExp(
+        String.raw`(?:${SHELL}|(?:sudo\s{1,5})?${INTERPRETER}|\beval|\bsource|(?:^|[\s;&|])\.)\s{1,10}(?:-[ce]\s{1,10})?["']?(?:<\(|\$\()\s{0,10}(?:curl|wget)\b`,
+      ),
+    ),
     message: RUNS_DOWNLOAD,
   },
   {
     rule: "pipe-to-shell",
     severity: "high",
-    pattern: new RegExp(String.raw`\b(?:curl|wget)\b[^&\n]*\s(?:-o|-O|--output)\s*\S+[^&\n]*&&\s*(?:${SHELL}|${INTERPRETER}|chmod\s+\+x)`, "i"),
+    matches: re(
+      new RegExp(String.raw`${DOWNLOAD}[^&\n]{0,200}\s(?:-o|-O|--output)\s{0,5}\S{1,200}[^&\n]{0,200}&&\s{0,10}(?:${SHELL}|${STDIN_INTERPRETER}|chmod\s{1,5}\+x)`),
+    ),
     message: RUNS_DOWNLOAD,
   },
   {
     rule: "pipe-to-shell",
     severity: "high",
-    pattern: /\b(?:iwr|irm|Invoke-WebRequest|Invoke-RestMethod)\b[^|\n]*\|\s*(?:iex|Invoke-Expression|pwsh|powershell)\b|\b(?:iex|Invoke-Expression)\b[\s(]*(?:\(?\s*New-Object\s+(?:System\.)?Net\.WebClient\)?\.DownloadString|iwr|irm|Invoke-WebRequest|Invoke-RestMethod)\b/i,
+    matches: re(
+      /\b(?:iwr|irm|Invoke-WebRequest|Invoke-RestMethod)\b[^|\n]{0,300}\|\s{0,10}(?:iex|Invoke-Expression|pwsh|powershell)\b|\b(?:iex|Invoke-Expression)\b[\s(]{0,10}(?:\(?\s{0,5}New-Object\s{1,5}(?:System\.)?Net\.WebClient\)?\.DownloadString|iwr|irm|Invoke-WebRequest|Invoke-RestMethod)\b/i,
+    ),
     message: RUNS_DOWNLOAD,
   },
   {
     rule: "pipe-to-shell",
     severity: "high",
-    pattern: /\b(?:eval|Function)\s*\([^\n]*\bfetch\s*\(/,
+    matches: re(/\b(?:eval|Function)\s{0,5}\([^\n]{0,200}?\bfetch\s{0,5}\(/),
     message: "Downloads code and runs it at once, with no chance to read it first.",
   },
   {
     rule: "base64-execution",
     severity: "critical",
-    pattern: new RegExp(String.raw`${BASE64_DECODE}[^\n]*\|\s*(?:${SHELL}|${INTERPRETER}|\beval\b)`, "i"),
+    matches: re(new RegExp(String.raw`${BASE64_DECODE}[^\n]{0,200}\|\s{0,10}(?:${SHELL}|${STDIN_INTERPRETER}|\beval\b)`, "i")),
     message: RUNS_ENCODED,
   },
   {
     rule: "base64-execution",
     severity: "critical",
-    pattern: new RegExp(String.raw`\beval\b[\s"'(]*\$\([^)\n]*${BASE64_DECODE}`, "i"),
+    matches: re(new RegExp(String.raw`\beval\b[\s"'(]{0,10}\$\([^)\n]{0,200}${BASE64_DECODE}`, "i")),
     message: RUNS_ENCODED,
   },
   {
     rule: "base64-execution",
     severity: "critical",
-    pattern: /\b(?:eval|exec|Function)\s*\([^\n]*?(?:\batob\s*\(|Buffer\.from\s*\([^)\n]*["']base64["']|\b(?:b64decode|b32decode|a85decode|decodebytes)\s*\(|\bmarshal\.loads\s*\()/,
+    matches: re(
+      /\b(?:eval|exec|Function)\s{0,5}\([^\n]{0,200}?(?:\batob\s{0,5}\(|Buffer\.from\s{0,5}\([^)\n]{0,200}["']base64["']|\b(?:b64decode|b32decode|a85decode|decodebytes)\s{0,5}\(|\bmarshal\.loads\s{0,5}\()/,
+    ),
     message: RUNS_ENCODED,
   },
   {
     rule: "base64-execution",
     severity: "critical",
     // PowerShell takes any prefix of -EncodedCommand: -e, -ec, -enc and so on.
-    pattern: /\b(?:powershell|pwsh)(?:\.exe)?\b[^\n]*\s-e[a-z]*\s+[A-Za-z0-9+/]{16,}={0,2}(?=\s|$|["'])/i,
+    matches: re(/\b(?:powershell|pwsh)(?:\.exe)?\b[^\n]{0,200}\s-e[a-z]{0,20}\s{1,5}[A-Za-z0-9+/]{16,4000}={0,2}(?=\s|$|["'])/i),
     message: "Runs a base64-encoded PowerShell command, which cannot be read before it runs.",
   },
   {
     rule: "base64-execution",
     severity: "critical",
-    pattern: /FromBase64String[^\n]*\b(?:iex|Invoke-Expression)\b|\b(?:iex|Invoke-Expression)\b[^\n]*FromBase64String/i,
+    matches: re(/FromBase64String[^\n]{0,300}\b(?:iex|Invoke-Expression)\b|\b(?:iex|Invoke-Expression)\b[^\n]{0,300}FromBase64String/i),
     message: RUNS_ENCODED,
   },
   {
     rule: "destructive-command",
     severity: "critical",
-    pattern: new RegExp(
-      String.raw`\brm\s+(?:-[a-zA-Z]+\s+|--[a-z-]+\s+)*(?:-[a-zA-Z]*(?:r[a-zA-Z]*f|f[a-zA-Z]*r)[a-zA-Z]*|-[rR]\s+-f|-f\s+-[rR]|--recursive\s+--force|--force\s+--recursive)\s+(?:--no-preserve-root\s+)?${ROOT_OR_HOME}`,
-    ),
+    matches: deletesRootOrHome,
     message: "Deletes everything under the root, a system folder or the home folder.",
   },
   {
     rule: "destructive-command",
     severity: "critical",
-    pattern: /--no-preserve-root/,
+    matches: re(/--no-preserve-root/),
     message: "Turns off the safeguard that stops rm from deleting the whole disk.",
   },
   {
     rule: "destructive-command",
     severity: "high",
-    pattern: /\bmkfs(?:\.\w+)?\s|\bwipefs\b|\bdd\b[^\n]*\bof=\/dev\/(?:sd|hd|nvme|disk|mmcblk|xvd|vd)|>\s*\/dev\/(?:sd|hd|nvme|disk|mmcblk)[a-z0-9]*\b|\bformat\s+[a-z]:|\b(?:rd|rmdir)\s+\/s\s+\/q\s+[a-z]:\\?(?:\s|$)/i,
+    matches: re(
+      /\bmkfs(?:\.\w{1,10})?\s|\bwipefs\b|\bdd\b[^\n]{0,200}\bof=\/dev\/(?:sd|hd|nvme|disk|mmcblk|xvd|vd)|>\s{0,5}\/dev\/(?:sd|hd|nvme|disk|mmcblk)[a-z0-9]{0,10}\b|\bformat\s{1,5}[a-z]:|\b(?:rd|rmdir)\s{1,5}\/s\s{1,5}\/q\s{1,5}[a-z]:\\?(?:\s|$)/i,
+    ),
     message: "Overwrites or formats a disk.",
   },
   {
     rule: "destructive-command",
     severity: "high",
-    pattern: /:\s*\(\s*\)\s*\{\s*:\s*\|\s*:\s*&\s*\}\s*;\s*:/,
+    matches: re(/:\s{0,5}\(\s{0,5}\)\s{0,5}\{\s{0,5}:\s{0,5}\|\s{0,5}:\s{0,5}&\s{0,5}\}\s{0,5};\s{0,5}:/),
     message: "A fork bomb, which freezes the machine.",
   },
   {
     rule: "destructive-command",
     severity: "high",
-    pattern: /\bchmod\s+(?:-R\s+)?0?777\s+\/(?:\s|$)|\bchown\s+-R\s+\S+\s+\/(?:\s|$)|\bfind\s+(?:\/|~)\s[^\n]*-delete\b|\bkill\s+-9\s+-1\b/,
+    matches: re(/\bchmod\s{1,5}(?:-R\s{1,5})?0?777\s{1,5}\/(?:\s|$)|\bchown\s{1,5}-R\s{1,5}\S{1,100}\s{1,5}\/(?:\s|$)|\bfind\s{1,5}(?:\/|~)\s[^\n]{0,200}-delete\b|\bkill\s{1,5}-9\s{1,5}-1\b/),
     message: "Changes or deletes files across the whole system, or kills every process.",
   },
   {
     rule: "destructive-command",
     severity: "medium",
-    pattern: /\bchmod\s+(?:-R\s+)?(?:0?777|0?666|a\+w|o\+w)\s+["']?(?:\/(?:etc|usr|bin|sbin|boot|var|root)\b|~|\$\{?HOME\}?)/,
+    matches: re(/\bchmod\s{1,5}(?:-R\s{1,5})?(?:0?777|0?666|a\+w|o\+w)\s{1,5}["']?(?:\/(?:etc|usr|bin|sbin|boot|var|root)\b|~|\$\{?HOME\}?)/),
     message: "Makes system or home files writable by every user.",
   },
   {
     rule: "destructive-command",
     severity: "medium",
-    pattern: /\bgit\s+push\b[^\n]*\s(?:--force(?!-with-lease)\b|-f\b)/,
+    matches: re(/\bgit\s{1,5}push\b[^\n]{0,200}\s(?:--force(?!-with-lease)\b|-f\b)/),
     message: "Force-pushes, which rewrites the remote branch's history.",
   },
   {
     rule: "destructive-command",
     severity: "medium",
-    pattern: /\b(?:DROP\s+(?:DATABASE|SCHEMA|TABLE)|TRUNCATE\s+TABLE)\b/i,
+    matches: re(/\b(?:DROP\s{1,5}(?:DATABASE|SCHEMA|TABLE)|TRUNCATE\s{1,5}TABLE)\b/i),
     message: "Drops or empties a database, schema or table.",
   },
   {
     rule: "destructive-command",
     severity: "low",
-    pattern: /\bgit\s+reset\s+--hard\b|\bgit\s+clean\s+-[a-zA-Z]*f/,
+    matches: re(/\bgit\s{1,5}reset\s{1,5}--hard\b|\bgit\s{1,5}clean\s{1,5}-[a-zA-Z]{0,10}f/),
     message: "Discards uncommitted changes for good.",
   },
 ];
 
+/** Lines joined across a trailing backslash, the way a shell reads them, each with its first line's number. */
+function commandLines(lines: string[]): { text: string; line: number }[] {
+  const result: { text: string; line: number }[] = [];
+  for (let index = 0; index < lines.length; index++) {
+    const start = index;
+    let text = lines[index];
+    while (text.trimEnd().endsWith("\\") && index + 1 < lines.length && index - start < 20 && text.length < 4000) {
+      text = `${text.trimEnd().slice(0, -1)} ${lines[++index]}`;
+    }
+    result.push({ text, line: start + 1 });
+  }
+  return result;
+}
+
 // ── Credentials sent over the network ────────────────────────────────────────────────────────
 
-// Stores that hold secrets, and dumps of every environment variable. Public keys (.pub) are not secret.
+// Stores that hold secrets. Public keys (.pub) are not secret.
 const SECRET_STORE_RE = new RegExp(
   [
-    String.raw`\.ssh\/(?!\S*\.pub\b)\S*(?:id_\w+|_key|\.pem)\b`,
+    String.raw`\.ssh\/(?![^\s"'\`]{0,100}\.pub\b)[^\s"'\`]{0,100}?(?:id_\w{1,40}|_key|\.pem)\b`,
     String.raw`\bid_(?:rsa|dsa|ecdsa|ed25519)\b(?!\.pub)`,
     String.raw`\.aws\/credentials`,
     String.raw`\.config\/gcloud\/(?:application_default_credentials\.json|credentials\.db|access_tokens\.db)`,
@@ -297,47 +362,67 @@ const SECRET_STORE_RE = new RegExp(
     String.raw`\.config\/gh\/hosts\.yml`,
     String.raw`\.claude\/\.credentials\.json`,
     String.raw`\/etc\/shadow\b`,
-    String.raw`\S+\.(?:p12|pfx|kdbx)\b`,
-    String.raw`(?:Chrome|Chromium|Firefox|Safari|Brave|Edge)\/[^\n]*?(?:Cookies|Login Data|key4\.db|logins\.json)`,
-    String.raw`\bsecurity\s+find-(?:generic|internet)-password\b`,
-    String.raw`\bsecret-tool\s+lookup\b`,
-    String.raw`\bgh\s+auth\s+token\b`,
-    String.raw`\bgcloud\s+auth\s+print-access-token\b`,
-    String.raw`\bprintenv\b`,
-    String.raw`\benv\s*(?:\||>)`,
-    String.raw`\b(?:json\.dumps|dict|str)\(\s*os\.environ\s*\)`,
-    String.raw`JSON\.stringify\(\s*process\.env\s*\)`,
+    String.raw`[\w-]\.(?:p12|pfx|kdbx)\b`,
+    String.raw`(?:Chrome|Chromium|Firefox|Safari|Brave|Edge)\/[^\n]{0,200}?(?:Cookies|Login Data|key4\.db|logins\.json)`,
+    String.raw`\bsecurity\s{1,5}find-(?:generic|internet)-password\b`,
+    String.raw`\bsecret-tool\s{1,5}lookup\b`,
+    String.raw`\bgh\s{1,5}auth\s{1,5}token\b`,
+    String.raw`\bgcloud\s{1,5}auth\s{1,5}print-access-token\b`,
   ].join("|"),
   "i",
 );
+// Every environment variable at once: env or printenv run alone, or a whole environment serialized.
+const ENV_DUMP_RE =
+  /(?:^|[;&|(`]|\$\()\s{0,10}(?:printenv|env)\s{0,10}(?:$|[|>;)&`])|\b(?:json\.dumps|dict|str)\(\s{0,5}os\.environ\s{0,5}\)|JSON\.stringify\(\s{0,5}process\.env\s{0,5}\)/;
+// Something on the line that reads a file's contents.
+const READS_RE =
+  /\b(?:cat|less|more|head|tail|base64|xxd|od|strings|cp|tar|zip|gpg|openssl|Get-Content|readFileSync|readFile|open|read_text|read_bytes)\b|\$\(|<\s{0,3}["']?[~/$]|@~?\//;
 // Reading a project's .env file. Loading it with `source` before a deploy is common, and example
 // files hold placeholders, so neither counts.
 const DOTENV_READ_RE =
-  /\b(?:cat|less|more|head|tail|type|Get-Content|readFileSync|readFile|open)\b[\s("'`]*[^\s"'`]*\.env(?!\.(?:example|sample|template|dist)\b)(?:\.\w+)?\b/i;
+  /\b(?:cat|less|more|head|tail|type|Get-Content|readFileSync|readFile|open)\b[\s("'`]{0,10}[^\s"'`]{0,200}\.env(?!\.(?:example|sample|template|dist)\b)(?:\.\w{1,20})?\b/i;
 
 const NETWORK_RE =
-  /\b(?:curl|wget|nc|ncat|netcat|socat|scp|sftp|rsync|ftp|telnet|iwr|irm|Invoke-WebRequest|Invoke-RestMethod)\b|\/dev\/(?:tcp|udp)\/|\bfetch\s*\(|\bXMLHttpRequest\b|\bsendBeacon\b|\brequests\.(?:get|post|put|patch)\b|\burllib\.request\b|\bhttpx\.|\baxios\b|\bsmtplib\b|\bWebClient\b/i;
+  /\b(?:curl|wget|nc|ncat|netcat|socat|scp|sftp|rsync|ftp|telnet|iwr|irm|Invoke-WebRequest|Invoke-RestMethod)\b|\/dev\/(?:tcp|udp)\/|\bfetch\s{0,5}\(|\bXMLHttpRequest\b|\bsendBeacon\b|\brequests\.(?:get|post|put|patch)\b|\burllib\.request\b|\bhttpx\.|\baxios\b|\bsmtplib\b|\bWebClient\b/i;
 
 /** How far apart, in lines, a credential read and a network call still count as one step. */
 const NEARBY_LINES = 5;
 
 function credentialFindings(lines: string[]): Finding[] {
-  const network = lines.flatMap((line, index) => (NETWORK_RE.test(line) ? [index] : []));
-  if (!network.length) return [];
-  return lines.flatMap((line, index): Finding[] => {
-    if (!network.some((n) => Math.abs(n - index) <= NEARBY_LINES)) return [];
-    const store = SECRET_STORE_RE.exec(line)?.[0].trim();
-    const dotenv = !store && DOTENV_READ_RE.test(line);
-    if (!store && !dotenv) return [];
-    const what = !store ? "a .env file" : /environ|process\.env|printenv|^env/i.test(store) ? "every environment variable" : store;
-    return [
-      {
-        rule: "credential-exfiltration",
-        severity: store ? "critical" : "high",
-        line: index + 1,
-        message: `Reads credentials (${what}) next to a network call, which could send them off the machine.`,
-      },
-    ];
+  const network = lines.map((text) => NETWORK_RE.test(text));
+  const near = network.map(() => false);
+  network.forEach((isNetwork, index) => {
+    if (!isNetwork) return;
+    for (let at = Math.max(0, index - NEARBY_LINES); at <= Math.min(lines.length - 1, index + NEARBY_LINES); at++) near[at] = true;
+  });
+
+  return lines.flatMap((text, index): Finding[] => {
+    if (!near[index]) return [];
+    const line = index + 1;
+    const message = (what: string) => `Reads credentials (${what}) next to a network call, which could send them off the machine.`;
+    if (ENV_DUMP_RE.test(text)) {
+      return [{ rule: "credential-exfiltration", severity: "critical", line, message: message("every environment variable") }];
+    }
+    const store = SECRET_STORE_RE.exec(text)?.[0].trim();
+    if (store) {
+      // A path that is read, or sent from this very line, is the exfiltration shape; a path that is
+      // only mentioned near a request is worth reading, no more.
+      if (network[index] || READS_RE.test(text)) {
+        return [{ rule: "credential-exfiltration", severity: "critical", line, message: message(quote(store)) }];
+      }
+      return [
+        {
+          rule: "credential-exfiltration",
+          severity: "medium",
+          line,
+          message: `Mentions credentials (${quote(store)}) next to a network call.`,
+        },
+      ];
+    }
+    if (DOTENV_READ_RE.test(text)) {
+      return [{ rule: "credential-exfiltration", severity: "high", line, message: message("a .env file") }];
+    }
+    return [];
   });
 }
 
@@ -346,7 +431,7 @@ function credentialFindings(lines: string[]): Finding[] {
 /** Splits "Read, Bash(git status:*) Grep" or a YAML list into entries, keeping spaces inside parentheses. */
 export function allowedToolEntries(value: unknown): string[] {
   const items = Array.isArray(value) ? value.filter((item) => typeof item === "string") : typeof value === "string" ? [value] : [];
-  return items.flatMap((item) => item.match(/[^\s,(]+(?:\([^)]*\))?/g) ?? []);
+  return items.flatMap((item) => item.match(/[^\s,(]{1,200}(?:\([^)]{0,200}\))?/g) ?? []).slice(0, 100);
 }
 
 // Programs that run whatever they are given, so a wildcard after them allows every command.
@@ -389,18 +474,21 @@ function allowedToolsFindings(lines: string[], frontmatter: Record<string, unkno
   if (!frontmatter || !("allowed-tools" in frontmatter)) return [];
   const problems = allowedToolEntries(frontmatter["allowed-tools"]).flatMap((entry) => {
     const found = broadToolProblem(entry);
-    return found ? [{ ...found, text: `${entry} ${found.problem}` }] : [];
+    return found ? [{ ...found, text: `${quote(entry)} ${found.problem}` }] : [];
   });
   if (!problems.length) return [];
-  const line = lines.findIndex((text) => /^allowed-tools\s*:/.test(text)) + 1 || 1;
+  const line = lines.findIndex((text) => /^allowed-tools\s{0,5}:/.test(text)) + 1 || 1;
   const severity = problems.reduce<Severity>((worst, { severity }) => (rank(severity) > rank(worst) ? severity : worst), "low");
-  return [{ rule: "broad-allowed-tools", severity, line, message: `allowed-tools: ${problems.map((p) => p.text).join("; ")}.` }];
+  const shown = problems.slice(0, 5).map((p) => p.text);
+  const more = problems.length > 5 ? `; and ${problems.length - 5} more` : "";
+  return [{ rule: "broad-allowed-tools", severity, line, message: `allowed-tools: ${shown.join("; ")}${more}.` }];
 }
 
 // ── Scan ─────────────────────────────────────────────────────────────────────────────────────
 
-/** At most this many findings are kept per rule, the most severe first, so a file full of one problem stays readable. */
+/** The most findings kept, most severe first: per rule, so one repeated problem stays readable, and in all. */
 const MAX_PER_RULE = 20;
+export const MAX_FINDINGS = 50;
 
 const bySeverity = (a: Finding, b: Finding) => rank(b.severity) - rank(a.severity) || a.line - b.line;
 
@@ -412,15 +500,10 @@ const bySeverity = (a: Finding, b: Finding) => rank(b.severity) - rank(a.severit
 export function scanSkillMd(source: string, frontmatter?: Record<string, unknown>): Finding[] {
   const lines = source.split("\n");
   const findings = [
-    ...lines.flatMap((text, index) => [
-      ...unicodeFindings(text, index + 1),
-      ...LINE_RULES.filter((rule) => rule.pattern.test(text)).map(({ rule, severity, message }) => ({
-        rule,
-        severity,
-        line: index + 1,
-        message,
-      })),
-    ]),
+    ...lines.flatMap((text, index) => unicodeFindings(text, index + 1)),
+    ...commandLines(lines).flatMap(({ text, line }) =>
+      LINE_RULES.filter((rule) => rule.matches(text)).map(({ rule, severity, message }) => ({ rule, severity, line, message })),
+    ),
     ...credentialFindings(lines),
     ...allowedToolsFindings(lines, frontmatter),
   ];
@@ -436,5 +519,6 @@ export function scanSkillMd(source: string, frontmatter?: Record<string, unknown
       perRule.set(finding.rule, count);
       return true;
     })
+    .slice(0, MAX_FINDINGS)
     .sort((a, b) => a.line - b.line);
 }

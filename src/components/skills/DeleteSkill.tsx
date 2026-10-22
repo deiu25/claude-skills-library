@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { FormMessage } from "@/components/auth/FormMessage";
 import { TakesFocus } from "@/components/TakesFocus";
 import { deleteSkill } from "@/lib/skills/actions";
@@ -17,10 +17,17 @@ export function DeleteSkill({ skillId, name, versionCount }: DeleteSkillProps) {
   const action = useMemo(() => keepDraftOnFailure(deleteSkill.bind(null, skillId)), [skillId]);
   const [state, formAction, pending] = useActionState(action, null);
   const [confirming, setConfirming] = useState(false);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const keptIt = useRef(false);
+
+  // "Keep it" removes the button that had focus; hand focus back to the one that opened the question.
+  useEffect(() => {
+    if (!confirming && keptIt.current) trigger.current?.focus();
+  }, [confirming]);
 
   if (!confirming) {
     return (
-      <button type="button" onClick={() => setConfirming(true)} className="btn btn-ghost text-sm">
+      <button ref={trigger} type="button" onClick={() => setConfirming(true)} className="btn btn-ghost text-sm">
         Delete skill
       </button>
     );
@@ -36,7 +43,15 @@ export function DeleteSkill({ skillId, name, versionCount }: DeleteSkillProps) {
         <button type="submit" disabled={pending} className="btn btn-ghost text-sm disabled:cursor-wait disabled:opacity-60">
           {pending ? "Deleting…" : "Delete for good"}
         </button>
-        <button type="button" onClick={() => setConfirming(false)} disabled={pending} className="btn btn-ghost text-sm">
+        <button
+          type="button"
+          onClick={() => {
+            keptIt.current = true;
+            setConfirming(false);
+          }}
+          disabled={pending}
+          className="btn btn-ghost text-sm"
+        >
           Keep it
         </button>
       </form>

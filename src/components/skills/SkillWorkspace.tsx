@@ -3,6 +3,7 @@ import Link from "next/link";
 import { SettingsSection } from "@/components/settings/SettingsSection";
 import { formatRelativeDate } from "@/lib/github";
 import { getOwnedSkill } from "@/lib/skills/queries";
+import { VERSIONS_KEPT } from "@/lib/skills/schemas";
 import { DeleteSkill } from "./DeleteSkill";
 import { RiskBadge } from "./RiskBadge";
 import { SkillEditor } from "./SkillEditor";
@@ -38,7 +39,7 @@ export async function SkillWorkspace({ skillId }: { skillId: string }) {
         <SettingsSection
           id="versions"
           title="Versions"
-          description="Every save that changes SKILL.md is kept as a new version, with the scan it got then."
+          description={`The latest ${VERSIONS_KEPT} saves that changed SKILL.md, each with the scan it got then.`}
         >
           <ul className="divide-y divide-line rounded-[8px] border border-line bg-surface">
             {skill.versions.map((version, index) => (

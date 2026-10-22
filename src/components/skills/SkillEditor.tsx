@@ -23,7 +23,8 @@ interface SkillEditorProps {
 function check(source: string) {
   const text = normalizeSkillMd(source);
   const parsed = parseSkillMd(text);
-  const findings = scanSkillMd(text, parsed.ok ? parsed.frontmatter : undefined);
+  // Past the limit the file cannot be saved, so it is not worth scanning on every keystroke.
+  const findings = text.length > SKILL_MD_MAX ? [] : scanSkillMd(text, parsed.ok ? parsed.frontmatter : undefined);
   return { parsed, findings, risk: riskOf(findings) };
 }
 
@@ -69,7 +70,8 @@ export function SkillEditor({ skillId, initial }: SkillEditorProps) {
   }`;
 
   return (
-    <form onSubmit={submit} className="space-y-8">
+    // method="post" keeps a submit before hydration from putting the file in the URL.
+    <form method="post" onSubmit={submit} className="space-y-8">
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="space-y-2">
           <label htmlFor="category" className="block text-sm font-medium text-foreground">
@@ -178,10 +180,14 @@ export function SkillEditor({ skillId, initial }: SkillEditorProps) {
         )}
       </section>
 
-      {state && !state.ok && <FormMessage tone="error">{state.error}</FormMessage>}
-      {state?.ok && !editedSinceSave && <FormMessage tone="success">{state.message}</FormMessage>}
+      {state && !state.ok && !pending && <FormMessage tone="error">{state.error}</FormMessage>}
+      {state?.ok && !editedSinceSave && !pending && <FormMessage tone="success">{state.message}</FormMessage>}
       <div className="flex flex-wrap items-center gap-3">
-        <button type="submit" disabled={pending} className="btn btn-primary text-sm disabled:cursor-wait disabled:opacity-60">
+        <button
+          type="submit"
+          disabled={pending || skillMd.length > SKILL_MD_MAX}
+          className="btn btn-primary text-sm disabled:cursor-not-allowed disabled:opacity-60"
+        >
           {pending ? "Saving…" : skillId ? "Save" : "Create skill"}
         </button>
         {!skillId && (

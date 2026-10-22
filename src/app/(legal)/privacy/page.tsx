@@ -86,13 +86,13 @@ export default function PrivacyPage() {
           slow down repeated attempts.
         </li>
         <li>
-          <strong>Your skills,</strong> if you write any: each SKILL.md you save, every earlier version of
-          it, the category and tags you choose, and the security check that ran on each version. They are
-          private: only you can open them.
+          <strong>Your skills,</strong> if you write any: the latest 20 saved versions of each SKILL.md, the
+          category and tags you choose, and the security check that ran on each version. They are private:
+          only you can open them.
         </li>
         <li>
-          <strong>Skill saves:</strong> your account’s id and the times of your recent saves, used only to
-          slow down repeated saves.
+          <strong>Skill saves:</strong> your account’s id and a count of your recent saves, used only to slow
+          down repeated saves.
         </li>
         <li>
           <strong>Email links:</strong> the links that finish a new account, reset your password, change
@@ -143,12 +143,12 @@ export default function PrivacyPage() {
           links are deleted within a day after that, and with your account.
         </li>
         <li>
-          Your skills and all their versions: until you delete them, or your account, which deletes them
-          with it.
+          Your skills: until you delete them, or your account, which deletes them with it. A version is
+          deleted when a newer save leaves it outside the latest 20.
         </li>
         <li>
           Sign-in attempt counters: deleted once a counter has gone unused for a day. The record of skill
-          saves expires on its own within a day.
+          saves expires on its own within two days.
         </li>
         <li>
           Copies: our email provider keeps each email it sends for 30 days, and our database provider keeps

@@ -14,7 +14,7 @@ describe("parseSkillMd", () => {
   });
 
   it("reads Windows line endings, a byte-order mark and a folded description", () => {
-    const result = parseSkillMd("﻿---\r\nname: a\r\ndescription: >\r\n  two\r\n  lines\r\n---\r\nBody");
+    const result = parseSkillMd("\uFEFF---\r\nname: a\r\ndescription: >\r\n  two\r\n  lines\r\n---\r\nBody");
     expect(result).toEqual({ ok: true, frontmatter: { name: "a", description: "two lines" }, body: "Body" });
   });
 
@@ -67,15 +67,15 @@ describe("parseSkillMd", () => {
   it("reports invalid YAML with its line in the file", () => {
     expect(parseSkillMd(skillMd("name: a\ndescription: [unclosed"))).toEqual({
       ok: false,
-      problems: [expect.stringMatching(/^The frontmatter is not valid YAML \(line \d+\)\.$/)],
+      problems: [expect.stringMatching(/^The frontmatter is not valid YAML \(line \d+\)\. Put quotes around a value that contains/)],
     });
     expect(parseSkillMd(skillMd("name: a\nname: b\ndescription: d"))).toEqual({
       ok: false,
-      problems: ["The frontmatter is not valid YAML (line 3)."],
+      problems: [expect.stringMatching(/^The frontmatter is not valid YAML \(line 3\)\./)],
     });
   });
 
-  it("refuses alias expansion bombs instead of expanding them", () => {
+  it("refuses aliases, which would be stored expanded, and alias bombs with them", () => {
     let yaml = "x: &a [lol, lol, lol, lol, lol, lol, lol, lol, lol]\n";
     let previous = "a";
     for (const anchor of "bcdefghi") {
@@ -83,6 +83,24 @@ describe("parseSkillMd", () => {
       previous = anchor;
     }
     expect(parseSkillMd(skillMd(`name: a\ndescription: d\n${yaml}`)).ok).toBe(false);
+    expect(parseSkillMd(skillMd("name: a\ndescription: &d text\nsummary: *d")).ok).toBe(false);
+  });
+
+  it("refuses what Postgres cannot store, and keeps a backslash written as text", () => {
+    expect(parseSkillMd(skillMd("name: a\ndescription: d", "nul \0 here"))).toEqual({
+      ok: false,
+      problems: [expect.stringMatching(/^SKILL.md contains a character that cannot be stored/)],
+    });
+    for (const value of ['"\\0"', '"\\uD800"', '"a\\u0000b"']) {
+      expect(parseSkillMd(skillMd(`name: a\ndescription: d\nnote: ${value}`))).toEqual({
+        ok: false,
+        problems: ["The frontmatter contains a character that cannot be stored, such as an escaped NUL."],
+      });
+    }
+    expect(parseSkillMd(skillMd("name: a\ndescription: d\nnote: 'write \\u0000 as text'"))).toMatchObject({
+      ok: true,
+      frontmatter: { note: "write \\u0000 as text" },
+    });
   });
 
   it("keeps tags that would build objects in other parsers as plain strings", () => {

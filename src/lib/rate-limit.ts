@@ -3,7 +3,7 @@ import { Ratelimit, type Duration } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
 // Limits for Server Actions. Requests to /api/auth have Better Auth's own limiter in Postgres.
-// A request passes only when every window of its limit allows it.
+// A request passes only when every window of its limit allows it, checked shortest first.
 const LIMITS = {
   // Creating, saving and deleting skills: bursts while editing, and a daily ceiling on stored versions.
   "skill-write": [
@@ -13,6 +13,9 @@ const LIMITS = {
 } satisfies Record<string, [number, Duration][]>;
 
 export type LimitName = keyof typeof LIMITS;
+
+/** "ok": go ahead. "limited": too many requests. "unavailable": the limit could not be checked. */
+export type LimitResult = "ok" | "limited" | "unavailable";
 
 const limiters = new Map<LimitName, Ratelimit[]>();
 
@@ -41,20 +44,25 @@ const redisConfigured = () =>
 /**
  * Whether `key`, usually a user id, may make one more `name` request. In production it fails
  * closed: without Upstash, after a Redis error, or when Redis takes longer than the timeout, the
- * request is refused. In development and tests it allows what it cannot check.
+ * answer is "unavailable". In development and tests it allows what it cannot check.
  */
-export async function rateLimit(name: LimitName, key: string): Promise<boolean> {
+export async function rateLimit(name: LimitName, key: string): Promise<LimitResult> {
   const failClosed = process.env.NODE_ENV === "production";
   if (!redisConfigured()) {
     if (failClosed) console.error("Rate limit refused a request: Upstash Redis is not configured.");
-    return !failClosed;
+    return failClosed ? "unavailable" : "ok";
   }
   try {
-    const results = await Promise.all(getLimiters(name).map((limiter) => limiter.limit(key)));
-    // The SDK lets a request through when Redis is slower than the timeout, and says so in `reason`.
-    return results.every((result) => result.success && !(failClosed && result.reason === "timeout"));
+    // One window at a time, so a request the short window refuses does not spend the long one.
+    for (const limiter of getLimiters(name)) {
+      const result = await limiter.limit(key);
+      // The SDK lets a request through when Redis is slower than the timeout, and says so in `reason`.
+      if (result.reason === "timeout") return failClosed ? "unavailable" : "ok";
+      if (!result.success) return "limited";
+    }
+    return "ok";
   } catch (error) {
     console.error("Rate limit check failed:", error instanceof Error ? error.name : "unknown error");
-    return !failClosed;
+    return failClosed ? "unavailable" : "ok";
   }
 }

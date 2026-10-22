@@ -39,26 +39,29 @@ describe("rateLimit", () => {
 
   it("refuses every request in production when Upstash is not configured", async () => {
     vi.stubEnv("NODE_ENV", "production");
-    expect(await (await load())("skill-write", "user-1")).toBe(false);
+    expect(await (await load())("skill-write", "user-1")).toBe("unavailable");
     expect(console.error).toHaveBeenCalledWith("Rate limit refused a request: Upstash Redis is not configured.");
     expect(limit).not.toHaveBeenCalled();
   });
 
   it("allows requests in development without Upstash", async () => {
     vi.stubEnv("NODE_ENV", "development");
-    expect(await (await load())("skill-write", "user-1")).toBe(true);
+    expect(await (await load())("skill-write", "user-1")).toBe("ok");
   });
 
-  it("passes only when every window allows the request", async () => {
+  it("passes only when every window allows the request, and stops at the first that refuses", async () => {
     configure("production");
     const rateLimit = await load();
     limit.mockResolvedValue({ success: true });
-    expect(await rateLimit("skill-write", "user-1")).toBe(true);
+    expect(await rateLimit("skill-write", "user-1")).toBe("ok");
     expect(limit).toHaveBeenCalledTimes(2);
     expect(limit).toHaveBeenCalledWith("user-1");
 
-    limit.mockResolvedValueOnce({ success: true }).mockResolvedValueOnce({ success: false });
-    expect(await rateLimit("skill-write", "user-1")).toBe(false);
+    limit.mockClear();
+    limit.mockResolvedValueOnce({ success: false });
+    expect(await rateLimit("skill-write", "user-1")).toBe("limited");
+    // The day's window is not spent on a request the minute's window refused.
+    expect(limit).toHaveBeenCalledTimes(1);
   });
 
   it("keeps one limiter per window, keyed by environment and limit name", async () => {
@@ -79,20 +82,20 @@ describe("rateLimit", () => {
     ]);
   });
 
-  it("refuses in production when Redis times out or fails, and allows in development", async () => {
+  it("answers unavailable in production when Redis times out or fails, and allows in development", async () => {
     configure("production");
     let rateLimit = await load();
     limit.mockResolvedValue({ success: true, reason: "timeout" });
-    expect(await rateLimit("skill-write", "user-1")).toBe(false);
+    expect(await rateLimit("skill-write", "user-1")).toBe("unavailable");
     limit.mockRejectedValue(new TypeError("fetch failed"));
-    expect(await rateLimit("skill-write", "user-1")).toBe(false);
+    expect(await rateLimit("skill-write", "user-1")).toBe("unavailable");
     expect(console.error).toHaveBeenCalledWith("Rate limit check failed:", "TypeError");
 
     configure("development");
     rateLimit = await load();
     limit.mockResolvedValue({ success: true, reason: "timeout" });
-    expect(await rateLimit("skill-write", "user-1")).toBe(true);
+    expect(await rateLimit("skill-write", "user-1")).toBe("ok");
     limit.mockRejectedValue(new TypeError("fetch failed"));
-    expect(await rateLimit("skill-write", "user-1")).toBe(true);
+    expect(await rateLimit("skill-write", "user-1")).toBe("ok");
   });
 });
