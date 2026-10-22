@@ -6,7 +6,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # Claude Skills Library
 
-A curated catalog of Claude Code skills, live at https://claude-skills-library-psi.vercel.app. Next.js 16 App Router, React 19, Tailwind CSS v4, strict TypeScript. The catalog is static data in `src/data/skills/`. Accounts, user skills and a marketplace are being built around it, one phase at a time, from [ROADMAP.md](ROADMAP.md). A push to `main` deploys to production.
+A curated catalog of Claude Code skills, live at https://skillcellar.com. Next.js 16 App Router, React 19, Tailwind CSS v4, strict TypeScript. The catalog is static data in `src/data/skills/`. Accounts, user skills and a marketplace are being built around it, one phase at a time, from [ROADMAP.md](ROADMAP.md). A push to `main` deploys to production.
 
 ## Commands
 
