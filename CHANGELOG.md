@@ -17,6 +17,7 @@ The format follows [Keep a Changelog 2.0.0](https://keepachangelog.com/en/2.0.0/
 
 - The site moved to skillcellar.com, and the old claude-skills-library-psi.vercel.app address redirects there. A passkey added on the old address has to be added again.
 - The privacy policy covers the skills you write and Upstash, which keeps a short record of skill saves to slow down abuse. Your data export includes your skills, and deleting your account deletes them.
+- The privacy policy covers the copies of the database used to test a change before it goes live, and why: data changed or deleted after a copy is made, a deleted account included, stays in it until the copy is deleted, within a day after the change goes live or is dropped.
 
 #### Fixed
 
