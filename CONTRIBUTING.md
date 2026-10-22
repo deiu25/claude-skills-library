@@ -65,7 +65,7 @@ npm test && npm run lint && npx tsc --noEmit && npm run build && npm run test:e2
 
 All five must pass. For a visual change, check both themes and a 375px-wide viewport, and add a screenshot to the pull request.
 
-Branches pushed to this repository get a Vercel preview deployment. Merging into `main` deploys to production; [RUNBOOK.md](RUNBOOK.md) covers deploys and rollbacks.
+Branches pushed to this repository get a Vercel preview deployment, and merging into `main` deploys to production. A push that changes only docs builds nothing; [RUNBOOK.md](RUNBOOK.md) lists which files count and covers deploys and rollbacks.
 
 ## Security
 
