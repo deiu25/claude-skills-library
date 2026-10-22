@@ -12,6 +12,10 @@ The format follows [Keep a Changelog 2.0.0](https://keepachangelog.com/en/2.0.0/
 
 - The site moved to skillcellar.com, and the old claude-skills-library-psi.vercel.app address redirects there. A passkey added on the old address has to be added again.
 
+#### Fixed
+
+- Signing in with a passkey asks for your fingerprint, face or device PIN, instead of failing with "This passkey did not check that it is you".
+
 ### 2026-10-11
 
 #### Added
