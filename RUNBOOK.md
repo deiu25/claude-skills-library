@@ -4,8 +4,8 @@ How to operate the production site. Hosting: Vercel, project `claude-skills-libr
 
 ## Deploy
 
-- A push to `main` builds and deploys to production. Any other branch pushed to GitHub gets a preview deployment.
-- To ship: run `npm test && npm run lint && npx tsc --noEmit && npm run build && npm run test:e2e`, merge the branch into `main`, push. There is no other deploy step. The e2e suite builds and serves the site on port 3000 itself, so stop any dev server first.
+- A push to `main` builds and deploys to production, and a push to any other branch builds a preview. Vercel cancels the build when the commits since that branch's last successful deployment change only root-level Markdown, `e2e/`, `.claude/` or `.github/` (`scripts/vercel-ignore-build.sh`, run as `vercel.json`'s `ignoreCommand`): the deployment shows as Canceled and the previous one stays live. A branch's first push and a redeploy always build.
+- To ship: run `npm test && npm run lint && npx tsc --noEmit && npm run build && npm run test:e2e`, merge the branch into `main`, push, then delete the branch on GitHub (`git push origin --delete <branch>`). There is no other deploy step. Vercel keeps the latest preview of every branch that still exists, and Neon deletes a preview's database only when Vercel deletes that preview's last deployment: on 2026-10-22, with 10 database branches, every new preview failed with "Resource provisioning failed". The e2e suite builds and serves the site on port 3000 itself, so stop any dev server first.
 - The build command in `vercel.json` applies pending migrations (`npm run db:migrate`) before `next build` whenever `DATABASE_URL_UNPOOLED` is set. A failed migration fails the deploy. Previews migrate their own Neon branch.
 - `vercel.json` also schedules `/api/cron/cleanup` once a day (Hobby runs it within the hour of 03:00 UTC). It deletes expired sessions and email links, and rate-limit rows unused for a day, and answers 401 until `CRON_SECRET` is set in Production.
 
