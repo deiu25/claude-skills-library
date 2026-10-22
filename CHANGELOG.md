@@ -8,9 +8,14 @@ The format follows [Keep a Changelog 2.0.0](https://keepachangelog.com/en/2.0.0/
 
 ### 2026-10-22
 
+#### Added
+
+- Your skills: write a skill's SKILL.md in your dashboard. Its frontmatter is checked and the file is scanned for hidden characters, scripts run straight from a download, credentials sent over the network, encoded commands, broad tool access and destructive commands as you type. Each saved change is kept as a version with its scan, and your skills stay private.
+
 #### Changed
 
 - The site moved to skillcellar.com, and the old claude-skills-library-psi.vercel.app address redirects there. A passkey added on the old address has to be added again.
+- The privacy policy covers the skills you write and Upstash, which keeps a short record of skill saves to slow down abuse. Your data export includes your skills, and deleting your account deletes them.
 
 #### Fixed
 

@@ -272,6 +272,12 @@ Five radii, one job each: cards and panels 14px; buttons and the theme toggle 10
 - **Codes:** backup codes in a two-column mono grid inside a Surface box with a 1px line and 8px radius. A two-factor key shows as mono groups of four that never break apart, next to a copy button.
 - **QR codes** are black on white in both themes, with their quiet zone, because some authenticator apps cannot read an inverted code.
 
+### Skills
+
+- **Risk badge:** a 12px pill that names the scan's highest severity in words, never by color alone. "No findings" takes Emerald Tint and Text-Safe Emerald; low, medium and high climb from a Line to a Foreground border and to weight 600; critical inverts to a Foreground fill with Page text. No badge or message says "safe".
+- **Editor:** category and tags above a mono SKILL.md textarea, then the Check box (Surface, 1px line, 8px radius): the live risk badge, the frontmatter's state, and one row per finding with the rule, its line and severity. Pressing a finding selects its line in the textarea.
+- **Lists and versions** follow the settings lists; the current version is marked in Text-Safe Emerald, and an old version opens read-only with its file in a terminal block. Deleting a skill is a ghost button that asks once more in place, with a standing caution.
+
 ### Menus
 
 - **Pattern:** a disclosure. A button with `aria-expanded` and `aria-controls` opens a panel below it, aligned to its right edge. Not `role="menu"`: the items are plain links and buttons reached with Tab.
