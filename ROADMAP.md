@@ -35,7 +35,7 @@ Paste into a new Claude Code session in this repository:
 | P0 | Decisions and docs | done |
 | P1 | Database and email/password auth, sign-up closed | done |
 | P2 | Header, GitHub sign-in, legal pages, static guards | done |
-| P3 | Account security and data | shipped; open: passkey sign-in on the real domain |
+| P3 | Account security and data | done |
 | P4 | Own skills (SKILL.md) and security scan | todo |
 | P5 | Skill files | todo |
 | P6 | Showcase and profiles | todo |
@@ -230,7 +230,7 @@ Every phase merges to `main`, which is production, so each one keeps these rules
   - Passkey sign-in works on the real domain.
   - Deletion removes the user's rows.
   - The export downloads.
-- **Open:** passkey sign-in on the real domain. On 2026-10-11 the owner chose to ship P3 before picking the domain; the other checks passed then. P3 turns `done` once a passkey registered on the chosen domain signs in there.
+- **Closed:** P3 shipped on 2026-10-11 before the domain was chosen, with every other check passed. On 2026-10-22 production moved to skillcellar.com, and a passkey registered there signed in.
 
 ### P4 — Own skills (SKILL.md) and security scan
 - **Ships:**
@@ -510,7 +510,7 @@ Every phase checks the following, on top of its "Done when":
 
 - **Tax.** EU VAT rules presume that a platform selling electronic services is itself the supplier (Article 9a, Implementing Regulation 282/2011). That points to VAT on the full price for EU consumers, paid through OSS, and to long record keeping. P13 needs an accountant's sign-off, and the fee waits for that advice.
 - **Stripe reach.** From a platform in the EEA, cross-border payouts reach sellers only in the US, UK, EEA, Canada and Switzerland, and only without `on_behalf_of`. Stripe acting as merchant of record does not support Connect. P8 confirms both.
-- **Domain.** Passkeys, OAuth callbacks and the email sender all bind to it. Choose it before P3.
+- **Domain.** skillcellar.com since 2026-10-22. Passkeys, OAuth callbacks and the email sender all bind to it, so another move breaks every passkey (RUNBOOK.md, "Moving the production domain").
 - **Supply chain.** A bought skill runs code on the buyer's machine. The scan, reports and a clear disclaimer reduce the risk. Plaintext cannot be copy-protected, and the seller terms must say so.
 - **Playbooks are instructions.** A shared playbook becomes text that Claude follows on someone else's machine. P18's scan gate, the SKILL.md preview before export, and reports reduce the risk. The CLI never runs a third-party install command.
 - **Packages (better-auth 1.7, checked 2026-10-10).**
