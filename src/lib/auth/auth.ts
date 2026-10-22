@@ -20,6 +20,7 @@ import { SITE_NAME } from "@/lib/site";
 import { isSignUpAllowed } from "./allowlist";
 import { generateBackupCodes } from "./backup-codes";
 import { githubCredentials } from "./github";
+import { requirePasskeyUserVerification } from "./passkey";
 import { cleanProfile } from "./profile";
 import { isValidUsername } from "./username";
 
@@ -165,6 +166,7 @@ export const auth = betterAuth({
       if (ctx.path !== "/sign-up/email") return;
       return { context: { body: { ...ctx.body, password: randomBytes(32).toString("base64url") } } };
     }),
+    after: requirePasskeyUserVerification,
   },
   databaseHooks: {
     user: {
