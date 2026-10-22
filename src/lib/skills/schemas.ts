@@ -16,7 +16,7 @@ export const ACCOUNT_CHARACTERS_MAX = 1_500_000;
 
 // Lowercase letters and digits with single hyphens between them: the name becomes a URL segment
 // (/u/<handle>/<name>) and the folder the skill installs into.
-const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+export const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 // Routes beside a user's skills: /u/<handle>/stacks/<slug> and /u/<handle>/playbooks/<slug>.
 const RESERVED_NAMES = new Set(["stacks", "playbooks"]);

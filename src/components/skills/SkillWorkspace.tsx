@@ -1,4 +1,4 @@
-import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
+import { ArrowLeft, DownloadSimple } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { SettingsSection } from "@/components/settings/SettingsSection";
 import { formatRelativeDate } from "@/lib/github";
@@ -22,17 +22,35 @@ export async function SkillWorkspace({ skillId }: { skillId: string }) {
           <ArrowLeft size={14} aria-hidden />
           Your skills
         </Link>
-        <h1 className="break-all font-mono text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">{skill.name}</h1>
-        <p className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted">
-          <span>
-            Version {latest.version}, saved {ago(latest.createdAt)}
-          </span>
-          <RiskBadge risk={latest.risk} />
-        </p>
+        <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
+          <div className="min-w-0 space-y-3">
+            <h1 className="break-all font-mono text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">{skill.name}</h1>
+            <p className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted">
+              <span>
+                Version {latest.version}, saved {ago(latest.createdAt)}
+              </span>
+              <RiskBadge risk={latest.risk} />
+            </p>
+          </div>
+          {/* download: a failed request stays a failed download instead of replacing the editor and its unsaved text. */}
+          <a href={`/api/skills/${skill.id}/download`} download className="btn btn-ghost text-sm">
+            <DownloadSimple size={16} aria-hidden />
+            Download .zip
+          </a>
+        </div>
       </div>
 
       <div className="mt-10">
-        <SkillEditor skillId={skill.id} initial={{ skillMd: skill.skillMd, category: skill.category, tags: skill.tags.join(", ") }} />
+        <SkillEditor
+          skillId={skill.id}
+          initial={{
+            skillMd: skill.skillMd,
+            category: skill.category,
+            tags: skill.tags.join(", "),
+            files: skill.files,
+            fileFindings: skill.findings.filter((finding) => finding.path),
+          }}
+        />
       </div>
 
       <div className="mt-14 divide-y divide-line border-t border-line">

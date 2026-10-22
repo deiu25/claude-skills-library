@@ -22,6 +22,20 @@
       "when": 1792688975127,
       "tag": "0002_own_skills",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792698508594,
+      "tag": "0003_skill_files",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792698514594,
+      "tag": "0004_folder_content_hash",
+      "breakpoints": true
     }
   ]
 }

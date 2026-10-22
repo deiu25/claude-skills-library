@@ -8,6 +8,11 @@ const ACCOUNT_PAGE = [
 ];
 
 const nextConfig: NextConfig = {
+  experimental: {
+    // A skill's folder is at most 1 MB (VERSION_BYTES_MAX), and a save also sends SKILL.md and the
+    // multipart framing of up to 200 files.
+    serverActions: { bodySizeLimit: "2mb" },
+  },
   async headers() {
     return [
       {

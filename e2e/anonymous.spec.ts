@@ -46,6 +46,7 @@ test("the dashboard sends an anonymous visitor to sign in", async ({ page }) => 
 test("account data endpoints refuse a request without a session", async ({ request }) => {
   expect((await request.get("/api/me/export")).status()).toBe(401);
   expect((await request.get("/api/cron/cleanup")).status()).toBe(401);
+  expect((await request.get("/api/skills/6f1c2a3e-8b4d-4f5a-9c7e-1d2b3c4d5e6f/download")).status()).toBe(401);
 });
 
 test("a failed GitHub sign-in is explained without echoing the URL", async ({ page }) => {
