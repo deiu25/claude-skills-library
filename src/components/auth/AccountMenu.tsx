@@ -83,6 +83,9 @@ export function AccountMenu() {
           <Link href="/dashboard" onClick={() => setOpen(false)} className={ITEM}>
             Dashboard
           </Link>
+          <Link href="/dashboard/skills" onClick={() => setOpen(false)} className={ITEM}>
+            Your skills
+          </Link>
           <Link href="/dashboard/settings" onClick={() => setOpen(false)} className={ITEM}>
             Settings
           </Link>

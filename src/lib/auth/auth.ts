@@ -7,7 +7,7 @@ import { nextCookies } from "better-auth/next-js";
 import { twoFactor, username } from "better-auth/plugins";
 import { and, eq, like, or } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { account, user as userTable, verification } from "@/lib/db/schema";
+import { account, skill, user as userTable, verification } from "@/lib/db/schema";
 import {
   changeEmailConfirmationEmail,
   deleteAccountEmail,
@@ -115,6 +115,11 @@ export const auth = betterAuth({
         const confirmURL = new URL("/dashboard/delete-account", url);
         confirmURL.searchParams.set("token", token);
         sendEmail(deleteAccountEmail(user.email, confirmURL.href));
+      },
+      // Skills reference their owner with ON DELETE SET NULL, so that a sold one can outlive its
+      // author. Until anything can be bought, deleting an account deletes all of its skills.
+      beforeDelete: async (user) => {
+        await db.delete(skill).where(eq(skill.ownerId, user.id));
       },
       // Sessions, accounts, passkeys and two-factor rows go with the user; email links and
       // passkey challenges, which hold the id as a value or inside JSON, would not.

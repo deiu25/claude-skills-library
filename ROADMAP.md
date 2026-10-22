@@ -4,7 +4,7 @@
 |---|---|
 | Owner | Badulescu Andrei ([@deiu25](https://github.com/deiu25)) |
 | Decided | 2026-10-10 |
-| Next phase | P4 |
+| Next phase | P5 |
 
 The curated catalog stays as it is: static, hand-written, reviewed in git. Around it the site gains:
 - accounts;
@@ -36,7 +36,7 @@ Paste into a new Claude Code session in this repository:
 | P1 | Database and email/password auth, sign-up closed | done |
 | P2 | Header, GitHub sign-in, legal pages, static guards | done |
 | P3 | Account security and data | done |
-| P4 | Own skills (SKILL.md) and security scan | todo |
+| P4 | Own skills (SKILL.md) and security scan | done |
 | P5 | Skill files | todo |
 | P6 | Showcase and profiles | todo |
 | P7 | Moderation | todo |
@@ -241,7 +241,7 @@ Every phase merges to `main`, which is production, so each one keeps these rules
   - Before writing scan rules, search GitHub for existing agent-skill scanners and rule sets to adopt.
   - Dashboard pages to create, edit and delete skills; an editor with live validation; versions; a risk badge.
   - The Upstash rate-limit module for app actions.
-  - The slug `stacks` is reserved.
+  - The slugs `stacks` and `playbooks` are reserved: both are routes beside a user's skills.
 - **Owner:** an Upstash Redis database from the Marketplace.
 - **Done when:**
   - The scan flags every fixture.

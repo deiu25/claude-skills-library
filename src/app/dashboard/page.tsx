@@ -27,6 +27,9 @@ export default async function DashboardPage() {
           </p>
         </div>
         <div className="mt-8 flex flex-wrap gap-3">
+          <Link href="/dashboard/skills" className="btn btn-ghost text-sm">
+            Your skills
+          </Link>
           <Link href="/dashboard/settings" className="btn btn-ghost text-sm">
             Settings
           </Link>

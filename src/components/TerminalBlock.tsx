@@ -5,16 +5,17 @@ interface TerminalBlockProps {
   title?: string;
   /** When set, shows a copy button for this exact text. */
   copyText?: string;
+  copyLabel?: string;
   children: ReactNode;
 }
 
 /** Terminal-styled surface for real commands and real file content. */
-export function TerminalBlock({ title = "terminal", copyText, children }: TerminalBlockProps) {
+export function TerminalBlock({ title = "terminal", copyText, copyLabel = "Copy command", children }: TerminalBlockProps) {
   return (
     <div className="terminal overflow-hidden rounded-[14px] border border-line bg-terminal-bg">
       <div className="flex items-center justify-between gap-3 border-b border-line/60 px-4 py-2.5">
         <span className="font-mono text-xs text-faint">{title}</span>
-        {copyText ? <CopyButton text={copyText} label="Copy command" /> : null}
+        {copyText ? <CopyButton text={copyText} label={copyLabel} /> : null}
       </div>
       <div className="overflow-x-auto p-4 font-mono text-[0.8125rem] leading-relaxed text-terminal-fg">
         {children}
