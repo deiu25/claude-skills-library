@@ -8,6 +8,10 @@ The format follows [Keep a Changelog 2.0.0](https://keepachangelog.com/en/2.0.0/
 
 ### 2026-10-22
 
+#### Added
+
+- The Claude Ads, last30days, Neon Agent Skills and PM Skills Marketplace skills.
+
 #### Changed
 
 - The site moved to skillcellar.com, and the old claude-skills-library-psi.vercel.app address redirects there. A passkey added on the old address has to be added again.
