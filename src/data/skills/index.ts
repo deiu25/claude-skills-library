@@ -80,6 +80,10 @@ import { skill as awesomeMcpServers } from "./awesome-mcp-servers";
 import { skill as claudeCodeSafetyNet } from "./claude-code-safety-net";
 import { skill as harnessOptimizer } from "./harness-optimizer";
 import { skill as agentkit } from "./agentkit";
+import { skill as last30days } from "./last30days";
+import { skill as pmSkills } from "./pm-skills";
+import { skill as claudeAds } from "./claude-ads";
+import { skill as neonAgentSkills } from "./neon-agent-skills";
 
 export const skills: Skill[] = [
   wshobsonAgents,
@@ -162,6 +166,10 @@ export const skills: Skill[] = [
   gsdCore,
   impeccable,
   graphify,
+  last30days,
+  pmSkills,
+  claudeAds,
+  neonAgentSkills,
 ];
 
 export function getSkill(slug: string): Skill | undefined {

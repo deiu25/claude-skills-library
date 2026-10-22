@@ -11,6 +11,7 @@ The format follows [Keep a Changelog 2.0.0](https://keepachangelog.com/en/2.0.0/
 #### Added
 
 - Your skills: write a skill's SKILL.md in your dashboard. Its frontmatter is checked and the file is scanned for hidden characters, scripts run straight from a download, credentials sent over the network, encoded commands, broad tool access and destructive commands as you type. Each saved change is kept as a version with its scan, and your skills stay private.
+- The Claude Ads, last30days, Neon Agent Skills and PM Skills Marketplace skills.
 
 #### Changed
 
