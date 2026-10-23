@@ -4,7 +4,7 @@
 |---|---|
 | Owner | Badulescu Andrei ([@deiu25](https://github.com/deiu25)) |
 | Decided | 2026-10-10 |
-| Next phase | P6 |
+| Next phase | P7 |
 
 The curated catalog stays as it is: static, hand-written, reviewed in git. Around it the site gains:
 - accounts;
@@ -38,7 +38,7 @@ Paste into a new Claude Code session in this repository:
 | P3 | Account security and data | done |
 | P4 | Own skills (SKILL.md) and security scan | done |
 | P5 | Skill files | done |
-| P6 | Showcase and profiles | todo |
+| P6 | Showcase and profiles | done |
 | P7 | Moderation | todo |
 | P8 | Sellers (Stripe test mode) | todo |
 | P9 | Checkout and entitlements (test mode) | todo |
@@ -276,6 +276,7 @@ Every phase merges to `main`, which is production, so each one keeps these rules
   - An unpublished listing returns 404.
   - Listing pages are served as ISR.
   - `next build` passes with the database unreachable.
+- **Closed:** P6 shipped on 2026-10-23. Its pages answer 404 in production until sign-up opens; on a preview opened for the check, 49 flows passed. A skill's page shows SKILL.md as text, not rendered Markdown, after a review found nested input could hold a render for tens of seconds. The sitemap renders per request, because Next 16.2 deploys a `sitemap.ts` with `revalidate` to Vercel as a static file (vercel/next.js#99055).
 
 ### P7 — Moderation
 - **Ships:**
