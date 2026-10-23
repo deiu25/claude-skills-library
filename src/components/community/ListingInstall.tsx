@@ -26,7 +26,7 @@ export function ListingInstall({ id, name }: ListingInstallProps) {
         </a>
       </div>
       <TerminalBlock title="install" copyText={command}>
-        <p className="break-all">
+        <p className="break-words">
           <span className="text-accent">$</span> {command}
         </p>
       </TerminalBlock>

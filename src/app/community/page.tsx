@@ -1,4 +1,5 @@
 import { UsersThree } from "@phosphor-icons/react/dist/ssr";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CommunitySearch } from "@/components/community/CommunitySearch";
@@ -12,11 +13,15 @@ import { getCommunitySkills } from "@/lib/community/queries";
 // Writes that change what it shows revalidate it at once (revalidateCommunity); the hour is a backstop.
 export const revalidate = 3600;
 
-export const metadata = communityMetadata({
-  title: "Community",
-  description: "Claude Code skills published by their authors on the Claude Skills Library, apart from the curated catalog.",
-  path: "/community",
-});
+// Nothing, not even a canonical address, until the page exists.
+export function generateMetadata(): Metadata {
+  if (!isSignUpOpen()) return {};
+  return communityMetadata({
+    title: "Community",
+    description: "Claude Code skills published by their authors on the Claude Skills Library, apart from the curated catalog.",
+    path: "/community",
+  });
+}
 
 export default async function CommunityPage() {
   if (!isSignUpOpen()) notFound();

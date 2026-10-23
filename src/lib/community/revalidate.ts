@@ -10,5 +10,4 @@ export function revalidateCommunity() {
   revalidatePath("/community");
   revalidatePath("/u/[handle]", "page");
   revalidatePath("/u/[handle]/[slug]", "page");
-  revalidatePath("/sitemap.xml");
 }
