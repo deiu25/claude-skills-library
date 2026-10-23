@@ -37,7 +37,7 @@ vi.mock("@/lib/db", () => ({
 }));
 vi.mock("@/lib/auth/session", () => ({ getSession: vi.fn(async () => ({ user: { id: "user-b" } })) }));
 vi.mock("@/lib/rate-limit", () => ({ rateLimit: vi.fn(async () => "ok") }));
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+vi.mock("next/cache", () => ({ revalidatePath: vi.fn(), revalidateTag: vi.fn() }));
 vi.mock("next/navigation", () => ({ redirect }));
 
 const { getSession } = await import("@/lib/auth/session");

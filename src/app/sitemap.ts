@@ -7,7 +7,7 @@ import { SITE_URL } from "@/lib/site";
 
 // Rendered per request. On Vercel, a sitemap.ts that exports `revalidate` is deployed as a static
 // file and never regenerated (vercel/next.js#99055, Next 16.2 and later), which would freeze the
-// Community entries at the deploy. Its one query is cached for five minutes (getSitemapSkills).
+// Community entries at the deploy. Its one query is cached until a Community write (getSitemapSkills).
 export const dynamic = "force-dynamic";
 
 /** Public Community pages: each public skill, and each author's profile, dated by their newest change. */

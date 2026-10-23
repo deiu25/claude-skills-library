@@ -7,6 +7,7 @@ import { USERNAME_MAX, USERNAME_MIN } from "@/lib/auth/username";
 import { db } from "@/lib/db";
 import { skill, skillVersion, user } from "@/lib/db/schema";
 import { getFileSummaries } from "@/lib/skills/file-summaries";
+import { COMMUNITY_TAG } from "./revalidate";
 import type { FileSummary } from "@/lib/skills/files";
 import type { Finding, Risk } from "@/lib/skills/scan";
 import { NAME_MAX, SLUG_RE } from "@/lib/skills/schemas";
@@ -148,8 +149,8 @@ export const getListing = cache(async (handle: string, slug: string): Promise<Li
   }, null);
 });
 
-// The sitemap renders per request; one read serves every request for five minutes, which no
-// crawler notices. Dates go in as text, the form the cache keeps them in.
+// The sitemap renders per request; one read serves them all until a Community write expires it
+// (revalidateCommunity), or an hour passes. Dates go in as text, the form the cache keeps them in.
 const readSitemapSkills = unstable_cache(
   async () => {
     const rows = await db
@@ -162,7 +163,7 @@ const readSitemapSkills = unstable_cache(
     return rows.map(({ handle, slug, updatedAt }) => ({ handle, slug, updatedAt: updatedAt.toISOString() }));
   },
   ["community-sitemap-skills"],
-  { revalidate: 300 },
+  { revalidate: 3600, tags: [COMMUNITY_TAG] },
 );
 
 /** Every public skill's address and last change (ISO 8601), newest first, for the sitemap. */
