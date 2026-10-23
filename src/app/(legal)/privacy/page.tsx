@@ -12,7 +12,7 @@ export default function PrivacyPage() {
   return (
     <>
       <h1 className="text-balance text-3xl font-semibold text-foreground sm:text-4xl">Privacy policy</h1>
-      <p className="text-sm text-faint">Last updated 22 October 2026</p>
+      <p className="text-sm text-faint">Last updated 23 October 2026</p>
       <p>
         This page says what the Claude Skills Library does with personal data. In short: browsing sets
         no cookies and tracks nothing, and an account keeps only what it needs to sign you in safely and
@@ -87,7 +87,7 @@ export default function PrivacyPage() {
         </li>
         <li>
           <strong>Your skills,</strong> if you write or upload any: the latest 20 saved versions of each
-          skill, each with its SKILL.md and the files you upload with it, the category and tags you choose,
+          skill, each with its SKILL.md and its files, the category and tags you choose,
           and the security check that ran on each version. They are private: only you can open or download
           them.
         </li>
@@ -117,7 +117,7 @@ export default function PrivacyPage() {
           sessions, the sign-in attempt counters, the count of wrong two-factor codes and the record of
           skill saves and downloads. This is our
           legitimate interest in keeping accounts
-          secure (art. 6(1)(f)), and you can object to it.
+          secure and the service available (art. 6(1)(f)), and you can object to it.
         </li>
         <li>
           To test changes to the site on a copy of the database before they go live, so that a change does
@@ -154,7 +154,8 @@ export default function PrivacyPage() {
         </li>
         <li>
           Sign-in attempt counters: deleted once a counter has gone unused for a day. The record of skill
-          saves and downloads expires on its own two days after your last save or download.
+          saves and downloads expires on its own no more than two days and one second after your last
+          save or download.
         </li>
         <li>
           Copies: our email provider keeps each email it sends for 30 days, and our database provider keeps
@@ -174,7 +175,8 @@ export default function PrivacyPage() {
         </li>
         <li>
           <strong>Neon</strong> (United States, Amazon Web Services region us-east-1): the database that
-          holds accounts, provided through the Vercel Marketplace.
+          holds accounts, their skills and the files uploaded with them, provided through the Vercel
+          Marketplace.
         </li>
         <li>
           <strong>Resend</strong> (United States): sends account emails. Resend also keeps data on how its
