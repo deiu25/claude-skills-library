@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { isSignUpAllowed } from "@/lib/auth/allowlist";
+import { isSignUpAllowed, isSignUpOpen } from "@/lib/auth/allowlist";
+
+describe("isSignUpOpen", () => {
+  it("is open only when ACCOUNTS_OPEN is exactly true", () => {
+    expect(isSignUpOpen({ ACCOUNTS_OPEN: "true" })).toBe(true);
+    expect(isSignUpOpen({})).toBe(false);
+    expect(isSignUpOpen({ ACCOUNTS_OPEN: "TRUE" })).toBe(false);
+    expect(isSignUpOpen({ ACCOUNTS_OPEN: "1" })).toBe(false);
+  });
+});
 
 describe("isSignUpAllowed", () => {
   it("refuses every address when sign-up is closed and the allowlist is empty", () => {

@@ -6,6 +6,7 @@ import { APIError, createAuthMiddleware } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
 import { twoFactor, username } from "better-auth/plugins";
 import { and, eq, like, or } from "drizzle-orm";
+import { revalidateCommunity } from "@/lib/community/revalidate";
 import { db } from "@/lib/db";
 import { account, skill, user as userTable, verification } from "@/lib/db/schema";
 import {
@@ -120,6 +121,7 @@ export const auth = betterAuth({
       // author. Until anything can be bought, deleting an account deletes all of its skills.
       beforeDelete: async (user) => {
         await db.delete(skill).where(eq(skill.ownerId, user.id));
+        revalidateCommunity();
       },
       // Sessions, accounts, passkeys and two-factor rows go with the user; email links and
       // passkey challenges, which hold the id as a value or inside JSON, would not.
@@ -190,6 +192,9 @@ export const auth = betterAuth({
       },
       update: {
         before: async (user) => ({ data: cleanedProfile(user) }),
+        // Community pages show an author's username and bio. Any change marks them stale, which
+        // costs one render of each page visited afterwards.
+        after: async () => revalidateCommunity(),
       },
     },
   },

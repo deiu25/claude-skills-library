@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 // Public pages an anonymous visitor reaches. One skill page is added from the live catalog.
-const PAGES = ["/", "/skills", "/recommend", "/report", "/privacy", "/terms"];
+const PAGES = ["/", "/skills", "/community", "/recommend", "/report", "/privacy", "/terms"];
 
 test("anonymous pages set no cookie and never call /api/auth", async ({ page, context }) => {
   const authRequests: string[] = [];
@@ -46,7 +46,8 @@ test("the dashboard sends an anonymous visitor to sign in", async ({ page }) => 
 test("account data endpoints refuse a request without a session", async ({ request }) => {
   expect((await request.get("/api/me/export")).status()).toBe(401);
   expect((await request.get("/api/cron/cleanup")).status()).toBe(401);
-  expect((await request.get("/api/skills/6f1c2a3e-8b4d-4f5a-9c7e-1d2b3c4d5e6f/download")).status()).toBe(401);
+  // Signed out, only a published skill downloads; an id that cannot exist is refused before any read.
+  expect((await request.get("/api/skills/not-a-skill/download")).status()).toBe(401);
 });
 
 test("a failed GitHub sign-in is explained without echoing the URL", async ({ page }) => {

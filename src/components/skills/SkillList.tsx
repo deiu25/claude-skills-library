@@ -17,7 +17,7 @@ export async function SkillList({ userId }: { userId: string }) {
           <h2 className="text-xl font-semibold tracking-tight text-foreground">No skills yet</h2>
           <p className="max-w-[60ch] text-pretty text-sm leading-relaxed text-muted">
             Write or paste a SKILL.md. Its frontmatter is checked and the file is scanned for risky commands as you
-            type, and your latest saved changes are kept as versions. Your skills are private.
+            type, and your latest saved changes are kept as versions. A skill stays private until you publish it.
           </p>
         </div>
       </div>
@@ -36,6 +36,7 @@ export async function SkillList({ userId }: { userId: string }) {
               <span className="block truncate font-mono text-[0.9375rem] font-semibold tracking-tight text-foreground">{skill.name}</span>
               <span className="line-clamp-2 block text-pretty text-sm leading-relaxed text-muted">{skill.description}</span>
               <span className="block text-xs text-faint">
+                {skill.status === "published" && <span className="text-accent-strong">{skill.visibility === "public" ? "Public" : "Unlisted"} · </span>}
                 {CATEGORY_LABELS[skill.category as SkillCategory] ?? skill.category} · version {skill.latestVersion} · changed{" "}
                 {formatRelativeDate(skill.updatedAt.toISOString())}
               </span>

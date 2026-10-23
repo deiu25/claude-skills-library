@@ -2,23 +2,28 @@ import "server-only";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { cache } from "react";
+import { isSignUpOpen } from "@/lib/auth/allowlist";
 import { requireUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
-import { skill, skillFile, skillVersion } from "@/lib/db/schema";
+import { skill, skillFile, skillVersion, user } from "@/lib/db/schema";
 import { SITE_URL } from "@/lib/site";
-import { canEdit } from "./access";
-import { textOf, type FileSummary } from "./files";
+import { canEdit, canRead, type Visibility } from "./access";
+import { getFileSummaries } from "./file-summaries";
+import type { FileSummary } from "./files";
 import type { Finding, Risk } from "./scan";
 import { skillIdSchema } from "./schemas";
 
 // Reads for the skill pages under /dashboard. Each one checks that the signed-in user owns the
-// skill, and answers 404 otherwise, the same as for a skill that does not exist.
+// skill, and answers 404 otherwise, the same as for a skill that does not exist. The zip download
+// also serves published skills to anyone (findVersionArchive).
 
 export interface SkillListItem {
   id: string;
   name: string;
   description: string;
   category: string;
+  visibility: string;
+  status: string;
   latestVersion: number;
   risk: Risk;
   updatedAt: Date;
@@ -27,7 +32,15 @@ export interface SkillListItem {
 /** The user's skills, most recently changed first, each with its latest version's number and risk. */
 export async function getMySkills(userId: string): Promise<SkillListItem[]> {
   const skills = await db
-    .select({ id: skill.id, name: skill.name, description: skill.description, category: skill.category, updatedAt: skill.updatedAt })
+    .select({
+      id: skill.id,
+      name: skill.name,
+      description: skill.description,
+      category: skill.category,
+      visibility: skill.visibility,
+      status: skill.status,
+      updatedAt: skill.updatedAt,
+    })
     .from(skill)
     .where(eq(skill.ownerId, userId))
     .orderBy(desc(skill.updatedAt));
@@ -58,6 +71,12 @@ export interface OwnedSkill {
   name: string;
   category: string;
   tags: string[];
+  /** The name in the latest frontmatter, which a published skill's address ends with. */
+  slug: string;
+  visibility: Visibility;
+  status: string;
+  /** The owner's username, which a published skill's address starts with. */
+  username: string | null;
   versions: VersionSummary[];
   /** The latest version's SKILL.md and scan. */
   skillMd: string;
@@ -71,13 +90,24 @@ export interface OwnedSkill {
  * content. Cached per request, because the page's metadata reads it too.
  */
 export const getOwnedSkill = cache(async (skillId: string): Promise<OwnedSkill> => {
-  const user = await requireUser();
+  const currentUser = await requireUser();
   if (!skillIdSchema.safeParse(skillId).success) notFound();
   const [row] = await db
-    .select({ id: skill.id, ownerId: skill.ownerId, name: skill.name, category: skill.category, tags: skill.tags })
+    .select({
+      id: skill.id,
+      ownerId: skill.ownerId,
+      name: skill.name,
+      category: skill.category,
+      tags: skill.tags,
+      slug: skill.slug,
+      visibility: skill.visibility,
+      status: skill.status,
+      username: user.username,
+    })
     .from(skill)
+    .leftJoin(user, eq(user.id, skill.ownerId))
     .where(eq(skill.id, skillId));
-  if (!row || !canEdit(user, row)) notFound();
+  if (!row || !canEdit(currentUser, row)) notFound();
 
   const versions = await db
     .select({
@@ -97,6 +127,10 @@ export const getOwnedSkill = cache(async (skillId: string): Promise<OwnedSkill> 
     name: row.name,
     category: row.category,
     tags: row.tags,
+    slug: row.slug,
+    visibility: row.visibility as Visibility,
+    status: row.status,
+    username: row.username,
     versions: versions.map((version) => ({ ...version, risk: version.risk as Risk })),
     skillMd: latest.skillMd,
     findings: latest.findings,
@@ -137,13 +171,32 @@ export interface VersionArchive {
 }
 
 /**
- * One version of a user's own skill with every file's content, for the zip download: the latest
- * one without a version number. Null for someone else's skill, or a version that does not exist.
+ * A skill's zip download, if the viewer may have it: the latest version without a version number.
+ * The owner gets any kept version; anyone else only the latest version of a published skill that is
+ * public or unlisted, and only once Community is open. Null otherwise, the same as for a skill that
+ * does not exist. Only `read` loads the files, so the caller can apply its rate limit in between.
  */
-export async function getVersionArchive(userId: string, skillId: string, version?: number): Promise<VersionArchive | null> {
+export async function findVersionArchive(
+  viewer: { id: string } | null,
+  skillId: string,
+  version?: number,
+): Promise<{ read: () => Promise<VersionArchive | null> } | null> {
   if (!skillIdSchema.safeParse(skillId).success || (version !== undefined && !isVersionNumber(version))) return null;
-  const [row] = await db.select({ ownerId: skill.ownerId }).from(skill).where(eq(skill.id, skillId));
-  if (!row || !canEdit({ id: userId }, row)) return null;
+  // Signed out, only a published skill can be downloaded, and only once Community is open.
+  if (!viewer && !isSignUpOpen()) return null;
+  const [row] = await db
+    .select({ ownerId: skill.ownerId, visibility: skill.visibility, status: skill.status })
+    .from(skill)
+    .where(eq(skill.id, skillId));
+  if (!row) return null;
+  if (canEdit(viewer, row)) return { read: () => readVersionArchive(skillId, version, false) };
+  // Others get only the latest version: an older one may hold what a later save fixed, such as a
+  // finding that blocks publishing.
+  if (version !== undefined || !isSignUpOpen() || !canRead(viewer, row)) return null;
+  return { read: () => readVersionArchive(skillId, undefined, true) };
+}
+
+async function readVersionArchive(skillId: string, version: number | undefined, publishedOnly: boolean): Promise<VersionArchive | null> {
   const [saved] = await db
     .select({
       id: skillVersion.id,
@@ -153,7 +206,16 @@ export async function getVersionArchive(userId: string, skillId: string, version
       skillMd: skillVersion.skillMd,
     })
     .from(skillVersion)
-    .where(version === undefined ? eq(skillVersion.skillId, skillId) : and(eq(skillVersion.skillId, skillId), eq(skillVersion.version, version)))
+    .innerJoin(skill, eq(skill.id, skillVersion.skillId))
+    .where(
+      and(
+        eq(skillVersion.skillId, skillId),
+        version === undefined ? undefined : eq(skillVersion.version, version),
+        // Checked again in the statement that picks the version: a save that unpublished the skill
+        // since the access check, such as one with a critical finding, is never served to others.
+        publishedOnly ? and(eq(skill.status, "published"), inArray(skill.visibility, ["public", "unlisted"])) : undefined,
+      ),
+    )
     .orderBy(desc(skillVersion.version))
     .limit(1);
   if (!saved) return null;
@@ -231,15 +293,4 @@ async function getVersionContent(skillId: string, version: number) {
     .from(skillVersion)
     .where(and(eq(skillVersion.skillId, skillId), eq(skillVersion.version, version)));
   return row ? { ...row, risk: row.risk as Risk } : null;
-}
-
-/** A version's files as the pages list them, in path order: sizes and kinds, never their content. */
-async function getFileSummaries(versionId: string): Promise<FileSummary[]> {
-  const rows = await db
-    .select({ path: skillFile.path, content: skillFile.content, executable: skillFile.executable })
-    .from(skillFile)
-    .where(eq(skillFile.versionId, versionId));
-  return rows
-    .map(({ path, content, executable }) => ({ path, size: content.length, executable, scanned: textOf(path, content) !== null }))
-    .sort((a, b) => a.path.localeCompare(b.path));
 }

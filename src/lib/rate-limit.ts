@@ -1,6 +1,17 @@
 import "server-only";
+import { createHmac } from "node:crypto";
 import { Ratelimit, type Duration } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
+import { ipAddress } from "@vercel/functions";
+
+/**
+ * The key that limits a visitor without an account: a keyed hash of the IP address Vercel reports,
+ * so Upstash never stores the address. Without that header, as off Vercel, all such visitors share one key.
+ */
+export function visitorKey(request: Request): string {
+  const ip = ipAddress(request) ?? "unknown";
+  return `ip:${createHmac("sha256", process.env.BETTER_AUTH_SECRET ?? "").update(`rate-limit:${ip}`).digest("base64url")}`;
+}
 
 // Limits for Server Actions and the downloads that read whole skills. Requests to /api/auth have
 // Better Auth's own limiter in Postgres. A request passes only when every window of its limit

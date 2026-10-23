@@ -1,19 +1,25 @@
 import { ArrowLeft, DownloadSimple } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { SettingsSection } from "@/components/settings/SettingsSection";
+import { isSignUpOpen } from "@/lib/auth/allowlist";
+import { listingPath } from "@/lib/community/links";
 import { formatRelativeDate } from "@/lib/github";
+import { SITE_URL } from "@/lib/site";
+import { visibilityProblem } from "@/lib/skills/access";
 import { getOwnedSkill } from "@/lib/skills/queries";
 import { VERSIONS_KEPT } from "@/lib/skills/schemas";
 import { DeleteSkill } from "./DeleteSkill";
 import { RiskBadge } from "./RiskBadge";
 import { SkillEditor } from "./SkillEditor";
+import { SkillVisibility } from "./SkillVisibility";
 
 const ago = (date: Date) => formatRelativeDate(date.toISOString());
 
-/** One of the user's skills: its editor, its versions and its deletion. Others get a 404. */
+/** One of the user's skills: its editor, who can see it, its versions and its deletion. Others get a 404. */
 export async function SkillWorkspace({ skillId }: { skillId: string }) {
   const skill = await getOwnedSkill(skillId);
   const [latest] = skill.versions;
+  const blocked = visibilityProblem("public", { status: skill.status, version: latest.version, risk: latest.risk, username: skill.username });
 
   return (
     <>
@@ -54,6 +60,20 @@ export async function SkillWorkspace({ skillId }: { skillId: string }) {
       </div>
 
       <div className="mt-14 divide-y divide-line border-t border-line">
+        <SettingsSection
+          id="visibility"
+          title="Visibility"
+          description="Who can open and download the skill. Publishing needs a username, and a latest version without a critical finding."
+        >
+          <SkillVisibility
+            skillId={skill.id}
+            visibility={skill.visibility}
+            status={skill.status}
+            address={skill.username ? `${SITE_URL.replace("https://", "")}${listingPath(skill.username, skill.slug)}` : null}
+            blocked={blocked}
+            communityOpen={isSignUpOpen()}
+          />
+        </SettingsSection>
         <SettingsSection
           id="versions"
           title="Versions"

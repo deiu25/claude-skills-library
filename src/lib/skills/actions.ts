@@ -4,13 +4,24 @@ import { and, count, desc, eq, lt, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
+import { revalidateCommunity } from "@/lib/community/revalidate";
 import { db } from "@/lib/db";
-import { skill, skillFile, skillVersion } from "@/lib/db/schema";
+import { skill, skillFile, skillVersion, user as userTable } from "@/lib/db/schema";
 import { rateLimit } from "@/lib/rate-limit";
+import { statusFor, visibilityProblem, type Visibility } from "./access";
 import { contentHash } from "./content-hash";
 import { ACCOUNT_FILE_BYTES_MAX, filesProblem, formatBytes, isExecutable, textOf } from "./files";
-import { combineFindings, riskOf, scanFiles, scanSkillMd } from "./scan";
-import { ACCOUNT_CHARACTERS_MAX, parseSkillMd, skillFormSchema, skillIdSchema, SKILLS_MAX, VERSIONS_KEPT, type SkillFrontmatter } from "./schemas";
+import { combineFindings, riskOf, scanFiles, scanSkillMd, type Risk } from "./scan";
+import {
+  ACCOUNT_CHARACTERS_MAX,
+  parseSkillMd,
+  skillFormSchema,
+  skillIdSchema,
+  SKILLS_MAX,
+  VERSIONS_KEPT,
+  visibilitySchema,
+  type SkillFrontmatter,
+} from "./schemas";
 
 export type SkillActionState = { ok: true; message: string } | { ok: false; error: string } | null;
 
@@ -221,7 +232,9 @@ export async function createSkill(_previous: SkillActionState, formData: FormDat
 /**
  * Saves the editor: a new version when SKILL.md or the files changed, deleting the oldest beyond
  * the latest VERSIONS_KEPT, and the skill's name, description, category and tags in any case. A
- * save without a folder keeps the latest version's files. Only the owner's own skill is found.
+ * save without a folder keeps the latest version's files. Only the owner's own skill is found. A
+ * published skill whose new version has a critical finding goes back to private: the save is kept,
+ * the publishing is not.
  */
 export async function updateSkill(skillId: unknown, _previous: SkillActionState, formData: FormData): Promise<SkillActionState> {
   const id = skillIdSchema.safeParse(skillId);
@@ -234,13 +247,13 @@ export async function updateSkill(skillId: unknown, _previous: SkillActionState,
   const uploaded = input.upload ? buildVersion(input.skillMd, input.frontmatter, input.upload) : null;
   if (uploaded && !uploaded.ok) return uploaded;
 
-  let saved: number | null | "missing" | { error: string };
+  let saved: { version: number | null; published: boolean; unpublished: boolean } | "missing" | { error: string };
   try {
     saved = await db.transaction(async (tx) => {
       await lockAccount(tx, user.id);
       // The row lock orders concurrent saves of one skill, so each gets the next version number.
       const [owned] = await tx
-        .select({ id: skill.id })
+        .select({ id: skill.id, status: skill.status })
         .from(skill)
         .where(and(eq(skill.id, id.data), eq(skill.ownerId, user.id)))
         .for("update");
@@ -267,11 +280,13 @@ export async function updateSkill(skillId: unknown, _previous: SkillActionState,
         await insertVersion(tx, owned.id, next, built);
         await tx.delete(skillVersion).where(and(eq(skillVersion.skillId, owned.id), lt(skillVersion.version, keepFrom)));
       }
+      const published = owned.status === "published";
+      const unpublished = published && next !== null && built.version.risk === "critical";
       await tx
         .update(skill)
-        .set({ ...input.skill, updatedAt: new Date() })
+        .set({ ...input.skill, ...(unpublished && { visibility: "private", status: statusFor("private") }), updatedAt: new Date() })
         .where(and(eq(skill.id, owned.id), eq(skill.ownerId, user.id)));
-      return next;
+      return { version: next, published, unpublished };
     });
   } catch (error) {
     if (pgCode(error) === "23505") return { ok: false, error: nameTaken(input.skill.name) };
@@ -279,11 +294,86 @@ export async function updateSkill(skillId: unknown, _previous: SkillActionState,
     return { ok: false, error: FAILED };
   }
   if (saved === "missing") return { ok: false, error: NOT_FOUND };
-  if (saved !== null && typeof saved === "object") return { ok: false, error: saved.error };
+  if ("error" in saved) return { ok: false, error: saved.error };
 
   revalidatePath("/dashboard/skills");
   revalidatePath(`/dashboard/skills/${id.data}`);
-  return { ok: true, message: saved === null ? "Saved. SKILL.md and the files did not change, so there is no new version." : `Saved as version ${saved}.` };
+  if (saved.published) revalidateCommunity();
+  if (saved.unpublished) {
+    return {
+      ok: true,
+      message: `Saved as version ${saved.version}. It has a critical finding, so the skill is private again: fix what the check flags, save, then publish it.`,
+    };
+  }
+  return {
+    ok: true,
+    message: saved.version === null ? "Saved. SKILL.md and the files did not change, so there is no new version." : `Saved as version ${saved.version}.`,
+  };
+}
+
+const VISIBILITY_SAVED: Record<Visibility, string> = {
+  private: "The skill is private. Only you can open it.",
+  unlisted: "The skill is published as unlisted. Anyone with its address can open and download it.",
+  public: "The skill is published. It is listed in Community and on your profile.",
+};
+
+/**
+ * Sets who can see one of the user's skills: private keeps it a draft, unlisted and public publish
+ * it. Publishing needs a username, and a latest version without a critical finding.
+ */
+export async function setSkillVisibility(skillId: unknown, _previous: SkillActionState, formData: FormData): Promise<SkillActionState> {
+  const id = skillIdSchema.safeParse(skillId);
+  if (!id.success) return { ok: false, error: NOT_FOUND };
+  const visibility = visibilitySchema.safeParse(formData.get("visibility"));
+  if (!visibility.success) return { ok: false, error: visibility.error.issues[0].message };
+  const user = await writer();
+  if ("error" in user) return { ok: false, error: user.error };
+
+  let changed: boolean | "missing" | { error: string };
+  try {
+    changed = await db.transaction(async (tx) => {
+      // The row lock orders this after a save of the same skill, so the version checked is the latest.
+      const [owned] = await tx
+        .select({ visibility: skill.visibility, status: skill.status })
+        .from(skill)
+        .where(and(eq(skill.id, id.data), eq(skill.ownerId, user.id)))
+        .for("update");
+      if (!owned) return "missing";
+      const [latest] = await tx
+        .select({ version: skillVersion.version, risk: skillVersion.risk })
+        .from(skillVersion)
+        .where(eq(skillVersion.skillId, id.data))
+        .orderBy(desc(skillVersion.version))
+        .limit(1);
+      const [owner] = await tx.select({ username: userTable.username }).from(userTable).where(eq(userTable.id, user.id));
+      const problem = visibilityProblem(visibility.data, {
+        status: owned.status,
+        version: latest?.version ?? 0,
+        risk: (latest?.risk ?? "none") as Risk,
+        username: owner?.username ?? null,
+      });
+      if (problem) return { error: problem };
+      const status = statusFor(visibility.data);
+      if (owned.visibility === visibility.data && owned.status === status) return false;
+      await tx
+        .update(skill)
+        .set({ visibility: visibility.data, status })
+        .where(and(eq(skill.id, id.data), eq(skill.ownerId, user.id)));
+      return true;
+    });
+  } catch (error) {
+    console.error("Skill visibility change failed:", pgCode(error) ?? "unknown error");
+    return { ok: false, error: "Who can see the skill did not change. Try again in a moment." };
+  }
+  if (changed === "missing") return { ok: false, error: NOT_FOUND };
+  if (typeof changed === "object") return { ok: false, error: changed.error };
+
+  if (changed) {
+    revalidatePath("/dashboard/skills");
+    revalidatePath(`/dashboard/skills/${id.data}`);
+    revalidateCommunity();
+  }
+  return { ok: true, message: VISIBILITY_SAVED[visibility.data] };
 }
 
 /** Deletes one of the user's skills with all its versions, then returns to the list. */
@@ -293,12 +383,12 @@ export async function deleteSkill(skillId: unknown): Promise<SkillActionState> {
   const user = await writer();
   if ("error" in user) return { ok: false, error: user.error };
 
-  let deleted: { id: string }[];
+  let deleted: { status: string }[];
   try {
     deleted = await db
       .delete(skill)
       .where(and(eq(skill.id, id.data), eq(skill.ownerId, user.id)))
-      .returning({ id: skill.id });
+      .returning({ status: skill.status });
   } catch (error) {
     console.error("Skill delete failed:", pgCode(error) ?? "unknown error");
     return { ok: false, error: "The skill was not deleted. Try again in a moment." };
@@ -306,5 +396,6 @@ export async function deleteSkill(skillId: unknown): Promise<SkillActionState> {
   if (!deleted.length) return { ok: false, error: NOT_FOUND };
 
   revalidatePath("/dashboard/skills");
+  if (deleted[0].status === "published") revalidateCommunity();
   redirect("/dashboard/skills");
 }

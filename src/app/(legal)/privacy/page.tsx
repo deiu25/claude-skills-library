@@ -16,7 +16,7 @@ export default function PrivacyPage() {
       <p>
         This page says what the Claude Skills Library does with personal data. In short: browsing sets
         no cookies and tracks nothing, and an account keeps only what it needs to sign you in safely and
-        the skills you write or upload.
+        the skills you write or upload, and shows other people only what you publish.
       </p>
 
       <h2>Who is responsible</h2>
@@ -44,6 +44,13 @@ export default function PrivacyPage() {
           you ask for. It needs them to deliver pages and protect the service, which is our legitimate
           interest (GDPR art. 6(1)(f)). The request logs we can see are kept for one hour.
         </li>
+        <li>
+          Downloading a skill that someone published, without an account, sends Upstash a keyed hash of
+          your IP address, which it cannot turn back into the address, and a count of your recent
+          downloads. It is used only to slow down repeated downloads, which is our legitimate interest in
+          keeping the service available (art. 6(1)(f)), and it expires on its own no more than two days and
+          one second after your last download.
+        </li>
       </ul>
 
       <h2>Your account</h2>
@@ -54,7 +61,8 @@ export default function PrivacyPage() {
         <li>
           <strong>Your profile:</strong> your name, your email address, whether you have confirmed it,
           when the account was created and last changed, and the username and one-line bio you set, if
-          any. None of it is shown to other people yet.
+          any. Your name and email address are never shown to other people; your username and bio are
+          once you publish a skill (see “What you publish”).
         </li>
         <li>
           <strong>Your password,</strong> if you set one, only as a one-way hash, never the password itself.
@@ -87,9 +95,9 @@ export default function PrivacyPage() {
         </li>
         <li>
           <strong>Your skills,</strong> if you write or upload any: the latest 20 saved versions of each
-          skill, each with its SKILL.md and its files, the category and tags you choose,
-          and the security check that ran on each version. They are private: only you can open or download
-          them.
+          skill, each with its SKILL.md and its files, the category and tags you choose, who can see it,
+          and the security check that ran on each version. A skill is private, so only you can open or
+          download it, until you publish it.
         </li>
         <li>
           <strong>Skill saves and downloads:</strong> your account’s id and a count of your recent saves and
@@ -102,11 +110,33 @@ export default function PrivacyPage() {
         </li>
       </ul>
 
+      <h3>What you publish</h3>
+      <p>
+        You can publish a skill as unlisted or public, and make it private again or delete it at any time.
+        Until sign-up opens to everyone, nothing you publish is shown to anyone. After that, a published
+        skill’s page shows anyone, with or without an account:
+      </p>
+      <ul>
+        <li>
+          its name, description, category and tags, its latest SKILL.md and the names and sizes of its
+          files, what the security check found in that version, its version number and when it last
+          changed, and a download of the skill with its files;
+        </li>
+        <li>your username, as its author.</li>
+      </ul>
+      <p>
+        A public skill is also listed in Community and in the sitemap we give search engines, and your
+        profile page shows your username, your bio and your public skills. An unlisted skill appears only at
+        its own address, and the page asks search engines not to index it. A skill you make private or
+        delete leaves its page the next time the page is opened. Copies that others made while it was
+        published, such as a download or a search engine’s cached page, are out of our reach.
+      </p>
+
       <h3>Why, and on what legal basis</h3>
       <ul>
         <li>
-          To create your account, sign you in the ways you choose, keep the skills you write or upload, and send the
-          emails an account needs:
+          To create your account, sign you in the ways you choose, keep the skills you write or upload, show
+          the ones you publish, and send the emails an account needs:
           finishing your account, resetting your password, confirming a change of address or a deletion,
           telling you when a passkey is added, and telling you when someone tries to register your address
           again. This is the service you asked
@@ -126,6 +156,8 @@ export default function PrivacyPage() {
         </li>
         <li>
           Nothing about you is used for advertising, sold, or used to make automated decisions about you.
+          The security check reads a skill’s files, not you: it stops a version with a critical finding
+          from being published, and you can fix the file and publish again.
         </li>
         <li>
           An account needs a name and an email address, or a GitHub account. Without an account you can
@@ -183,7 +215,8 @@ export default function PrivacyPage() {
           own service is used, as a controller in its own right.
         </li>
         <li>
-          <strong>Upstash, Inc.</strong> (United States): keeps the record of skill saves and downloads, provided through
+          <strong>Upstash, Inc.</strong> (United States): keeps the record of skill saves and downloads, by
+          account, or by a keyed hash of the IP address for a download without an account, provided through
           the Vercel Marketplace.
         </li>
         <li>

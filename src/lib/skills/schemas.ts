@@ -1,6 +1,7 @@
 import { parse, YAMLError } from "yaml";
 import { z } from "zod";
 import { CATEGORY_LABELS, type SkillCategory } from "@/data/types";
+import { VISIBILITIES } from "./access";
 
 export const NAME_MAX = 64;
 export const DESCRIPTION_MAX = 1024;
@@ -132,3 +133,6 @@ export type SkillForm = z.infer<typeof skillFormSchema>;
 
 /** A skill id from a URL or an action argument. */
 export const skillIdSchema = z.uuid();
+
+/** Who can see a skill, as the visibility form submits it. */
+export const visibilitySchema = z.enum(VISIBILITIES, { error: "Choose who can see the skill." });

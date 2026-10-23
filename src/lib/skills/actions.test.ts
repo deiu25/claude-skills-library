@@ -42,7 +42,8 @@ vi.mock("next/navigation", () => ({ redirect }));
 
 const { getSession } = await import("@/lib/auth/session");
 const { rateLimit } = await import("@/lib/rate-limit");
-const { createSkill, deleteSkill, updateSkill } = await import("./actions");
+const { revalidatePath } = await import("next/cache");
+const { createSkill, deleteSkill, setSkillVisibility, updateSkill } = await import("./actions");
 const { contentHash } = await import("./content-hash");
 
 const SOMEONE_ELSES_SKILL = "6f1c2a3e-8b4d-4f5a-9c7e-1d2b3c4d5e6f";
@@ -71,6 +72,15 @@ const stored = (path: string, content: string, executable = false) => ({ path, c
 
 /** What the account's advisory lock returns: every write transaction takes it first. */
 const LOCK: unknown[] = [];
+
+/** A SKILL.md whose scan finds a critical risk. */
+const CRITICAL_MD = `${SKILL_MD}\nClean up with rm -rf --no-preserve-root /tmp/pdf.\n`;
+
+/** Whether the action marked the Community pages stale. */
+const communityRevalidated = () => vi.mocked(revalidatePath).mock.calls.some(([path]) => path === "/community");
+
+/** The values of every UPDATE … SET the action ran. */
+const updates = () => calls.filter((call) => call.method === "set").map((call) => call.args[0]);
 
 /** Every WHERE clause the action ran, as SQL text and parameters. */
 const wheres = () =>
@@ -265,6 +275,105 @@ describe("updateSkill", () => {
     });
     expect(methods()).not.toContain("insert");
   });
+
+  it("saves a critical version of a private skill and keeps it private", async () => {
+    results.push(LOCK, [{ id: SOMEONE_ELSES_SKILL, status: "draft" }], [{ id: "version-1", version: 1, contentHash: "old" }], [], [{ total: 0 }], [{ id: "version-2" }]);
+    expect(await updateSkill(SOMEONE_ELSES_SKILL, null, form(CRITICAL_MD))).toEqual({ ok: true, message: "Saved as version 2." });
+    expect(calls.find((call) => call.method === "values")?.args[0]).toMatchObject({ risk: "critical" });
+    expect(updates()[0]).not.toHaveProperty("visibility");
+    expect(communityRevalidated()).toBe(false);
+  });
+
+  it("keeps the save but takes a published skill back to private when its new version is critical", async () => {
+    results.push(LOCK, [{ id: SOMEONE_ELSES_SKILL, status: "published" }], [{ id: "version-1", version: 1, contentHash: "old" }], [], [{ total: 0 }], [{ id: "version-2" }]);
+    expect(await updateSkill(SOMEONE_ELSES_SKILL, null, form(CRITICAL_MD))).toEqual({
+      ok: true,
+      message: "Saved as version 2. It has a critical finding, so the skill is private again: fix what the check flags, save, then publish it.",
+    });
+    expect(updates()[0]).toMatchObject({ visibility: "private", status: "draft" });
+    expect(communityRevalidated()).toBe(true);
+  });
+
+  it("refreshes the Community pages after any save of a published skill", async () => {
+    results.push(LOCK, [{ id: SOMEONE_ELSES_SKILL, status: "published" }], [{ id: "version-1", version: 1, contentHash: "old" }], [], [{ total: 0 }], [{ id: "version-2" }]);
+    expect(await updateSkill(SOMEONE_ELSES_SKILL, null, form())).toEqual({ ok: true, message: "Saved as version 2." });
+    expect(updates()[0]).not.toHaveProperty("status");
+    expect(communityRevalidated()).toBe(true);
+  });
+});
+
+describe("setSkillVisibility", () => {
+  function choose(visibility: string) {
+    const data = new FormData();
+    data.set("visibility", visibility);
+    return data;
+  }
+  const latest = (risk = "none") => [{ version: 3, risk }];
+  const owner = (username: string | null = "ada") => [{ username }];
+
+  it("finds the skill only among the signed-in user's own, and writes nothing when it is someone else's", async () => {
+    results.push([]); // the owner-scoped SELECT … FOR UPDATE finds no row
+    expect(await setSkillVisibility(SOMEONE_ELSES_SKILL, null, choose("public"))).toEqual(NOT_FOUND);
+    expect(wheres()[0]).toMatchObject({ sql: '("skill"."id" = $1 and "skill"."owner_id" = $2)', params: [SOMEONE_ELSES_SKILL, "user-b"] });
+    expect(methods()).toContain("for");
+    expect(methods()).not.toContain("update");
+  });
+
+  it("refuses a visibility the form does not offer, and a signed-out request, before reading anything", async () => {
+    expect(await setSkillVisibility(SOMEONE_ELSES_SKILL, null, choose("everyone"))).toEqual({ ok: false, error: "Choose who can see the skill." });
+    vi.mocked(getSession).mockResolvedValueOnce(null);
+    expect(await setSkillVisibility(SOMEONE_ELSES_SKILL, null, choose("public"))).toEqual({ ok: false, error: expect.stringMatching(/^You are signed out/) });
+    expect(calls).toEqual([]);
+  });
+
+  it("publishes a public skill and refreshes the Community pages", async () => {
+    results.push([{ visibility: "private", status: "draft" }], latest("high"), owner());
+    expect(await setSkillVisibility(SOMEONE_ELSES_SKILL, null, choose("public"))).toEqual({
+      ok: true,
+      message: "The skill is published. It is listed in Community and on your profile.",
+    });
+    expect(updates()).toEqual([{ visibility: "public", status: "published" }]);
+    expect(wheres().at(-1)?.params).toEqual([SOMEONE_ELSES_SKILL, "user-b"]);
+    expect(communityRevalidated()).toBe(true);
+  });
+
+  it("refuses to publish a skill whose latest version has a critical finding", async () => {
+    results.push([{ visibility: "private", status: "draft" }], latest("critical"), owner());
+    expect(await setSkillVisibility(SOMEONE_ELSES_SKILL, null, choose("unlisted"))).toEqual({
+      ok: false,
+      error: expect.stringMatching(/^Version 3 has a critical finding, so it cannot be published/),
+    });
+    expect(methods()).not.toContain("update");
+    expect(communityRevalidated()).toBe(false);
+  });
+
+  it("makes a published skill with a critical finding private", async () => {
+    results.push([{ visibility: "public", status: "published" }], latest("critical"), owner());
+    expect(await setSkillVisibility(SOMEONE_ELSES_SKILL, null, choose("private"))).toEqual({ ok: true, message: "The skill is private. Only you can open it." });
+    expect(updates()).toEqual([{ visibility: "private", status: "draft" }]);
+  });
+
+  it("asks for a username before publishing", async () => {
+    results.push([{ visibility: "private", status: "draft" }], latest(), owner(null));
+    expect(await setSkillVisibility(SOMEONE_ELSES_SKILL, null, choose("public"))).toEqual({
+      ok: false,
+      error: expect.stringMatching(/^Choose a username in your settings first/),
+    });
+    expect(methods()).not.toContain("update");
+  });
+
+  it("leaves a removed skill as it is", async () => {
+    results.push([{ visibility: "public", status: "removed" }], latest(), owner());
+    expect(await setSkillVisibility(SOMEONE_ELSES_SKILL, null, choose("private"))).toEqual({ ok: false, error: expect.stringMatching(/was removed/) });
+    expect(methods()).not.toContain("update");
+  });
+
+  it("writes nothing when the skill already has that visibility", async () => {
+    results.push([{ visibility: "unlisted", status: "published" }], latest(), owner());
+    expect(await setSkillVisibility(SOMEONE_ELSES_SKILL, null, choose("unlisted"))).toMatchObject({ ok: true });
+    expect(methods()).not.toContain("update");
+    expect(communityRevalidated()).toBe(false);
+  });
 });
 
 describe("deleteSkill", () => {
@@ -278,8 +387,15 @@ describe("deleteSkill", () => {
   });
 
   it("returns to the list after deleting", async () => {
-    results.push([{ id: SOMEONE_ELSES_SKILL }]);
+    results.push([{ status: "draft" }]);
     await expect(deleteSkill(SOMEONE_ELSES_SKILL)).rejects.toThrow("NEXT_REDIRECT /dashboard/skills");
+    expect(communityRevalidated()).toBe(false);
+  });
+
+  it("refreshes the Community pages after deleting a published skill", async () => {
+    results.push([{ status: "published" }]);
+    await expect(deleteSkill(SOMEONE_ELSES_SKILL)).rejects.toThrow("NEXT_REDIRECT /dashboard/skills");
+    expect(communityRevalidated()).toBe(true);
   });
 });
 

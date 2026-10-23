@@ -97,7 +97,7 @@ Playbooks (P16–P20) are a second track. P16 needs nothing; each later playbook
 | Every route that exists today | Unchanged: static or ISR, with `/opengraph-image` rendered on demand. The five catalog pages add `export const dynamic = "error"` in P2 |
 | `/sign-in`, `/sign-up`, `/forgot-password`, `/reset-password`, `/two-factor` | In an `(auth)` route group. Static forms that call `/api/auth` from the browser; `/reset-password` renders per request because it reads the token |
 | `/dashboard/**` | Dynamic: skills, library, projects, playbooks, purchases, sales, settings, admin, org |
-| `/community`, `/u/[handle]`, `/u/[handle]/[slug]`, `/u/[handle]/stacks/[slug]`, `/u/[handle]/playbooks/[slug]` | ISR. `generateStaticParams` returns `[]` and writes call `revalidatePath`. A database error renders an empty state. While sign-up is closed, these routes return `notFound()` |
+| `/community`, `/u/[handle]`, `/u/[handle]/[slug]`, `/u/[handle]/stacks/[slug]`, `/u/[handle]/playbooks/[slug]` | ISR. `generateStaticParams` returns `[]` and writes call `revalidatePath` (P6: `revalidateCommunity()`). A database error during the build renders an empty state; at request time it throws, so ISR keeps serving the last page that rendered. While sign-up is closed, these routes return `notFound()` |
 | `/privacy`, `/terms`, `/terms/marketplace` | Static |
 | `/playbooks`, `/playbooks/[slug]` | Static, like the catalog pages, with `dynamic = "error"` (P16) |
 | `/api/auth/[...all]`, `/api/stripe/webhook`, `/api/v1/sync`, `/api/v1/library`, `/api/skills/[id]/download`, `/api/me/export` | Dynamic route handlers |

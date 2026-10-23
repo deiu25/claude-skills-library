@@ -42,6 +42,7 @@ A change is done when test, lint, type check, build and the end-to-end tests all
 - `cacheComponents` is off. Cache with route segment config and `fetch(..., { next: { revalidate } })`; don't add `"use cache"`.
 - `export const revalidate = 21600` must stay a literal in every catalog route, because Next.js reads it statically. Change it together with `REVALIDATE_SECONDS` in `src/lib/github.ts`.
 - `getRepoStats` returns `null` on any failure. Every page must render without stats, and a GitHub error must never fail a page or a build.
+- Community pages (`/community`, `/u/**`) are ISR and answer 404 until `ACCOUNTS_OPEN=true`. A write that changes what they show must call `revalidateCommunity()` (`src/lib/community/revalidate.ts`), and their reads go through `emptyAtBuild`, which renders them empty during `next build` and throws at request time.
 - Keep `server-only` out of `src/lib/auth/auth.ts` and `src/lib/db/`: the Better Auth CLI and drizzle-kit load them in plain Node, and the CLI aborts on it.
 - Drizzle applies a migration only when it is newer than the last one applied. After rebasing onto a `main` that gained a migration, remove your branch's migration with `npx drizzle-kit drop` and run `npm run db:generate` again.
 - Without `BETTER_AUTH_SECRET`, `next build` logs "You are using the default secret" and still passes. The catalog needs no variables; account pages need `DATABASE_URL` and the secret.

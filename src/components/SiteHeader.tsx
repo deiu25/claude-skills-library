@@ -26,6 +26,12 @@ export function SiteHeader() {
           <NavLink href="/skills" className={NAV_LINK}>
             Browse skills
           </NavLink>
+          {/* Community opens with sign-up; below md the row has no room left for it. */}
+          {accountsOpen && (
+            <NavLink href="/community" className={`hidden md:block ${NAV_LINK}`}>
+              Community
+            </NavLink>
+          )}
           <NavLink href="/recommend" className={`hidden sm:block ${NAV_LINK}`}>
             Recommend
           </NavLink>

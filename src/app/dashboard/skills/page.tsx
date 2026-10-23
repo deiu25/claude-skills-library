@@ -22,7 +22,7 @@ export default async function SkillsPage() {
           <div className="space-y-3">
             <h1 className="text-balance text-3xl font-semibold text-foreground sm:text-4xl">Your skills</h1>
             <p className="max-w-[60ch] text-pretty text-sm leading-relaxed text-muted sm:text-base">
-              Skills you write here stay private. Each one is checked and scanned as you edit it.
+              Skills you write here stay private until you publish them. Each one is checked and scanned as you edit it.
             </p>
           </div>
           <Link href="/dashboard/skills/new" className="btn btn-primary text-sm">
