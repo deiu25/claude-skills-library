@@ -37,7 +37,7 @@ test("the dashboard sends an anonymous visitor to sign in", async ({ page }) => 
   await page.goto("/dashboard");
   await expect(page).toHaveURL(/\/sign-in$/);
   await expect(page.getByRole("button", { name: "Continue with GitHub" })).toBeVisible();
-  for (const path of ["/dashboard/settings", "/dashboard/skills", "/dashboard/skills/new", "/dashboard/skills/6f1c2a3e-8b4d-4f5a-9c7e-1d2b3c4d5e6f"]) {
+  for (const path of ["/dashboard/settings", "/dashboard/skills", "/dashboard/skills/new", "/dashboard/skills/6f1c2a3e-8b4d-4f5a-9c7e-1d2b3c4d5e6f", "/dashboard/admin"]) {
     await page.goto(path);
     await expect(page).toHaveURL(/\/sign-in$/);
   }

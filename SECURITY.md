@@ -25,4 +25,4 @@ In scope:
 - This repository's code, including how `GITHUB_TOKEN` is handled.
 - The catalog itself: an entry whose source repository is malicious, hijacked or impersonating another project. `/install-all.txt` asks Claude Code to install every listed skill, so report such an entry privately as above and it will be removed first.
 
-Out of scope: vulnerabilities inside the third-party skills the catalog lists. Report those to their maintainers.
+Out of scope: vulnerabilities inside the third-party skills the catalog lists. Report those to their maintainers. A skill someone published in Community that is malicious or breaks the terms is not a vulnerability of the site: use "Report this skill" on its page, or write to the contact address in the [terms of use](https://skillcellar.com/terms).

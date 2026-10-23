@@ -4,7 +4,7 @@
 |---|---|
 | Owner | Badulescu Andrei ([@deiu25](https://github.com/deiu25)) |
 | Decided | 2026-10-10 |
-| Next phase | P7 |
+| Next phase | P8 |
 
 The curated catalog stays as it is: static, hand-written, reviewed in git. Around it the site gains:
 - accounts;
@@ -39,7 +39,7 @@ Paste into a new Claude Code session in this repository:
 | P4 | Own skills (SKILL.md) and security scan | done |
 | P5 | Skill files | done |
 | P6 | Showcase and profiles | done |
-| P7 | Moderation | todo |
+| P7 | Moderation | done |
 | P8 | Sellers (Stripe test mode) | todo |
 | P9 | Checkout and entitlements (test mode) | todo |
 | P10 | Library and projects | todo |
@@ -63,7 +63,7 @@ Playbooks (P16–P20) are a second track. P16 needs nothing; each later playbook
 | Topic | Decision |
 |---|---|
 | Auth | Better Auth, stored in our own database. It covers email and password with verification and reset, GitHub sign-in, TOTP two-factor, passkeys, API keys, admin and organizations |
-| Database | Neon Postgres through the Vercel Marketplace, with Drizzle ORM and a `pg` pool registered with `attachDatabasePool`, for interactive transactions. Each preview gets its own Neon branch. Neon's Vercel integration cuts it from production and offers no other parent; the owner accepted that on 2026-10-11 while sign-up is invite-only, and P7 moves previews to a seeded `dev` branch before sign-up opens |
+| Database | Neon Postgres through the Vercel Marketplace, with Drizzle ORM and a `pg` pool registered with `attachDatabasePool`, for interactive transactions. Each preview gets its own Neon branch, which Neon's Vercel integration cuts from the project's default branch: since P7 that is `dev`, seeded with made-up accounts, while production keeps the integration's production branch, `main` |
 | Email | Resend, with templates as plain TypeScript strings, sent inside `after()` |
 | Skill files | Postgres `bytea`, at most 1 MB and 200 files per version. Move to a private Vercel Blob store only if that cap is outgrown |
 | Selling | Stripe Connect: Express sellers (Accounts v2), Checkout with destination charges and `application_fee_amount`, and one platform webhook. Built in test mode; going live is its own phase |
@@ -96,7 +96,7 @@ Playbooks (P16–P20) are a second track. P16 needs nothing; each later playbook
 |---|---|
 | Every route that exists today | Unchanged: static or ISR, with `/opengraph-image` rendered on demand. The five catalog pages add `export const dynamic = "error"` in P2 |
 | `/sign-in`, `/sign-up`, `/forgot-password`, `/reset-password`, `/two-factor` | In an `(auth)` route group. Static forms that call `/api/auth` from the browser; `/reset-password` renders per request because it reads the token |
-| `/dashboard/**` | Dynamic: skills, library, projects, playbooks, purchases, sales, settings, admin, org |
+| `/dashboard/**` | Dynamic: skills, library, projects, playbooks, purchases, sales, settings, report, admin, org |
 | `/community`, `/u/[handle]`, `/u/[handle]/[slug]`, `/u/[handle]/stacks/[slug]`, `/u/[handle]/playbooks/[slug]` | ISR. `generateStaticParams` returns `[]` and writes call `revalidatePath` (P6: `revalidateCommunity()`). A database error during the build renders an empty state; at request time it throws, so ISR keeps serving the last page that rendered. While sign-up is closed, these routes return `notFound()` |
 | `/privacy`, `/terms`, `/terms/marketplace` | Static |
 | `/playbooks`, `/playbooks/[slug]` | Static, like the catalog pages, with `dynamic = "error"` (P16) |
@@ -122,7 +122,7 @@ App ids are `uuid`, keys into the auth tables are `text`, times are `timestamptz
 | P3 | Generated: `user.username`, `user.twoFactorEnabled`, `twoFactor`, `passkey`; `displayUsername` is off, because handles are lowercase. Added through `additionalFields`: `user.bio` |
 | P4 | `skill`: owner → user `SET NULL`, slug, name, description, category, tags, visibility (`private`, `unlisted`, `public`), status (`draft`, `published`, `removed`); unique (owner, slug).<br>`skill_version`: skill `CASCADE`, version, skill_md, frontmatter `jsonb`, content_hash, risk, findings `jsonb`; unique (skill, version) |
 | P5 | `skill_file`: version `CASCADE`, path, content `bytea`, executable; primary key (version, path); a `CHECK` that the path is relative and contains no `..` |
-| P7 | `report`: reporter `SET NULL`, target type and id, reason, status (`open`, `actioned`, `dismissed`), resolved by; one open report per reporter and target. The admin plugin adds `user.role`, `banned`, `banReason`, `banExpires` and `session.impersonatedBy` |
+| P7 | `report`: reporter `SET NULL`, target type and id, reason, details, status (`open`, `actioned`, `dismissed`), resolved by `SET NULL`, resolved at; one open report per reporter and target (a partial unique index). `skill` gains `removal_reason`. `username_hold`: username (primary key), user `SET NULL`, held until. The admin plugin adds `user.role` (always null: admins are `ADMIN_USER_IDS`), `banned`, `banReason`, `banExpires` and `session.impersonatedBy` |
 | P8 | `seller_account`: user (primary key), Stripe account id (unique), ready, country. `skill` gains `price_cents` (`CHECK > 0`) and `currency` |
 | P9 | `purchase`: buyer `SET NULL`, skill `SET NULL`, version, subtotal, tax, application fee, currency, buyer country, Checkout session id (unique), payment intent id (unique), status (`paid`, `refunded`, `disputed`, `lost`); index (buyer, skill).<br>A `paid` row is the entitlement. Fulfilment runs `INSERT … ON CONFLICT (checkout_session_id) DO NOTHING RETURNING id`, and the receipt goes out only when a row comes back.<br>A repeat purchase is refused when checkout is created, never by a constraint the webhook could hit |
 | P10 | `project`: owner `CASCADE`, slug, repo hint, public; unique (owner, slug).<br>`library_entry`: user `CASCADE`, kind (`catalog`, `community`, `github`, `web`, `local`), catalog slug, skill, url, label, note; a `CHECK` for exactly one reference per kind; `UNIQUE NULLS NOT DISTINCT`. Own and bought skills are read from `skill` and `purchase`, never copied in.<br>`installation`: user `CASCADE`, scope (`global`, `project`), project `CASCADE`, kind (`skill`, `plugin`), name, source, skill path, catalog slug, skill, hash, hash kind (`git-tree`, `sha256`, `version`), version, origin (`cli`, `manual`), last seen; `CHECK ((scope = 'project') = (project_id IS NOT NULL))`; `UNIQUE NULLS NOT DISTINCT` (user, scope, project, kind, name) |
@@ -295,7 +295,9 @@ Every phase merges to `main`, which is production, so each one keeps these rules
   - A Vercel Firewall rate-limit rule on `/api/skills/*/download` and `/sitemap.xml`, or a separate Upstash database for signed-out downloads, so a flood cannot spend the quota the Server Actions' limits share (ARCHITECTURE.md, Known limits).
   - Next.js 16.4.1 or later: 16.2 is open to GHSA-p3m5-59mp-jv5r, a CPU exhaustion through Server Actions.
   - Hold a username for a while after a rename or a deletion, so its old addresses cannot pass to someone else.
+- **Owner,** before sign-up opens: a Resend sending domain and `EMAIL_FROM` on it. Resend's test sender delivers only to the owner, so no receipt, decision or statement of reasons would reach anyone else.
 - Sign-up can open from this point (`ACCOUNTS_OPEN=true`).
+- **Closed:** P7 shipped on 2026-10-23 with every item above but the sending domain. Reports come from a form on each Community skill and profile, or by email; `/dashboard/admin` removes skills and suspends accounts through Better Auth's admin plugin, with every admin endpoint off over HTTP, and each decision emails its statement of reasons. Usernames given up are held for 90 days. Previews branch from the seeded `dev` branch, Neon's default since P7, and the edge rule allows 20 requests a minute per IP. On `next dev` against a branch of `dev`, 51 flows passed, a passkey sign-in of a suspended account among them.
 
 ### P8 — Sellers (Stripe test mode)
 - **Ships:**

@@ -27,6 +27,16 @@ test("a profile or skill whose read fails is an error, never a cached 404", asyn
   expect((await request.get("/u/ada/pdf-forms")).status()).toBe(500);
 });
 
+test("signed out, the report page says how to report without reading the database or setting a cookie", async ({ page, context }) => {
+  await page.goto("/dashboard/report?skill=6f1c2a3e-8b4d-4f5a-9c7e-1d2b3c4d5e6f");
+  await expect(page.getByRole("heading", { level: 1, name: "Report a skill" })).toBeVisible();
+  await expect(page.getByRole("main").getByRole("link", { name: "Sign in", exact: true })).toHaveAttribute("href", "/sign-in");
+  await expect(page.getByRole("main").getByRole("link", { name: "contact@basetech.ro" })).toBeVisible();
+  expect(await context.cookies()).toEqual([]);
+  // A report names a skill or a profile; anything else is not a page.
+  expect((await page.request.get("/dashboard/report")).status()).toBe(404);
+});
+
 test("the sitemap lists Community once it is open", async ({ request }) => {
   const sitemap = await (await request.get("/sitemap.xml")).text();
   expect(sitemap).toContain("<loc>https://skillcellar.com/community</loc>");
