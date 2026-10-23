@@ -8,6 +8,9 @@ export const profilePath = (handle: string) => `/u/${handle}`;
 
 export const listingPath = (handle: string, slug: string) => `/u/${handle}/${slug}`;
 
+/** The report form for a published skill, named by its id, or for a profile, named by its username. */
+export const reportPath = (target: { skill: string } | { user: string }) => `/dashboard/report?${new URLSearchParams(target)}`;
+
 /**
  * A new issue on the catalog's repository, from the suggest-skill.yml form, filled in with a
  * Community skill's page and the start of its description, which the visitor reviews before they

@@ -1,7 +1,7 @@
 import { after } from "next/server";
 import { Resend } from "resend";
 import { isNewAccountLink } from "./auth/links";
-import { SITE_NAME } from "./site";
+import { OPERATOR, SITE_NAME, SITE_URL } from "./site";
 
 export interface EmailMessage {
   to: string;
@@ -10,8 +10,9 @@ export interface EmailMessage {
 }
 
 // Templates hold no free text a user typed, so an email from this site never carries someone
-// else's words. The one exception is the new address of an email change, which goes only to the
-// account's current address.
+// else's words. The exceptions: the new address of an email change, which goes only to the
+// account's current address, and the reason for a moderation decision, which an admin writes.
+// Replies reach nobody while the sender is Resend's test address, so emails point to OPERATOR.email.
 
 /**
  * The email that carries a password link: it finishes a new account, answers a sign-up attempt
@@ -112,6 +113,89 @@ ${url}
 Deleting the account removes your profile, sign-in methods, sessions and two-factor settings, and cannot be undone. The link works for 24 hours.
 
 If it was not you, ignore this email: your account stays. Then change your password, and sign out of your other sessions in your account settings.
+`,
+  };
+}
+
+/** The receipt for a report, sent to whoever made it. `address` is the reported page on this site. */
+export function reportReceivedEmail(to: string, address: string): EmailMessage {
+  return {
+    to,
+    subject: `We received your report`,
+    text: `We received your report about ${address}.
+
+A person will review it, and we will email you what we decide. There is nothing else you need to do.
+`,
+  };
+}
+
+/** Tells an admin that a report is waiting. It quotes nothing from the report. */
+export function newReportEmail(to: string): EmailMessage {
+  return {
+    to,
+    subject: `A report is waiting on ${SITE_NAME}`,
+    text: `Someone reported a skill or a profile. Review it here:
+
+${SITE_URL}/dashboard/admin
+`,
+  };
+}
+
+const REDRESS = `If you think we got this wrong, write to ${OPERATOR.email} and say why, and we will review it again. You can also take the matter to the courts: see "Law and disputes" in our terms of use, ${SITE_URL}/terms.`;
+
+/** Our decision on a report, sent to whoever made it. */
+export function reportDecisionEmail(to: string, address: string, actioned: boolean): EmailMessage {
+  return {
+    to,
+    subject: `Our decision on your report`,
+    text: `${
+      actioned
+        ? `We acted on your report about ${address}: it is no longer shown on ${SITE_NAME}. Thank you for telling us.`
+        : `We reviewed your report about ${address} and decided not to act on it: we did not find that it breaks our terms of use or the law.`
+    }
+
+${REDRESS}
+`,
+  };
+}
+
+/** A moderation decision's stated reason, and whether it followed a report or our own review. */
+export interface Statement {
+  reason: string;
+  onReport: boolean;
+}
+
+const howWeDecided = (onReport: boolean) =>
+  `How we decided: ${onReport ? "after a report from someone who uses the site" : "on our own review"}. A person made this decision; no automated system took it.`;
+
+/** The statement of reasons for removing a skill, sent to its owner. */
+export function removalEmail(to: string, skillName: string, statement: Statement): EmailMessage {
+  return {
+    to,
+    subject: `Your skill ${skillName} was removed from ${SITE_NAME}`,
+    text: `We removed your skill ${skillName} from ${SITE_NAME}. Its page, its place in Community and its download are gone for everyone, everywhere, with no end date. You can still open, download and delete it in your dashboard, but you cannot publish it again.
+
+Why: ${statement.reason}
+
+${howWeDecided(statement.onReport)}
+
+${REDRESS}
+`,
+  };
+}
+
+/** The statement of reasons for suspending an account, sent to its address. */
+export function suspensionEmail(to: string, statement: Statement): EmailMessage {
+  return {
+    to,
+    subject: `Your ${SITE_NAME} account is suspended`,
+    text: `We suspended your ${SITE_NAME} account. You cannot sign in, and the skills you published are hidden from everyone, everywhere, with no end date. Your account and skills are kept: to get a copy of your data, or to have the account deleted, write to ${OPERATOR.email}.
+
+Why: ${statement.reason}
+
+${howWeDecided(statement.onReport)}
+
+${REDRESS}
 `,
   };
 }

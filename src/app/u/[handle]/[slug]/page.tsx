@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowSquareOut } from "@phosphor-icons/react/dist/ssr";
+import { ArrowLeft, ArrowSquareOut, Flag } from "@phosphor-icons/react/dist/ssr";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -14,7 +14,7 @@ import { TerminalBlock } from "@/components/TerminalBlock";
 import { CATEGORY_LABELS, type SkillCategory } from "@/data/types";
 import { isSignUpOpen } from "@/lib/auth/allowlist";
 import { formatDate, revealBidi } from "@/lib/community/format";
-import { listingPath, profilePath, proposeUrl } from "@/lib/community/links";
+import { listingPath, profilePath, proposeUrl, reportPath } from "@/lib/community/links";
 import { communityMetadata } from "@/lib/community/metadata";
 import { getListing } from "@/lib/community/queries";
 import { formatBytes } from "@/lib/skills/files";
@@ -151,17 +151,29 @@ export default async function ListingPage({ params }: PageProps) {
                 </span>
               ))}
             </div>
-            {isPublic && (
-              <a
-                href={proposeUrl(listing)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex min-h-11 items-center gap-1.5 text-sm text-muted transition-colors hover:text-accent-strong"
+            <div className="flex flex-wrap items-center gap-x-6">
+              {/* A plain link with no prefetch: the report form renders per request, and this page sends nothing after load. */}
+              <Link
+                href={reportPath({ skill: listing.id })}
+                prefetch={false}
+                rel="nofollow"
+                className="inline-flex min-h-11 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
               >
-                Propose it for the curated catalog
-                <ArrowSquareOut size={14} aria-hidden />
-              </a>
-            )}
+                <Flag size={14} aria-hidden />
+                Report this skill
+              </Link>
+              {isPublic && (
+                <a
+                  href={proposeUrl(listing)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-11 items-center gap-1.5 text-sm text-muted transition-colors hover:text-accent-strong"
+                >
+                  Propose it for the curated catalog
+                  <ArrowSquareOut size={14} aria-hidden />
+                </a>
+              )}
+            </div>
           </footer>
         </article>
       </main>

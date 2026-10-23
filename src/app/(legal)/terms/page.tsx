@@ -81,7 +81,14 @@ export default function TermsPage() {
         </li>
         <li>
           We may suspend or close an account that breaks these terms or the law, or that puts the site or
-          other people at risk, and we tell you why by email.
+          other people at risk, and we email you the reason and how to contest it. A suspended account
+          cannot sign in, and the skills it published are hidden until we lift the suspension.
+        </li>
+        <li>An account whose email address is not confirmed within 7 days of sign-up is deleted.</li>
+        <li>
+          When you change your username or delete your account, the old username stays reserved for 90
+          days. In that time only your account can take it back, so its old addresses never lead to someone
+          else.
         </li>
         <li>You can stop using your account at any time, and delete it yourself in your account settings.</li>
       </ul>
@@ -110,11 +117,48 @@ export default function TermsPage() {
           passing it does not make a skill safe or lawful.
         </li>
         <li>
-          We may unpublish or remove a skill that breaks these terms or the law, and we tell its author why
-          by email. To report one, write to <a href={`mailto:${OPERATOR.email}`}>{OPERATOR.email}</a> with
-          its address and what is wrong with it.
+          We may remove a skill that breaks these terms or the law: its page and its download go, and its
+          author can no longer publish it. We email its author the reason and how to contest it. How to
+          report a skill is under “Reports and moderation”.
         </li>
       </ul>
+
+      <h2>Reports and moderation</h2>
+      <p>Anyone can tell us about a skill or a profile that breaks these terms or the law:</p>
+      <ul>
+        <li>Signed in, use “Report this skill” on a skill’s page, or “Report this profile” on a profile.</li>
+        <li>
+          Without an account, write to <a href={`mailto:${OPERATOR.email}`}>{OPERATOR.email}</a> with the
+          page’s address, what is wrong with it and why, your name and email address, and a statement that
+          your report is accurate and complete to the best of your knowledge.
+        </li>
+      </ul>
+      <p>What happens next:</p>
+      <ul>
+        <li>We confirm every report by email. A person reviews each one; no automated system decides it.</li>
+        <li>
+          If the skill or profile breaks these terms or the law, we remove the skill or suspend the account,
+          everywhere and with no end date. Its author gets an email saying what we did, why, under which
+          rule or law, whether it followed a report, and how to contest it. We never tell them who reported it.
+        </li>
+        <li>Whoever reported gets our decision by email, whether we acted or not.</li>
+        <li>
+          To contest a decision, write to <a href={`mailto:${OPERATOR.email}`}>{OPERATOR.email}</a> and say
+          why, and we review it again. You can also take the matter to the courts (see “Law and disputes”).
+        </li>
+        <li>
+          Separately, the automated check described under “Publishing a skill” blocks publishing a version
+          with a critical finding. It does not decide reports.
+        </li>
+      </ul>
+
+      <h2>Contact point</h2>
+      <p>
+        Our single point of contact under the EU Digital Services Act (Regulation (EU) 2022/2065, art. 11 and
+        12), for people who use the site, for the authorities of the Member States, for the European
+        Commission and for the European Board for Digital Services, is{" "}
+        <a href={`mailto:${OPERATOR.email}`}>{OPERATOR.email}</a>. Write to us in English or Romanian.
+      </p>
 
       <h2>Acceptable use</h2>
       <p>

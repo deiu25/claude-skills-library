@@ -49,6 +49,11 @@ const LIMITS = {
     [30, "1 m"],
     [300, "1 d"],
   ],
+  // Reports: each one emails its sender and every admin.
+  report: [
+    [3, "1 m"],
+    [20, "1 d"],
+  ],
 } satisfies Record<string, [number, Duration][]>;
 
 export type LimitName = keyof typeof LIMITS;

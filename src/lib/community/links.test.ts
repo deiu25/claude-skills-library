@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
 import { SITE_REPO_URL } from "@/lib/site";
-import { listingPath, profilePath, proposeUrl } from "./links";
+import { listingPath, profilePath, proposeUrl, reportPath } from "./links";
 
 const listing = { handle: "ada", slug: "pdf-forms", name: "pdf-forms", description: "Fills PDF forms. Use it when a task hands you a PDF & a list of values." };
 
@@ -10,6 +10,11 @@ describe("community paths", () => {
   it("puts a profile at /u/<handle> and its skills below it", () => {
     expect(profilePath("ada")).toBe("/u/ada");
     expect(listingPath("ada", "pdf-forms")).toBe("/u/ada/pdf-forms");
+  });
+
+  it("names a skill to report by its id and a profile by its username", () => {
+    expect(reportPath({ skill: "6f1c2a3e-8b4d-4f5a-9c7e-1d2b3c4d5e6f" })).toBe("/dashboard/report?skill=6f1c2a3e-8b4d-4f5a-9c7e-1d2b3c4d5e6f");
+    expect(reportPath({ user: "ada" })).toBe("/dashboard/report?user=ada");
   });
 });
 

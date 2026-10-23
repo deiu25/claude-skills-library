@@ -36,6 +36,13 @@
       "when": 1792701477274,
       "tag": "0004_folder_content_hash",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792777846310,
+      "tag": "0005_moderation",
+      "breakpoints": true
     }
   ]
 }

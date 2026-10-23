@@ -69,6 +69,7 @@ export async function SkillWorkspace({ skillId }: { skillId: string }) {
             skillId={skill.id}
             visibility={skill.visibility}
             status={skill.status}
+            removalReason={skill.removalReason}
             address={skill.username ? `${SITE_URL.replace("https://", "")}${listingPath(skill.username, skill.slug)}` : null}
             blocked={blocked}
             communityOpen={isSignUpOpen()}

@@ -13,8 +13,8 @@ import type { Finding, Risk } from "@/lib/skills/scan";
 import { NAME_MAX, SLUG_RE } from "@/lib/skills/schemas";
 
 // Reads for the Community pages, which are prerendered and revalidated (ISR): they take no session
-// and set no cookie. Only published skills whose owner has a username ever leave this module, and
-// only public ones are listed; an unlisted skill is reached by its address alone.
+// and set no cookie. Only published skills whose owner has a username and is not suspended ever
+// leave this module, and only public ones are listed; an unlisted skill is reached by its address alone.
 
 /** Public skills on /community, newest change first. Search and filters run in the browser over this many. */
 const COMMUNITY_MAX = 500;
@@ -73,8 +73,8 @@ const isSlug = (slug: string) => slug.length <= NAME_MAX && SLUG_RE.test(slug);
 const latestRisk = sql<Risk>`(select ${skillVersion.risk} from ${skillVersion} where ${skillVersion.skillId} = ${skill.id} order by ${skillVersion.version} desc limit 1)`;
 const handleColumn = sql<string>`${user.username}`;
 
-/** Published skills whose owner has a username, and match `where`. */
-const shown = (where: SQL | undefined) => and(eq(skill.status, "published"), isNotNull(user.username), where);
+/** Published skills whose owner has a username and is not suspended, and match `where`. */
+const shown = (where: SQL | undefined) => and(eq(skill.status, "published"), isNotNull(user.username), sql`${user.banned} is not true`, where);
 
 /** Published skills matching `where`, newest change first, as cards show them. */
 function selectSkills(where: SQL | undefined) {

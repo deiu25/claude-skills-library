@@ -1,4 +1,6 @@
+import { Flag } from "@phosphor-icons/react/dist/ssr";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CommunityCard } from "@/components/community/CommunityCard";
 import { CommunityLabel } from "@/components/community/CommunityLabel";
@@ -6,7 +8,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { isSignUpOpen } from "@/lib/auth/allowlist";
 import { toCard } from "@/lib/community/format";
-import { profilePath } from "@/lib/community/links";
+import { profilePath, reportPath } from "@/lib/community/links";
 import { communityMetadata } from "@/lib/community/metadata";
 import { getProfile } from "@/lib/community/queries";
 
@@ -55,6 +57,18 @@ export default async function ProfilePage({ params }: PageProps) {
           {profile.skills.map((skill) => (
             <CommunityCard key={skill.slug} skill={toCard(skill)} />
           ))}
+        </div>
+        <div className="mt-12 border-t border-line pt-6">
+          {/* No prefetch: the report form renders per request, and this page sends nothing after load. */}
+          <Link
+            href={reportPath({ user: profile.handle })}
+            prefetch={false}
+            rel="nofollow"
+            className="inline-flex min-h-11 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
+          >
+            <Flag size={14} aria-hidden />
+            Report this profile
+          </Link>
         </div>
       </main>
       <SiteFooter />

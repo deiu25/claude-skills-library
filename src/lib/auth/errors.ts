@@ -1,3 +1,5 @@
+import { OPERATOR } from "@/lib/site";
+
 /** The error shape Better Auth's client returns: an HTTP status and, usually, a code. */
 export interface AuthError {
   status: number;
@@ -7,9 +9,11 @@ export interface AuthError {
 
 const PASSKEY_CLOSED = "The passkey prompt closed before it finished. Try again.";
 const USERNAME_LENGTH = "Use 3 to 30 characters.";
+const SUSPENDED = `This account is suspended. We emailed its address the reason; to contest it, write to ${OPERATOR.email}.`;
 
 const MESSAGES: Record<string, string> = {
   INVALID_EMAIL_OR_PASSWORD: "Wrong email or password.",
+  BANNED_USER: SUSPENDED,
   EMAIL_NOT_VERIFIED:
     "Finish creating your account first: open the link we emailed you, or use “Forgot your password?” to get a new one.",
   INVALID_TOKEN: "This link is invalid or has expired. Request a new one.",
@@ -56,6 +60,7 @@ export function authErrorMessage(error: AuthError): string {
 // Codes a failed GitHub sign-in or link sends back in ?error=. Only codes the user can act on get
 // their own message; expired state, network and server failures all mean "try again".
 const OAUTH_MESSAGES: Record<string, string> = {
+  BANNED_USER: SUSPENDED,
   SIGN_UP_CLOSED:
     "Sign-up is invite-only for now, and your GitHub email address is not on the list. If you were invited, sign in with that address.",
   access_denied: "GitHub sign-in was cancelled.",
