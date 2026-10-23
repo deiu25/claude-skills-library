@@ -78,6 +78,8 @@ export async function getAccountExport(userId: string) {
       bio: user.bio,
       image: user.image,
       twoFactorEnabled: user.twoFactorEnabled,
+      suspended: user.banned,
+      suspensionReason: user.banReason,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     })

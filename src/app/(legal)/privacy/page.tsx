@@ -288,7 +288,8 @@ export default function PrivacyPage() {
         one month. Signed in, you can also download a copy of what your account holds and delete your account yourself,
         in your account settings; a suspended account cannot sign in, so it writes to us instead. For every
         saved version of a skill, the copy gives the address where it downloads as a zip with its files;
-        the skill&rsquo;s pages have the same downloads.
+        the skill&rsquo;s pages have the same downloads. A suspended account, which cannot sign in to use
+        those addresses, gets the zips with its copy.
       </p>
       <p>
         If you think we handle your data unlawfully, you can complain to the Romanian data protection

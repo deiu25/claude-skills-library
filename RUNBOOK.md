@@ -118,11 +118,15 @@ Moderation happens at `/dashboard/admin`, for the ids in `ADMIN_USER_IDS`; the d
 - **A harmful skill nobody reported:** Take down, with the skill's address. Take down reaches only published skills; an account is named only as `@username`, so a pasted profile address suspends nobody.
 - **Contesting a decision:** the author or the reporter writes to the contact address. Review it, and answer. To lift a suspension, use "Lift suspension" under Suspended accounts. To restore a removed skill, in the Neon console run `update skill set status = 'draft', visibility = 'private', removal_reason = null where id = '<id>'`, then tell its author they can publish it again; the id is in its download address, `/api/skills/<id>/download`.
 - A suspension and a removal have no end date until you lift or undo them. A suspended account cannot sign in to export or delete its data, so do either for it on request, within a month, as /privacy promises:
-  - **A copy of its data:** "Download its data" on its row under Suspended accounts gives the JSON its own export would; email it to the account's address.
-  - **Deleting it:** in the Neon console on `main`, find its id (`select id from "user" where email = '<address>'`) and run the statements below with that id in place of `<id>`. They do what deleting the account in settings does: hold its username for 90 days, keep its newest three holds, and delete its skills, its email links and the account. Its skills are hidden already, so no page needs a refresh.
+  - Act only on a request sent from the account's own address.
+  - **A copy of its data:** "Download its data" on its row under Suspended accounts gives the JSON its own export would. The download addresses in it need the owner signed in, so fetch each version it lists from `/api/admin/export/<user id>?skill=<skill id>&version=<n>`, signed in as an admin, and email the JSON and the zips to the account's address.
+  - **Deleting it:** in the Neon console on `main`, find its id (`select id from "user" where email = '<address>'`) and run the statements below with that id in place of `<id>`. They do what deleting the account in settings does: hold its username for 90 days, keep its newest three holds, and delete its skills, its email links and the account. The first statement stops the whole block unless the account is suspended. Its skills are hidden already, so no page needs a refresh.
 
 ```sql
 begin;
+do $$ begin
+  if not exists (select 1 from "user" where id = '<id>' and banned) then raise exception 'not a suspended account'; end if;
+end $$;
 insert into username_hold (username, user_id, held_until)
   select username, id, now() + interval '90 days' from "user" where id = '<id>' and username is not null
   on conflict (username) do update set user_id = excluded.user_id, held_until = excluded.held_until;
