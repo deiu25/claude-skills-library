@@ -295,9 +295,11 @@ Every phase merges to `main`, which is production, so each one keeps these rules
   - A Vercel Firewall rate-limit rule on `/api/skills/*/download` and `/sitemap.xml`, or a separate Upstash database for signed-out downloads, so a flood cannot spend the quota the Server Actions' limits share (ARCHITECTURE.md, Known limits).
   - Next.js 16.4.1 or later: 16.2 is open to GHSA-p3m5-59mp-jv5r, a CPU exhaustion through Server Actions.
   - Hold a username for a while after a rename or a deletion, so its old addresses cannot pass to someone else.
-- **Owner,** before sign-up opens: a Resend sending domain and `EMAIL_FROM` on it. Resend's test sender delivers only to the owner, so no receipt, decision or statement of reasons would reach anyone else.
+- **Owner,** before sign-up opens:
+  - the Vercel Firewall rule in RUNBOOK.md, "Edge rate limit", created in the dashboard;
+  - a Resend sending domain and `EMAIL_FROM` on it. Resend's test sender delivers only to the owner, so no receipt, decision or statement of reasons would reach anyone else.
 - Sign-up can open from this point (`ACCOUNTS_OPEN=true`).
-- **Closed:** P7 shipped on 2026-10-23 with every item above but the sending domain. Reports come from a form on each Community skill and profile, or by email; `/dashboard/admin` removes skills and suspends accounts through Better Auth's admin plugin, with every admin endpoint off over HTTP, and each decision emails its statement of reasons. Usernames given up are held for 90 days. Previews branch from the seeded `dev` branch, Neon's default since P7, and the edge rule allows 20 requests a minute per IP. On `next dev` against a branch of `dev`, 51 flows passed, a passkey sign-in of a suspended account among them.
+- **Closed:** P7 shipped on 2026-10-23 with every item above but the two owner steps: the edge rule and the sending domain. Reports come from a form on each Community skill and profile, or by email; `/dashboard/admin` removes skills and suspends accounts through Better Auth's admin plugin, with every admin endpoint off over HTTP, and each decision emails its statement of reasons. Usernames given up are held for 90 days. Previews branch from the seeded `dev` branch, Neon's default since P7. On `next dev` against a branch of `dev`, 59 of 60 flows passed, the emails among them; the one left, a sitemap check, read a stale entry from `next dev`'s own fetch cache. On the preview, branched from `dev`, all 49 flows passed, a passkey sign-in of a suspended account among them; its seven email checks need the local email log, so they ran locally only.
 
 ### P8 — Sellers (Stripe test mode)
 - **Ships:**
