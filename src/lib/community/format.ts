@@ -27,11 +27,28 @@ export const toCard = ({ handle, slug, name, description, category, tags, update
   updated: formatDate(updatedAt),
 });
 
-/** Text cut to at most `max` characters at a word boundary, for a meta description. */
+/**
+ * A file's text with each bidirectional control written out as its code point, such as [U+202E].
+ * Shown as they are, they reorder what a reader sees without changing what Claude reads.
+ */
+export function revealBidi(text: string): string {
+  let shown = "";
+  for (const char of text) {
+    const cp = char.codePointAt(0) ?? 0;
+    const bidi = (cp >= 0x202a && cp <= 0x202e) || (cp >= 0x2066 && cp <= 0x2069);
+    shown += bidi ? `[U+${cp.toString(16).toUpperCase()}]` : char;
+  }
+  return shown;
+}
+
+/**
+ * Text cut to at most `max` characters at a word boundary, for a meta description. It counts code
+ * points, so an emoji is never cut in half.
+ */
 export function summary(text: string, max = 160): string {
-  const flat = text.replace(/\s+/g, " ").trim();
-  if (flat.length <= max) return flat;
+  const flat = Array.from(text.replace(/\s+/g, " ").trim());
+  if (flat.length <= max) return flat.join("");
   const cut = flat.slice(0, max - 1);
   const space = cut.lastIndexOf(" ");
-  return `${(space > max / 2 ? cut.slice(0, space) : cut).replace(/[\s,;:.]+$/, "")}…`;
+  return `${(space > max / 2 ? cut.slice(0, space) : cut).join("").replace(/[\s,;:.]+$/, "")}…`;
 }

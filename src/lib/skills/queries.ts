@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { isSignUpOpen } from "@/lib/auth/allowlist";
@@ -207,13 +207,17 @@ async function readVersionArchive(skillId: string, version: number | undefined, 
     })
     .from(skillVersion)
     .innerJoin(skill, eq(skill.id, skillVersion.skillId))
+    .leftJoin(user, eq(user.id, skill.ownerId))
     .where(
       and(
         eq(skillVersion.skillId, skillId),
         version === undefined ? undefined : eq(skillVersion.version, version),
         // Checked again in the statement that picks the version: a save that unpublished the skill
         // since the access check, such as one with a critical finding, is never served to others.
-        publishedOnly ? and(eq(skill.status, "published"), inArray(skill.visibility, ["public", "unlisted"])) : undefined,
+        // As on its pages, it also needs an owner with a username.
+        publishedOnly
+          ? and(eq(skill.status, "published"), inArray(skill.visibility, ["public", "unlisted"]), isNotNull(user.username))
+          : undefined,
       ),
     )
     .orderBy(desc(skillVersion.version))

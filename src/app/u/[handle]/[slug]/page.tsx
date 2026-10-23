@@ -5,20 +5,19 @@ import { notFound } from "next/navigation";
 import { FormMessage } from "@/components/auth/FormMessage";
 import { CommunityLabel } from "@/components/community/CommunityLabel";
 import { ListingInstall } from "@/components/community/ListingInstall";
-import { Markdown } from "@/components/Markdown";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { FileList } from "@/components/skills/FileList";
 import { FindingList } from "@/components/skills/FindingList";
 import { RiskBadge } from "@/components/skills/RiskBadge";
+import { TerminalBlock } from "@/components/TerminalBlock";
 import { CATEGORY_LABELS, type SkillCategory } from "@/data/types";
 import { isSignUpOpen } from "@/lib/auth/allowlist";
-import { formatDate } from "@/lib/community/format";
+import { formatDate, revealBidi } from "@/lib/community/format";
 import { listingPath, profilePath, proposeUrl } from "@/lib/community/links";
 import { communityMetadata } from "@/lib/community/metadata";
 import { getListing } from "@/lib/community/queries";
 import { formatBytes } from "@/lib/skills/files";
-import { parseSkillMd } from "@/lib/skills/schemas";
 
 // Rendered on its first visit, then served from the cache until a write marks it stale.
 export const revalidate = 3600;
@@ -49,7 +48,6 @@ export default async function ListingPage({ params }: PageProps) {
   const listing = await getListing(handle, slug);
   if (!listing) notFound();
 
-  const parsed = parseSkillMd(listing.skillMd);
   const bytes = listing.files.reduce((sum, file) => sum + file.size, 0);
   const isPublic = listing.visibility === "public";
 
@@ -98,7 +96,7 @@ export default async function ListingPage({ params }: PageProps) {
             recognises and cannot show that a skill is safe. Read SKILL.md and the files before you install it.
           </FormMessage>
 
-          <ListingInstall id={listing.id} name={listing.name} />
+          <ListingInstall id={listing.id} />
 
           <section aria-labelledby="scan-title" className="space-y-3">
             <h2 id="scan-title" className="text-xl font-semibold text-foreground">
@@ -135,11 +133,14 @@ export default async function ListingPage({ params }: PageProps) {
             </div>
           </section>
 
+          {/* As text, never rendered: what Claude reads, and no Markdown parser runs on an author's input. */}
           <section aria-labelledby="skill-md-title" className="space-y-3">
             <h2 id="skill-md-title" className="font-mono text-xl font-semibold text-foreground">
               SKILL.md
             </h2>
-            <Markdown content={parsed.ok ? parsed.body : listing.skillMd} userContent />
+            <TerminalBlock title="SKILL.md">
+              <pre className="whitespace-pre-wrap break-words">{revealBidi(listing.skillMd)}</pre>
+            </TerminalBlock>
           </section>
 
           <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6">

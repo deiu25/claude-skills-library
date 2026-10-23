@@ -332,7 +332,8 @@ describe("setSkillVisibility", () => {
       ok: true,
       message: "The skill is published. It is listed in Community and on your profile.",
     });
-    expect(updates()).toEqual([{ visibility: "public", status: "published" }]);
+    // A publish counts as a change: Community sorts by it and the sitemap dates the page by it.
+    expect(updates()).toEqual([{ visibility: "public", status: "published", updatedAt: expect.any(Date) }]);
     expect(wheres().at(-1)?.params).toEqual([SOMEONE_ELSES_SKILL, "user-b"]);
     expect(communityRevalidated()).toBe(true);
   });
@@ -350,7 +351,7 @@ describe("setSkillVisibility", () => {
   it("makes a published skill with a critical finding private", async () => {
     results.push([{ visibility: "public", status: "published" }], latest("critical"), owner());
     expect(await setSkillVisibility(SOMEONE_ELSES_SKILL, null, choose("private"))).toEqual({ ok: true, message: "The skill is private. Only you can open it." });
-    expect(updates()).toEqual([{ visibility: "private", status: "draft" }]);
+    expect(updates()).toEqual([{ visibility: "private", status: "draft", updatedAt: expect.any(Date) }]);
   });
 
   it("asks for a username before publishing", async () => {

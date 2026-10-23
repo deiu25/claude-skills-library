@@ -21,6 +21,7 @@ const MESSAGES: Record<string, string> = {
   SESSION_NOT_FRESH: "This needs a sign-in from the last 5 minutes. Sign out, sign in again, then try once more.",
   NAME_REQUIRED: "Enter your name.",
   USERNAME_IS_ALREADY_TAKEN: "This username is taken. Choose another.",
+  USERNAME_REQUIRED: "A username, once chosen, can change but not be removed.",
   USERNAME_TOO_SHORT: USERNAME_LENGTH,
   USERNAME_TOO_LONG: USERNAME_LENGTH,
   INVALID_USERNAME: "Use letters, digits and single hyphens, starting and ending with a letter or digit.",

@@ -46,8 +46,8 @@ export default function PrivacyPage() {
         </li>
         <li>
           Downloading a skill that someone published, without an account, sends Upstash a keyed hash of
-          your IP address, which it cannot turn back into the address, and a count of your recent
-          downloads. It is used only to slow down repeated downloads, which is our legitimate interest in
+          your IP address (for an IPv6 address, of the network it belongs to), which Upstash cannot turn
+          back into the address, and a count of your recent downloads. It is used only to slow down repeated downloads, which is our legitimate interest in
           keeping the service available (art. 6(1)(f)), and it expires on its own no more than two days and
           one second after your last download.
         </li>

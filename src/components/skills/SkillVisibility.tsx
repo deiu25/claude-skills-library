@@ -9,7 +9,11 @@ import { keepDraftOnFailure } from "@/lib/skills/keep-draft";
 
 const OPTIONS: { value: Visibility; label: string; hint: string }[] = [
   { value: "private", label: "Private", hint: "Only you can open it." },
-  { value: "unlisted", label: "Unlisted", hint: "Anyone with its address can open and download it. It is listed nowhere." },
+  {
+    value: "unlisted",
+    label: "Unlisted",
+    hint: "Listed nowhere, but not secret: anyone with its address, your username and the skill's name, can open and download it.",
+  },
   { value: "public", label: "Public", hint: "Listed in Community and on your profile, where search engines can find it." },
 ];
 
@@ -30,14 +34,28 @@ export function SkillVisibility({ skillId, visibility, status, address, blocked,
   const action = useMemo(() => keepDraftOnFailure(setSkillVisibility.bind(null, skillId)), [skillId]);
   const [state, formAction, pending] = useActionState(action, null);
   const [choice, setChoice] = useState(visibility);
+  const [submitted, setSubmitted] = useState<{ choice: Visibility; serverState: string } | null>(null);
   const removed = status === "removed";
   const published = status === "published";
+
+  // The skill can change outside this form, as when a save with a critical finding makes it
+  // private again: the choice then starts over from what it is now.
+  const serverState = `${visibility}:${status}`;
+  const [shownState, setShownState] = useState(serverState);
+  if (shownState !== serverState) {
+    setShownState(serverState);
+    setChoice(visibility);
+  }
+  // A result describes the skill as this form left it; once the skill has changed since, it is no longer true.
+  const result =
+    state && !pending && submitted && (state.ok ? visibility === submitted.choice : serverState === submitted.serverState) ? state : null;
 
   // Dispatched by hand, not through <form action>: React's reset after an action would move the
   // radios back to the choice the page loaded with.
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
+    setSubmitted({ choice, serverState });
     startTransition(() => formAction(formData));
   }
 
@@ -93,8 +111,8 @@ export function SkillVisibility({ skillId, visibility, status, address, blocked,
       </fieldset>
 
       {caution && <FormMessage tone="warning">{caution}</FormMessage>}
-      {state && !state.ok && !pending && <FormMessage tone="error">{state.error}</FormMessage>}
-      {state?.ok && !pending && <FormMessage tone="success">{state.message}</FormMessage>}
+      {result && !result.ok && <FormMessage tone="error">{result.error}</FormMessage>}
+      {result?.ok && <FormMessage tone="success">{result.message}</FormMessage>}
       {!removed && (
         <button
           type="submit"

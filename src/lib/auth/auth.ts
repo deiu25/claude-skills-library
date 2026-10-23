@@ -143,10 +143,12 @@ export const auth = betterAuth({
   verification: { storeIdentifier: "hashed" },
   rateLimit: {
     storage: "database",
-    // Each of these sends an email to the account's own address.
     customRules: {
+      // Each of these sends an email to the account's own address.
       "/delete-user": { window: 60, max: 3 },
       "/change-email": { window: 60, max: 3 },
+      // A profile change marks every Community page stale.
+      "/update-user": { window: 60, max: 10 },
     },
   },
   // Usernames are handles, never a sign-in name. Verification links go out only from the email
@@ -191,10 +193,20 @@ export const auth = betterAuth({
         },
       },
       update: {
-        before: async (user) => ({ data: cleanedProfile(user) }),
-        // Community pages show an author's username and bio. Any change marks them stale, which
-        // costs one render of each page visited afterwards.
-        after: async () => revalidateCommunity(),
+        before: async (user) => {
+          // Published skills' addresses start with the username: once chosen, it can change but
+          // not go back to none.
+          if (user.username === null || user.username === "") {
+            throw new APIError("BAD_REQUEST", { code: "USERNAME_REQUIRED", message: "A username, once chosen, can change but not be removed." });
+          }
+          return { data: cleanedProfile(user) };
+        },
+        // Community pages show an author's username and bio. A change to either marks them all
+        // stale, which costs one render of each page visited afterwards; other updates leave them.
+        after: async (_user, ctx) => {
+          const body = ctx?.body as Record<string, unknown> | undefined;
+          if (body && ("username" in body || "bio" in body)) revalidateCommunity();
+        },
       },
     },
   },

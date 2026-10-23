@@ -126,4 +126,33 @@ describe("visitorKey", () => {
     const { visitorKey } = await import("./rate-limit");
     expect(visitorKey(request())).toBe(visitorKey(request()));
   });
+
+  it("keys every address of one IPv6 /64 alike, and other networks apart", async () => {
+    const { visitorKey } = await import("./rate-limit");
+    const key = visitorKey(request("2001:db8:aa:bb::1"));
+    expect(visitorKey(request("2001:db8:aa:bb:ffff:1:2:3"))).toBe(key);
+    expect(visitorKey(request("2001:db8:aa:bc::1"))).not.toBe(key);
+  });
+
+  it("refuses to key a visitor without the secret, rather than hash the address unkeyed", async () => {
+    vi.stubEnv("BETTER_AUTH_SECRET", "");
+    const { visitorKey } = await import("./rate-limit");
+    expect(() => visitorKey(request("203.0.113.7"))).toThrow(/BETTER_AUTH_SECRET/);
+  });
+});
+
+describe("clientNetwork", () => {
+  it("keeps an IPv4 address whole", async () => {
+    const { clientNetwork } = await import("./rate-limit");
+    expect(clientNetwork("203.0.113.7")).toBe("203.0.113.7");
+    expect(clientNetwork("::ffff:203.0.113.7")).toBe("203.0.113.7");
+  });
+
+  it("reduces an IPv6 address to its /64, in one spelling", async () => {
+    const { clientNetwork } = await import("./rate-limit");
+    expect(clientNetwork("2001:0DB8:0000:00aa:1:2:3:4")).toBe("2001:db8:0:aa::/64");
+    expect(clientNetwork("2001:db8::aa:1:2:3:4")).toBe("2001:db8:0:aa::/64");
+    expect(clientNetwork("2001:db8::1")).toBe("2001:db8:0:0::/64");
+    expect(clientNetwork("::1")).toBe("0:0:0:0::/64");
+  });
 });

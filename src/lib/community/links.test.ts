@@ -25,6 +25,13 @@ describe("proposeUrl", () => {
     });
   });
 
+  it("keeps a long description short enough for the URL GitHub accepts", () => {
+    const long = { ...listing, description: "Ж".repeat(1024) };
+    const when = new URL(proposeUrl(long)).searchParams.get("when") ?? "";
+    expect(Array.from(when).length).toBeLessThanOrEqual(300);
+    expect(proposeUrl(long).length).toBeLessThan(8000);
+  });
+
   it("fills fields the form really has, by their ids", () => {
     const form = parse(readFileSync(".github/ISSUE_TEMPLATE/suggest-skill.yml", "utf8")) as { body: { id?: string }[] };
     const ids = form.body.map((field) => field.id);

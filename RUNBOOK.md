@@ -98,3 +98,7 @@ Passkeys bind to the host that registered them, so every passkey stops working o
 ### Wrong or harmful catalog entry
 
 Fix the file in `src/data/skills/`, or delete it together with its import and array entry in `src/data/skills/index.ts`, then push to `main`. If the entry's source is malicious or hijacked, remove it before anything else: `/install-all.txt` would ask Claude Code to install it.
+
+### Harmful Community skill
+
+Until P7 builds removal into an admin page, take a published skill down by hand. In the Neon console, run `update skill set status = 'removed' where id = '<id>'`: its download stops at once, and its owner can no longer publish it. Its pages, its author's profile and `/community` keep their cached copies until the next write that touches Community, so redeploy the production deployment (Vercel, Deployments, the current one, Redeploy): a new deployment starts with an empty cache. Write to the author with the reason, as the terms promise. The id is in the page's download address, `/api/skills/<id>/download`.

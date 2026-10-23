@@ -283,13 +283,17 @@ Every phase merges to `main`, which is production, so each one keeps these rules
     - a `report` table and a report form;
     - a statement of reasons with every removal;
     - an abuse contact.
-  - The `admin` plugin with `adminUserIds`, and `/dashboard/admin` to unlist and ban.
+  - The `admin` plugin with `adminUserIds`, and `/dashboard/admin` to unlist and ban. A removal sets the skill's status to `removed` and calls `revalidateCommunity()`, and a ban hides the user's skills the same way (ARCHITECTURE.md, invariant 23).
   - Preview databases branched from a seeded `dev` branch instead of production, for example with `neondatabase/create-branch-action`. /privacy's sentences on test copies of the database then change to match.
 - **Done when:**
   - A report reaches the admin.
   - A removal sends its reason.
   - A banned user cannot sign in.
 - Delete accounts left unverified for a week: until then a stranger's sign-up holds the address and any username it set.
+- Before sign-up opens, from the P6 reviews:
+  - A Vercel Firewall rate-limit rule on `/api/skills/*/download` and `/sitemap.xml`, or a separate Upstash database for signed-out downloads, so a flood cannot spend the quota the Server Actions' limits share (ARCHITECTURE.md, Known limits).
+  - Next.js 16.4.1 or later: 16.2 is open to GHSA-p3m5-59mp-jv5r, a CPU exhaustion through Server Actions.
+  - Hold a username for a while after a rename or a deletion, so its old addresses cannot pass to someone else.
 - Sign-up can open from this point (`ACCOUNTS_OPEN=true`).
 
 ### P8 — Sellers (Stripe test mode)

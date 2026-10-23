@@ -1,19 +1,18 @@
 import { DownloadSimple } from "@phosphor-icons/react/dist/ssr";
 import { TerminalBlock } from "@/components/TerminalBlock";
 import { SITE_URL } from "@/lib/site";
-import { folderName } from "@/lib/skills/archive";
 
 interface ListingInstallProps {
   /** The skill's id, which its download address takes. */
   id: string;
-  name: string;
 }
 
 /** A published skill's zip, and the command that unpacks it into Claude Code's skills folder. */
-export function ListingInstall({ id, name }: ListingInstallProps) {
+export function ListingInstall({ id }: ListingInstallProps) {
   const download = `/api/skills/${id}/download`;
-  const zip = `/tmp/${folderName(name)}.zip`;
-  const command = `curl -fsSL ${SITE_URL}${download} -o ${zip} && unzip -o ${zip} -d ~/.claude/skills`;
+  // A fresh temporary file, which no one else can plant in advance, and unzip asks before it
+  // replaces a skill of the same name.
+  const command = `zip=$(mktemp) && curl -fsSL ${SITE_URL}${download} -o "$zip" && unzip "$zip" -d ~/.claude/skills && rm "$zip"`;
 
   return (
     <section className="space-y-3">
@@ -33,7 +32,7 @@ export function ListingInstall({ id, name }: ListingInstallProps) {
       <p className="max-w-[65ch] text-sm text-muted">
         This puts it in <code className="font-mono text-[0.8125rem] text-foreground">~/.claude/skills</code>, for every
         project. For one project only, run it in that project&rsquo;s folder with{" "}
-        <code className="font-mono text-[0.8125rem] text-foreground">-d .claude/skills</code> at the end instead.
+        <code className="font-mono text-[0.8125rem] text-foreground">.claude/skills</code> in its place.
       </p>
     </section>
   );

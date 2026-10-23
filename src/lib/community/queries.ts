@@ -1,5 +1,6 @@
 import "server-only";
 import { and, desc, eq, inArray, isNotNull, sql, type SQL } from "drizzle-orm";
+import { unstable_cache } from "next/cache";
 import { PHASE_PRODUCTION_BUILD } from "next/constants";
 import { cache } from "react";
 import { USERNAME_MAX, USERNAME_MIN } from "@/lib/auth/username";
@@ -147,17 +148,24 @@ export const getListing = cache(async (handle: string, slug: string): Promise<Li
   }, null);
 });
 
-/** Every public skill's address and last change, for the sitemap. */
-export function getSitemapSkills(): Promise<Pick<CommunitySkill, "handle" | "slug" | "updatedAt">[]> {
-  return emptyAtBuild(
-    () =>
-      db
-        .select({ handle: handleColumn, slug: skill.slug, updatedAt: skill.updatedAt })
-        .from(skill)
-        .innerJoin(user, eq(user.id, skill.ownerId))
-        .where(shown(eq(skill.visibility, "public")))
-        .orderBy(desc(skill.updatedAt))
-        .limit(SITEMAP_MAX),
-    [],
-  );
+// The sitemap renders per request; one read serves every request for five minutes, which no
+// crawler notices. Dates go in as text, the form the cache keeps them in.
+const readSitemapSkills = unstable_cache(
+  async () => {
+    const rows = await db
+      .select({ handle: handleColumn, slug: skill.slug, updatedAt: skill.updatedAt })
+      .from(skill)
+      .innerJoin(user, eq(user.id, skill.ownerId))
+      .where(shown(eq(skill.visibility, "public")))
+      .orderBy(desc(skill.updatedAt))
+      .limit(SITEMAP_MAX);
+    return rows.map(({ handle, slug, updatedAt }) => ({ handle, slug, updatedAt: updatedAt.toISOString() }));
+  },
+  ["community-sitemap-skills"],
+  { revalidate: 300 },
+);
+
+/** Every public skill's address and last change (ISO 8601), newest first, for the sitemap. */
+export function getSitemapSkills(): Promise<{ handle: string; slug: string; updatedAt: string }[]> {
+  return emptyAtBuild(readSitemapSkills, []);
 }

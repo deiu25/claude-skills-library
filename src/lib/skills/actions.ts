@@ -355,9 +355,10 @@ export async function setSkillVisibility(skillId: unknown, _previous: SkillActio
       if (problem) return { error: problem };
       const status = statusFor(visibility.data);
       if (owned.visibility === visibility.data && owned.status === status) return false;
+      // A change, as Community counts one: it sorts by it, and the sitemap dates a page by it.
       await tx
         .update(skill)
-        .set({ visibility: visibility.data, status })
+        .set({ visibility: visibility.data, status, updatedAt: new Date() })
         .where(and(eq(skill.id, id.data), eq(skill.ownerId, user.id)));
       return true;
     });

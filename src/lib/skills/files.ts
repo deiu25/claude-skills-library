@@ -55,6 +55,12 @@ export interface FileSize {
 }
 
 /**
+ * A path as a case-insensitive file system compares it. Upper case first: letters such as ſ and
+ * ı have no lower-case pair of their own, but upper-case to S and I, so ſkill.md is SKILL.md there.
+ */
+const foldCase = (path: string) => path.toUpperCase().toLowerCase();
+
+/**
  * The first problem with a skill's files, SKILL.md not among them, or null: too many, too large, a
  * path that leaves the folder, or two that would land on one file where names ignore case.
  */
@@ -69,12 +75,12 @@ export function filesProblem(files: FileSize[], skillMdBytes: number): string | 
   for (const { path } of files) {
     const problem = pathProblem(path);
     if (problem) return problem;
-    const other = taken.get(path.toLowerCase());
+    const other = taken.get(foldCase(path));
     if (other) return `${shown(path)} and ${shown(other)} differ only in case, so they would be one file on macOS and Windows.`;
-    taken.set(path.toLowerCase(), path);
+    taken.set(foldCase(path), path);
   }
   for (const { path } of files) {
-    const segments = path.toLowerCase().split("/");
+    const segments = foldCase(path).split("/");
     for (let end = 1; end < segments.length; end++) {
       const folder = taken.get(segments.slice(0, end).join("/"));
       if (folder) return `${shown(folder)} is both a file and a folder.`;

@@ -7,7 +7,7 @@ import { SITE_URL } from "@/lib/site";
 
 // Rendered per request. On Vercel, a sitemap.ts that exports `revalidate` is deployed as a static
 // file and never regenerated (vercel/next.js#99055, Next 16.2 and later), which would freeze the
-// Community entries at the deploy. One query per request; crawlers ask rarely.
+// Community entries at the deploy. Its one query is cached for five minutes (getSitemapSkills).
 export const dynamic = "force-dynamic";
 
 /** Public Community pages: each public skill, and each author's profile, dated by their newest change. */
@@ -23,7 +23,7 @@ async function communityEntries(): Promise<MetadataRoute.Sitemap> {
     return [community];
   }
   // Newest first, so the first date seen for an author is their profile's.
-  const profiles = new Map<string, Date>();
+  const profiles = new Map<string, string>();
   for (const { handle, updatedAt } of listings) if (!profiles.has(handle)) profiles.set(handle, updatedAt);
   return [
     community,

@@ -73,6 +73,12 @@ describe("filesProblem", () => {
     expect(filesProblem(sized("skill.md"), 10)).toMatch(/^skill.md and SKILL.md differ only in case/);
   });
 
+  it("folds letters that only upper case pairs, as case-insensitive file systems do", () => {
+    // The long s and the dotless i upper-case to S and I, so these name SKILL.md where case is ignored.
+    expect(filesProblem(sized("ſkill.md"), 10)).toMatch(/differ only in case/);
+    expect(filesProblem(sized("SKıLL.md"), 10)).toMatch(/differ only in case/);
+  });
+
   it("refuses a path that is both a file and a folder", () => {
     expect(filesProblem(sized("docs", "docs/a.md"), 10)).toBe("docs is both a file and a folder.");
     expect(filesProblem(sized("Docs/a.md", "docs"), 10)).toBe("docs is both a file and a folder.");

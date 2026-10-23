@@ -5,12 +5,34 @@ import { Redis } from "@upstash/redis";
 import { ipAddress } from "@vercel/functions";
 
 /**
- * The key that limits a visitor without an account: a keyed hash of the IP address Vercel reports,
- * so Upstash never stores the address. Without that header, as off Vercel, all such visitors share one key.
+ * The network a visitor is limited by: an IPv4 address as it is, and an IPv6 address's /64, which
+ * one subscriber usually holds whole and could otherwise rotate through without limit.
+ */
+export function clientNetwork(ip: string): string {
+  const mapped = /^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/i.exec(ip);
+  if (mapped) return mapped[1];
+  if (!ip.includes(":")) return ip;
+  const [head, tail] = ip.split("::");
+  const left = head ? head.split(":") : [];
+  const right = tail ? tail.split(":") : [];
+  const groups = tail === undefined ? left : [...left, ...Array<string>(Math.max(0, 8 - left.length - right.length)).fill("0"), ...right];
+  return `${groups
+    .slice(0, 4)
+    .map((group) => group.toLowerCase().replace(/^0+(?=.)/, ""))
+    .join(":")}::/64`;
+}
+
+/**
+ * The key that limits a visitor without an account: a keyed hash of the network Vercel reports
+ * them from, so Upstash never stores the address. Without that header, as off Vercel, all such
+ * visitors share one key.
  */
 export function visitorKey(request: Request): string {
-  const ip = ipAddress(request) ?? "unknown";
-  return `ip:${createHmac("sha256", process.env.BETTER_AUTH_SECRET ?? "").update(`rate-limit:${ip}`).digest("base64url")}`;
+  const secret = process.env.BETTER_AUTH_SECRET;
+  // Unkeyed, the hash of an IPv4 address could be reversed by trying them all.
+  if (!secret) throw new Error("BETTER_AUTH_SECRET is not set, so a visitor's address cannot be hashed.");
+  const network = clientNetwork(ipAddress(request) ?? "unknown");
+  return `ip:${createHmac("sha256", secret).update(`rate-limit:${network}`).digest("base64url")}`;
 }
 
 // Limits for Server Actions and the downloads that read whole skills. Requests to /api/auth have
