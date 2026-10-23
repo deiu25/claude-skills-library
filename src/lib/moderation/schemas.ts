@@ -65,18 +65,24 @@ export const decisionSchema = z.discriminatedUnion("decision", [
 /** The reason a decision states, as its owner reads it in the email and on their dashboard. */
 export const statedReason = (ground: Ground, explanation: string) => `${GROUND_LABELS[ground]}: ${explanation}`;
 
+/** Longer than any skill's address or username, and short enough for the patterns below to stay cheap. */
+const TARGET_MAX = 300;
+
 /**
  * What an admin names in the take-down form: a skill by its page's address, with or without the
- * site, or an account by its username. Null for anything else.
+ * site, or an account as @username. An account is never named any other way, so a profile's
+ * address, or a skill's address missing its name, suspends nobody. Null for anything else.
  */
 export function parseModerationTarget(input: string): { type: "skill"; handle: string; slug: string } | { type: "user"; handle: string } | null {
   const text = input.trim().toLowerCase();
+  if (text.length > TARGET_MAX) return null;
+  if (text.startsWith("@")) {
+    const handle = text.slice(1);
+    return SLUG_RE.test(handle) ? { type: "user", handle } : null;
+  }
   const path = text.replace(/^https?:\/\/[^/]+/, "").replace(/[?#].*$/, "").replace(/\/+$/, "");
   const address = /^\/u\/([^/]+)\/([^/]+)$/.exec(path);
-  if (address) {
-    const [, handle, slug] = address;
-    return SLUG_RE.test(handle) && SLUG_RE.test(slug) ? { type: "skill", handle, slug } : null;
-  }
-  const handle = path.replace(/^\/u\//, "").replace(/^@/, "");
-  return SLUG_RE.test(handle) ? { type: "user", handle } : null;
+  if (!address) return null;
+  const [, handle, slug] = address;
+  return SLUG_RE.test(handle) && SLUG_RE.test(slug) ? { type: "skill", handle, slug } : null;
 }

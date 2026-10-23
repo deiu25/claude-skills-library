@@ -74,11 +74,13 @@ describe("moderation emails", () => {
   });
 
   it("send a report's sender the decision and how to contest it", () => {
-    const acted = reportDecisionEmail("ada@example.com", address, true);
+    const acted = reportDecisionEmail("ada@example.com", address, "acted");
     expect(acted.text).toMatch(/^We acted on your report/);
-    const dismissed = reportDecisionEmail("ada@example.com", address, false);
+    const dismissed = reportDecisionEmail("ada@example.com", address, "dismissed");
     expect(dismissed.text).toMatch(/decided not to act/);
-    for (const email of [acted, dismissed]) {
+    const gone = reportDecisionEmail("ada@example.com", address, "gone");
+    expect(gone.text).toMatch(/no longer on .* when we reviewed it/);
+    for (const email of [acted, dismissed, gone]) {
       expect(email.text).toContain(OPERATOR.email);
       expect(email.text).toContain(`${SITE_URL}/terms`);
     }

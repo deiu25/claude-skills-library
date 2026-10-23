@@ -60,17 +60,20 @@ describe("parseModerationTarget", () => {
     expect(parseModerationTarget("  /u/Ada/pdf-forms/?ref=x#files ")).toEqual(skill);
   });
 
-  it("reads a username, bare, with @ or as a profile address", () => {
-    const user = { type: "user", handle: "ada" };
-    expect(parseModerationTarget("ada")).toEqual(user);
-    expect(parseModerationTarget("@ada")).toEqual(user);
-    expect(parseModerationTarget("https://skillcellar.com/u/ada")).toEqual(user);
+  it("names an account only as @username", () => {
+    expect(parseModerationTarget(" @Ada ")).toEqual({ type: "user", handle: "ada" });
+    // A bare name, a profile's address and a skill's address missing its name suspend nobody.
+    expect(parseModerationTarget("ada")).toBeNull();
+    expect(parseModerationTarget("https://skillcellar.com/u/ada")).toBeNull();
+    expect(parseModerationTarget("https://skillcellar.com/u/ada/")).toBeNull();
   });
 
-  it("refuses anything else", () => {
+  it("refuses anything else, and long input before any pattern runs", () => {
     expect(parseModerationTarget("")).toBeNull();
+    expect(parseModerationTarget("@")).toBeNull();
     expect(parseModerationTarget("/u/ada/pdf-forms/versions/2")).toBeNull();
     expect(parseModerationTarget("/u/../etc")).toBeNull();
-    expect(parseModerationTarget("ada lovelace")).toBeNull();
+    expect(parseModerationTarget("@ada lovelace")).toBeNull();
+    expect(parseModerationTarget(`/u/ada/${"/".repeat(200_000)}x`)).toBeNull();
   });
 });

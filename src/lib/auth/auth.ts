@@ -4,7 +4,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
-import { admin, twoFactor, username } from "better-auth/plugins";
+import { admin, twoFactor, username, USERNAME_ERROR_CODES } from "better-auth/plugins";
 import { and, eq, like, or } from "drizzle-orm";
 import { revalidateCommunity } from "@/lib/community/revalidate";
 import { db } from "@/lib/db";
@@ -53,9 +53,8 @@ const passkeyNotVerified = () =>
     message: "This passkey did not check that it is you.",
   });
 
-// The username plugin's own code for a taken name, which the settings form already explains.
-const usernameTaken = () =>
-  new APIError("BAD_REQUEST", { code: "USERNAME_IS_ALREADY_TAKEN", message: "This username is taken. Choose another." });
+// The username plugin's own error for a taken name, so a held name answers like one in use.
+const usernameTaken = () => APIError.from("BAD_REQUEST", USERNAME_ERROR_CODES.USERNAME_IS_ALREADY_TAKEN);
 
 export const auth = betterAuth({
   appName: SITE_NAME,
@@ -197,9 +196,15 @@ export const auth = betterAuth({
   onAPIError: { throw: true, errorURL: "/sign-in" },
   hooks: {
     // Sign-up stores the server's own random password, whatever the request sent: nobody ever
-    // knows it, and the account's real password is chosen from the emailed link.
+    // knows it, and the account's real password is chosen from the emailed link. It refuses a
+    // username, which is chosen in the settings, and an empty name here, before Better Auth answers
+    // a taken address alike: a refusal after that point would tell the two apart.
     before: createAuthMiddleware(async (ctx) => {
       if (ctx.path !== "/sign-up/email") return;
+      if (ctx.body?.username !== undefined) {
+        throw new APIError("BAD_REQUEST", { code: "USERNAME_AT_SIGN_UP", message: "Choose a username in your settings once the account exists." });
+      }
+      cleanedProfile({ name: ctx.body?.name });
       return { context: { body: { ...ctx.body, password: randomBytes(32).toString("base64url") } } };
     }),
     after: requirePasskeyUserVerification,
@@ -216,7 +221,6 @@ export const auth = betterAuth({
               message: "Sign-up is invite-only for now.",
             });
           }
-          if (typeof user.username === "string" && (await isUsernameHeld(user.username, null))) throw usernameTaken();
           // No role is stored: admins are the ids in ADMIN_USER_IDS. Better Auth's generic answer
           // to a sign-up with a taken address shows no role either, so the two answers stay alike.
           return { data: { ...cleanedProfile(user), role: null } };

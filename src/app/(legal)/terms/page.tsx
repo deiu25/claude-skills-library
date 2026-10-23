@@ -86,9 +86,10 @@ export default function TermsPage() {
         </li>
         <li>An account whose email address is not confirmed within 7 days of sign-up is deleted.</li>
         <li>
-          When you change your username or delete your account, the old username stays reserved for 90
-          days. In that time only your account can take it back, so its old addresses never lead to someone
-          else.
+          When you change your username, the old one stays reserved for 90 days, and in that time only your
+          account can take it back; your three most recent old usernames stay reserved at once. When you
+          delete your account, its username stays reserved for 90 days for nobody. Either way, its old
+          addresses do not lead to someone else in that time.
         </li>
         <li>You can stop using your account at any time, and delete it yourself in your account settings.</li>
       </ul>

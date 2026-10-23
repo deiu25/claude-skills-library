@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq, inArray, isNotNull, ne, sql } from "drizzle-orm";
+import { and, desc, eq, exists, inArray, isNotNull, sql } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { adminUserIds, isAdmin } from "@/lib/auth/admin";
 import { requireUser } from "@/lib/auth/session";
@@ -33,7 +33,7 @@ export interface ReportTarget {
 
 /**
  * What a report can name: a published skill by its id, or a profile by its username, as long as the
- * site still shows it. Null otherwise.
+ * site still shows it: a profile exists only through a public skill, as on /u/<username>. Null otherwise.
  */
 export async function findReportTarget(type: TargetType, key: string): Promise<ReportTarget | null> {
   if (type === "skill") {
@@ -56,7 +56,18 @@ export async function findReportTarget(type: TargetType, key: string): Promise<R
   const [row] = await db
     .select({ id: user.id })
     .from(user)
-    .where(and(eq(user.username, key), notSuspended));
+    .where(
+      and(
+        eq(user.username, key),
+        notSuspended,
+        exists(
+          db
+            .select({ id: skill.id })
+            .from(skill)
+            .where(and(eq(skill.ownerId, user.id), eq(skill.status, "published"), eq(skill.visibility, "public"))),
+        ),
+      ),
+    );
   return row ? { type, id: row.id, name: key, path: profilePath(key) } : null;
 }
 
@@ -158,14 +169,30 @@ export async function getSuspendedAccounts(): Promise<SuspendedAccount[]> {
     .limit(200);
 }
 
-/** A skill the take-down form names by its address, unless it is already removed. */
+/** A published skill the take-down form names by its address. A private one is on nobody's screen. */
 export async function findSkillByAddress(handle: string, slug: string): Promise<{ id: string } | null> {
   const [row] = await db
     .select({ id: skill.id })
     .from(skill)
     .innerJoin(user, eq(user.id, skill.ownerId))
-    .where(and(eq(user.username, handle), eq(skill.slug, slug), ne(skill.status, "removed")));
+    .where(and(eq(user.username, handle), eq(skill.slug, slug), eq(skill.status, "published")));
   return row ?? null;
+}
+
+/** The reports a user sent, for their data export. Who else's account a report named stays out. */
+export function getReportsExport(userId: string) {
+  return db
+    .select({
+      targetType: report.targetType,
+      reason: report.reason,
+      details: report.details,
+      status: report.status,
+      createdAt: report.createdAt,
+      decidedAt: report.resolvedAt,
+    })
+    .from(report)
+    .where(eq(report.reporterId, userId))
+    .orderBy(report.createdAt);
 }
 
 /** An account the take-down form names by its username. */

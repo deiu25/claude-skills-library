@@ -226,7 +226,10 @@ export default function PrivacyPage() {
           The reason for removing a skill: until the skill is deleted. A suspension and its reason: until we
           lift it, or the account is deleted.
         </li>
-        <li>An old username: reserved for 90 days, then deleted within a day.</li>
+        <li>
+          An old username: reserved for 90 days, or until your account gives up three newer ones, then deleted
+          within a day.
+        </li>
         <li>
           Copies: our email provider keeps each email it sends for 30 days, and our database provider keeps
           a 6-hour restore history, so deleted data leaves its backups within 6 hours. Only when we need to

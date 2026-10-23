@@ -143,16 +143,22 @@ ${SITE_URL}/dashboard/admin
 
 const REDRESS = `If you think we got this wrong, write to ${OPERATOR.email} and say why, and we will review it again. You can also take the matter to the courts: see "Law and disputes" in our terms of use, ${SITE_URL}/terms.`;
 
+/** What became of a report: we acted on it, decided not to, or what it named was gone before we could. */
+export type ReportOutcome = "acted" | "dismissed" | "gone";
+
+const OUTCOMES: Record<ReportOutcome, (address: string) => string> = {
+  acted: (address) => `We acted on your report about ${address}: it is no longer shown on ${SITE_NAME}. Thank you for telling us.`,
+  dismissed: (address) =>
+    `We reviewed your report about ${address} and decided not to act on it: we did not find that it breaks our terms of use or the law.`,
+  gone: (address) => `We closed your report about ${address}: it was no longer on ${SITE_NAME} when we reviewed it.`,
+};
+
 /** Our decision on a report, sent to whoever made it. */
-export function reportDecisionEmail(to: string, address: string, actioned: boolean): EmailMessage {
+export function reportDecisionEmail(to: string, address: string, outcome: ReportOutcome): EmailMessage {
   return {
     to,
     subject: `Our decision on your report`,
-    text: `${
-      actioned
-        ? `We acted on your report about ${address}: it is no longer shown on ${SITE_NAME}. Thank you for telling us.`
-        : `We reviewed your report about ${address} and decided not to act on it: we did not find that it breaks our terms of use or the law.`
-    }
+    text: `${OUTCOMES[outcome](address)}
 
 ${REDRESS}
 `,

@@ -90,7 +90,7 @@ export function ModerationForm({ report }: ModerationFormProps) {
             className="input-base font-mono text-sm"
           />
           <p id={`${id}-target-hint`} className="text-pretty text-xs text-faint">
-            A skill&rsquo;s address removes that skill; a username suspends that account.
+            A published skill&rsquo;s address removes that skill; an @username suspends that account.
           </p>
         </div>
       )}

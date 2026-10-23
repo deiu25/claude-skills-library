@@ -29,8 +29,10 @@ const LINK = "font-medium underline underline-offset-4";
  * no longer shows it.
  */
 export default async function ReportPage({ searchParams }: PageProps) {
-  if (!isSignUpOpen()) notFound();
+  // The session is read first, so the page renders per request like the rest of /dashboard,
+  // whatever ACCOUNTS_OPEN was when it was built.
   const [session, params] = await Promise.all([getSession(), searchParams]);
+  if (!isSignUpOpen()) notFound();
   const targetType = typeof params.skill === "string" ? "skill" : typeof params.user === "string" ? "user" : null;
   const key = targetType === "skill" ? params.skill : params.user;
   if (!targetType || typeof key !== "string") notFound();

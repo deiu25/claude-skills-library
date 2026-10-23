@@ -257,6 +257,7 @@ export async function getSkillsExport(userId: string) {
         tags: skill.tags,
         visibility: skill.visibility,
         status: skill.status,
+        removalReason: skill.removalReason,
         createdAt: skill.createdAt,
         updatedAt: skill.updatedAt,
       })

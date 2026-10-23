@@ -1,4 +1,4 @@
-import { and, eq, gt, isNull, ne, or } from "drizzle-orm";
+import { and, desc, eq, gt, isNull, ne, notInArray, or } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { usernameHold } from "@/lib/db/schema";
 
@@ -6,6 +6,9 @@ import { usernameHold } from "@/lib/db/schema";
 
 /** How long a username given up by a rename or an account deletion stays out of anyone else's reach. */
 export const USERNAME_HOLD_DAYS = 90;
+
+/** How many given-up usernames one account holds at once: renaming in a loop cannot park names without end. */
+export const HOLDS_PER_ACCOUNT = 3;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -30,11 +33,21 @@ export async function isUsernameHeld(username: string, userId: string | null, no
   return Boolean(held);
 }
 
-/** Holds `username` for the account that gives it up, which alone may take it back until the hold ends. */
+/**
+ * Holds `username` for the account that gives it up, which alone may take it back until the hold
+ * ends, and releases that account's holds beyond its newest HOLDS_PER_ACCOUNT.
+ */
 export async function holdUsername(username: string, userId: string, now = new Date()) {
   const heldUntil = holdEnds(now);
   await db
     .insert(usernameHold)
     .values({ username, userId, heldUntil })
     .onConflictDoUpdate({ target: usernameHold.username, set: { userId, heldUntil } });
+  const newest = db
+    .select({ username: usernameHold.username })
+    .from(usernameHold)
+    .where(eq(usernameHold.userId, userId))
+    .orderBy(desc(usernameHold.heldUntil))
+    .limit(HOLDS_PER_ACCOUNT);
+  await db.delete(usernameHold).where(and(eq(usernameHold.userId, userId), notInArray(usernameHold.username, newest)));
 }
