@@ -78,7 +78,7 @@ Cards show no stars, or a skill page says "GitHub stats are temporarily unavaila
 
 The previous production deployment stays live. Read the build log in Vercel, reproduce it with `npm run build`, and fix it on a branch.
 
-If the log stops at `npm run db:migrate`, the migration failed and its error is printed just above. Reproduce it against a Neon branch made from production with `DATABASE_URL_UNPOOLED=<branch url> npm run db:migrate`, never against production itself. That branch is a copy of production: delete it within a day after the fix ships, as /privacy promises.
+If the log stops at `npm run db:migrate`, the migration failed and its error is printed just above. Reproduce it against a Neon branch made from production with `DATABASE_URL_UNPOOLED=<branch url> npm run db:migrate`, never against production itself. That branch is a copy of production: delete it within a day after the fix ships or is dropped, as /privacy promises.
 
 ### Account requests fail
 

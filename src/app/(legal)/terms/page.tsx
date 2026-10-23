@@ -87,11 +87,15 @@ export default function TermsPage() {
         <li>An account whose email address is not confirmed within 7 days of sign-up is deleted.</li>
         <li>
           When you change your username, the old one stays reserved for 90 days, and in that time only your
-          account can take it back; your three most recent old usernames stay reserved at once. When you
-          delete your account, its username stays reserved for 90 days for nobody. Either way, its old
-          addresses do not lead to someone else in that time.
+          account can take it back; it is released early once you have given up three newer usernames. When
+          you delete your account, its username, and any earlier ones still reserved for it, stay reserved
+          for nobody until their 90 days end. Either way, while a username is reserved, its old addresses do
+          not lead to someone else.
         </li>
-        <li>You can stop using your account at any time, and delete it yourself in your account settings.</li>
+        <li>
+          You can stop using your account at any time, and delete it yourself in your account settings. A
+          suspended account cannot sign in: to have it deleted, write to us.
+        </li>
       </ul>
 
       <h2>Publishing a skill</h2>
@@ -136,7 +140,12 @@ export default function TermsPage() {
       </ul>
       <p>What happens next:</p>
       <ul>
-        <li>We confirm every report by email. A person reviews each one; no automated system decides it.</li>
+        <li>
+          We confirm every report by email. A person reviews each report, or decides the matter it is about;
+          no automated system decides a report. Removing a skill closes every other open report about it, and
+          suspending an account closes every open report about the account and its skills; each sender is
+          told the outcome.
+        </li>
         <li>
           If the skill or profile breaks these terms or the law, we remove the skill or suspend the account,
           everywhere and with no end date. Its author gets an email saying what we did, why, under which

@@ -122,8 +122,11 @@ export async function submitReport(_previous: ModerationState, formData: FormDat
   return { ok: true, message: "Report sent. We emailed you a receipt, and we will email you what we decide." };
 }
 
-/** Closes the open reports `where` matches with a decision, and returns their senders' addresses. */
-async function resolveReports(tx: Transaction | typeof db, adminId: string, status: "actioned" | "dismissed", where: SQL | undefined) {
+/**
+ * Closes the open reports `where` matches with a decision, and returns their senders' addresses. It
+ * takes a transaction, so a report never closes without the address its decision goes to.
+ */
+async function resolveReports(tx: Transaction, adminId: string, status: "actioned" | "dismissed", where: SQL | undefined) {
   const resolved = await tx
     .update(report)
     .set({ status, resolvedBy: adminId, resolvedAt: new Date() })
@@ -244,11 +247,13 @@ async function suspendAccount(adminId: string, userId: string, reason: string): 
   let reports: { count: number; emails: string[] } = { count: 0, emails: [] };
   try {
     const itsSkills = db.select({ id: sql`${skill.id}::text` }).from(skill).where(eq(skill.ownerId, userId));
-    reports = await resolveReports(
-      db,
-      adminId,
-      "actioned",
-      or(and(eq(report.targetType, "user"), eq(report.targetId, userId)), and(eq(report.targetType, "skill"), inArray(report.targetId, itsSkills))),
+    reports = await db.transaction((tx) =>
+      resolveReports(
+        tx,
+        adminId,
+        "actioned",
+        or(and(eq(report.targetType, "user"), eq(report.targetId, userId)), and(eq(report.targetType, "skill"), inArray(report.targetId, itsSkills))),
+      ),
     );
   } catch (error) {
     console.error("Closing reports after a suspension failed:", pgCode(error) ?? "unknown error");
@@ -287,7 +292,7 @@ export async function decideReport(reportId: unknown, _previous: ModerationState
   if (decision.data.decision === "dismiss") {
     // A target its owner deleted or hid since is not "found to break nothing": its sender hears it was gone.
     const { address, shown } = await describeTarget(targetType, open.targetId);
-    const reports = await resolveReports(db, admin.id, "dismissed", eq(report.id, id.data));
+    const reports = await db.transaction((tx) => resolveReports(tx, admin.id, "dismissed", eq(report.id, id.data)));
     if (!reports.count) return { ok: false, error: REPORT_DECIDED };
     revalidatePath("/dashboard/admin");
     emailOutcome(reports.emails, address, shown ? "dismissed" : "gone");

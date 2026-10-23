@@ -118,9 +118,14 @@ export default function PrivacyPage() {
           whether your account is suspended and why.
         </li>
         <li>
+          <strong>Reports about your skills or profile:</strong> what the person who reported them chose and
+          wrote, and what we decided. They come from other people.
+        </li>
+        <li>
           <strong>Old usernames:</strong> when you change your username, the old one stays reserved for
-          your account; when you delete your account, its username stays reserved with no link to you.
-          Nobody else can take it while it is reserved.
+          your account. When you delete your account, its username, and any earlier ones still reserved for
+          it, stay reserved, no longer tied to any account. Nobody else can take a username while it is
+          reserved.
         </li>
       </ul>
 
@@ -158,11 +163,14 @@ export default function PrivacyPage() {
           for (performance of a contract, GDPR art. 6(1)(b)).
         </li>
         <li>
-          To receive reports, decide them, tell whoever reported and whoever is affected what we decided and
-          why, and keep a record of it. For reports of illegal content this is a legal obligation under the
-          EU Digital Services Act (Regulation (EU) 2022/2065, art. 16 and 17; GDPR art. 6(1)(c)); for reports
-          of other breaches of the terms, and for the record, it is our legitimate interest in a safe service
-          (art. 6(1)(f)).
+          To receive reports, decide them, act on what we find ourselves, tell whoever reported what we
+          decided, tell whoever is affected what we decided and why, and keep a record of reports and
+          decisions. Receiving and answering reports of illegal content, and the reasons we send with every
+          removal or suspension, whether for illegal content or for a breach of the terms, are legal
+          obligations under the EU Digital Services Act (Regulation (EU) 2022/2065, art. 16 and 17; GDPR art.
+          6(1)(c)). Deciding reports of other breaches of the terms, acting on our own review, and keeping
+          the record are our legitimate interest in a safe service (art. 6(1)(f)), and you can object to
+          them.
         </li>
         <li>
           To keep a username from passing to someone else while links to its pages are still around, through
@@ -219,8 +227,9 @@ export default function PrivacyPage() {
           last one.
         </li>
         <li>
-          Reports: until a year after we decide them, then deleted within a day. If you delete your account
-          before then, the report stays, without the link to your account.
+          Reports: until a year after we decide them, then deleted within a day; a report we have not
+          decided yet stays until we do. A report stays if the skill or account it names is deleted, and if
+          you delete your account, it stays without the link to your account.
         </li>
         <li>
           The reason for removing a skill: until the skill is deleted. A suspension and its reason: until we
@@ -235,7 +244,7 @@ export default function PrivacyPage() {
           a 6-hour restore history, so deleted data leaves its backups within 6 hours. Only when we need to
           find out why a change failed against the real database does our database provider make a full
           copy of it. Data changed or deleted after the copy is made, a deleted account included, stays in
-          the copy as it was until we delete the copy, within a day after the fix goes live.
+          the copy as it was until we delete the copy, within a day after the fix goes live or is dropped.
         </li>
       </ul>
 
@@ -277,8 +286,9 @@ export default function PrivacyPage() {
         receive it in a portable format, and you can object to processing based on our legitimate
         interest. Write to <a href={`mailto:${OPERATOR.email}`}>{OPERATOR.email}</a>; we answer within
         one month. Signed in, you can also download a copy of your data and delete your account yourself,
-        in your account settings. For every saved version of a skill, the copy gives the address where it
-        downloads as a zip with its files; the skill&rsquo;s pages have the same downloads.
+        in your account settings; a suspended account cannot sign in, so it writes to us instead. For every
+        saved version of a skill, the copy gives the address where it downloads as a zip with its files;
+        the skill&rsquo;s pages have the same downloads.
       </p>
       <p>
         If you think we handle your data unlawfully, you can complain to the Romanian data protection

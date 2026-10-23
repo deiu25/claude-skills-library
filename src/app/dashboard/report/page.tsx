@@ -50,7 +50,8 @@ export default async function ReportPage({ searchParams }: PageProps) {
           <a href={`mailto:${OPERATOR.email}`} className={LINK}>
             {OPERATOR.email}
           </a>{" "}
-          with the page&rsquo;s address, what is wrong with it and why, and your name.
+          with the page&rsquo;s address, what is wrong with it and why, your name, and a statement that
+          your report is accurate and complete to the best of your knowledge.
         </FormMessage>
       </Page>
     );
