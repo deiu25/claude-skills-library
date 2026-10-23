@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { check, integer, jsonb, pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
+import { boolean, check, customType, integer, jsonb, pgTable, primaryKey, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
 import type { Finding } from "../skills/scan";
 import { user } from "./auth-schema";
 
@@ -29,7 +29,7 @@ export const skill = pgTable(
   ],
 );
 
-/** One saved SKILL.md, numbered from 1, with the scan that ran on it. Never edited after insert. */
+/** One saved version of a skill, numbered from 1: its SKILL.md, the scan that ran on it and its files. Never edited after insert. */
 export const skillVersion = pgTable(
   "skill_version",
   {
@@ -49,5 +49,27 @@ export const skillVersion = pgTable(
     unique("skill_version_skill_version_unique").on(table.skillId, table.version),
     check("skill_version_version_check", sql`${table.version} > 0`),
     check("skill_version_risk_check", sql`${table.risk} in ('none', 'low', 'medium', 'high', 'critical')`),
+  ],
+);
+
+// drizzle-orm 0.45 has no bytea column; node-postgres reads and writes the type as a Buffer.
+const bytea = customType<{ data: Buffer }>({ dataType: () => "bytea" });
+
+/** A file of one version beside its SKILL.md, under a path relative to the skill's folder. */
+export const skillFile = pgTable(
+  "skill_file",
+  {
+    versionId: uuid("version_id")
+      .notNull()
+      .references(() => skillVersion.id, { onDelete: "cascade" }),
+    path: text("path").notNull(),
+    content: bytea("content").notNull(),
+    executable: boolean("executable").notNull().default(false),
+  },
+  (table) => [
+    primaryKey({ columns: [table.versionId, table.path] }),
+    // The upload checks every path; this keeps one that escapes the folder out of the table anyway:
+    // no empty, "." or ".." segment, which also refuses an absolute path, and no backslash.
+    check("skill_file_path_check", sql`${table.path} !~ '(^|/)\\.{0,2}(/|$)' and strpos(${table.path}, '\\') = 0`),
   ],
 );

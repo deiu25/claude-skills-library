@@ -275,8 +275,9 @@ Five radii, one job each: cards and panels 14px; buttons and the theme toggle 10
 ### Skills
 
 - **Risk badge:** a 12px pill that names the scan's highest severity in words, never by color alone. "No findings" takes Emerald Tint and Text-Safe Emerald; low, medium and high climb from a Line to a Foreground border and to weight 600; critical inverts to a Foreground fill with Page text. No badge or message says "safe".
-- **Editor:** category and tags above a mono SKILL.md textarea, then the Check box (Surface, 1px line, 8px radius): the live risk badge, the frontmatter's state, and one row per finding with the rule, its line and severity. Pressing a finding selects its line in the textarea.
-- **Lists and versions** follow the settings lists; the current version is marked in Text-Safe Emerald, and an old version opens read-only with its file in a terminal block. Deleting a skill is a ghost button that asks once more in place, with a standing caution.
+- **Editor:** category and tags above a mono SKILL.md textarea, then Files, then the Check box (Surface, 1px line, 8px radius): the live risk badge, the frontmatter's state, and one row per finding with the rule, its file and line, and severity. Pressing a SKILL.md finding selects its line in the textarea.
+- **Files:** a title with the count and size against the 1 MB limit, then the files in a Surface box (1px line, 8px radius) that scrolls past 22rem: one row per file with its mono path, "Executable" in Muted, "Binary, not scanned" and the size in Faint. Below it, ghost "Upload folder" and "Remove files" buttons, and a Muted line saying what the next save does with a folder chosen since the last one.
+- **Lists and versions** follow the settings lists; the current version is marked in Text-Safe Emerald, and an old version opens read-only with its scan, its files and its SKILL.md in a terminal block. A skill's page and each version's page carry a ghost "Download .zip" beside the title. Deleting a skill is a ghost button that asks once more in place, with a standing caution.
 
 ### Menus
 

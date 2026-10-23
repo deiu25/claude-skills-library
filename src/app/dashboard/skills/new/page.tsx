@@ -29,11 +29,12 @@ export default async function NewSkillPage() {
         <div className="space-y-3">
           <h1 className="text-balance text-3xl font-semibold text-foreground sm:text-4xl">New skill</h1>
           <p className="max-w-[60ch] text-pretty text-sm leading-relaxed text-muted sm:text-base">
-            Write a SKILL.md, or paste one you already use. The name in its frontmatter becomes the skill&rsquo;s name.
+            Write a SKILL.md, paste one you already use, or upload the skill&rsquo;s whole folder. The name in its
+            frontmatter becomes the skill&rsquo;s name.
           </p>
         </div>
         <div className="mt-10">
-          <SkillEditor initial={{ skillMd: STARTER, category: "", tags: "" }} />
+          <SkillEditor initial={{ skillMd: STARTER, category: "", tags: "", files: [], fileFindings: [] }} />
         </div>
       </main>
       <SiteFooter />

@@ -6,7 +6,8 @@
 // read, never a verdict: a skill with no findings is not proven safe.
 //
 // Every quantifier that can repeat is bounded, because the scan runs on every keystroke in the
-// browser and on every save on the server, over up to 100,000 characters an author controls.
+// browser and on every save on the server, over up to 100,000 characters of SKILL.md and 1 MB of
+// other files an author controls.
 
 export type Severity = "low" | "medium" | "high" | "critical";
 export type Risk = "none" | Severity;
@@ -23,7 +24,9 @@ export type RuleId =
 export interface Finding {
   rule: RuleId;
   severity: Severity;
-  /** 1-based line in SKILL.md. */
+  /** The file, relative to the skill's folder; absent for SKILL.md. */
+  path?: string;
+  /** 1-based line in that file. */
   line: number;
   message: string;
 }
@@ -219,8 +222,12 @@ const LINE_RULES: LineRule[] = [
   {
     rule: "pipe-to-shell",
     severity: "high",
+    // The output flag is a lookahead: as a sequence of bounded quantifiers this rule backtracked for
+    // seconds over a megabyte of "curl -o " repeated.
     matches: re(
-      new RegExp(String.raw`${DOWNLOAD}[^&\n]{0,200}\s(?:-o|-O|--output)\s{0,5}\S{1,200}[^&\n]{0,200}&&\s{0,10}(?:${SHELL}|${STDIN_INTERPRETER}|chmod\s{1,5}\+x)`),
+      new RegExp(
+        String.raw`${DOWNLOAD}(?=[^&\n]{0,200}\s(?:-o|-O|--output))[^&\n]{0,400}&&\s{0,10}(?:${SHELL}|${STDIN_INTERPRETER}|chmod\s{1,5}\+x)`,
+      ),
     ),
     message: RUNS_DOWNLOAD,
   },
@@ -490,7 +497,38 @@ function allowedToolsFindings(lines: string[], frontmatter: Record<string, unkno
 const MAX_PER_RULE = 20;
 export const MAX_FINDINGS = 50;
 
-const bySeverity = (a: Finding, b: Finding) => rank(b.severity) - rank(a.severity) || a.line - b.line;
+// SKILL.md first, then the other files by path, each in line order.
+const byPlace = (a: Finding, b: Finding) => (a.path ?? "").localeCompare(b.path ?? "") || a.line - b.line;
+const bySeverity = (a: Finding, b: Finding) => rank(b.severity) - rank(a.severity) || byPlace(a, b);
+
+/** Duplicates dropped, then the most severe findings kept within the limits, in reading order. */
+function capFindings(findings: Finding[]): Finding[] {
+  const seen = new Set<string>();
+  const perRule = new Map<RuleId, number>();
+  return [...findings]
+    .sort(bySeverity)
+    .filter((finding) => {
+      const key = `${finding.path ?? ""}:${finding.rule}:${finding.line}:${finding.message}`;
+      const count = (perRule.get(finding.rule) ?? 0) + 1;
+      if (seen.has(key) || count > MAX_PER_RULE) return false;
+      seen.add(key);
+      perRule.set(finding.rule, count);
+      return true;
+    })
+    .slice(0, MAX_FINDINGS)
+    .sort(byPlace);
+}
+
+/** Every rule that reads a file line by line: all of them but allowed-tools. */
+function lineFindings(lines: string[]): Finding[] {
+  return [
+    ...lines.flatMap((text, index) => unicodeFindings(text, index + 1)),
+    ...commandLines(lines).flatMap(({ text, line }) =>
+      LINE_RULES.filter((rule) => rule.matches(text)).map(({ rule, severity, message }) => ({ rule, severity, line, message })),
+    ),
+    ...credentialFindings(lines),
+  ];
+}
 
 /**
  * Flags hidden or bidirectional Unicode, downloads run as scripts, credentials read next to a
@@ -499,26 +537,15 @@ const bySeverity = (a: Finding, b: Finding) => rank(b.severity) - rank(a.severit
  */
 export function scanSkillMd(source: string, frontmatter?: Record<string, unknown>): Finding[] {
   const lines = source.split("\n");
-  const findings = [
-    ...lines.flatMap((text, index) => unicodeFindings(text, index + 1)),
-    ...commandLines(lines).flatMap(({ text, line }) =>
-      LINE_RULES.filter((rule) => rule.matches(text)).map(({ rule, severity, message }) => ({ rule, severity, line, message })),
-    ),
-    ...credentialFindings(lines),
-    ...allowedToolsFindings(lines, frontmatter),
-  ];
-  const seen = new Set<string>();
-  const perRule = new Map<RuleId, number>();
-  return findings
-    .sort(bySeverity)
-    .filter((finding) => {
-      const key = `${finding.rule}:${finding.line}:${finding.message}`;
-      const count = (perRule.get(finding.rule) ?? 0) + 1;
-      if (seen.has(key) || count > MAX_PER_RULE) return false;
-      seen.add(key);
-      perRule.set(finding.rule, count);
-      return true;
-    })
-    .slice(0, MAX_FINDINGS)
-    .sort((a, b) => a.line - b.line);
+  return capFindings([...lineFindings(lines), ...allowedToolsFindings(lines, frontmatter)]);
+}
+
+/** The same rules over the skill's other text files, each finding naming its file. Only SKILL.md has allowed-tools. */
+export function scanFiles(files: { path: string; text: string }[]): Finding[] {
+  return capFindings(files.flatMap(({ path, text }) => lineFindings(text.split("\n")).map((finding) => ({ ...finding, path }))));
+}
+
+/** One version's findings: SKILL.md's and the other files', within the same limits. */
+export function combineFindings(skillMd: Finding[], files: Finding[]): Finding[] {
+  return capFindings([...skillMd, ...files]);
 }

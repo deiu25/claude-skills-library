@@ -2,13 +2,19 @@ import "server-only";
 import { Ratelimit, type Duration } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
-// Limits for Server Actions. Requests to /api/auth have Better Auth's own limiter in Postgres.
-// A request passes only when every window of its limit allows it, checked shortest first.
+// Limits for Server Actions and the downloads that read whole skills. Requests to /api/auth have
+// Better Auth's own limiter in Postgres. A request passes only when every window of its limit
+// allows it, checked shortest first.
 const LIMITS = {
   // Creating, saving and deleting skills: bursts while editing, and a daily ceiling on stored versions.
   "skill-write": [
     [20, "1 m"],
     [200, "1 d"],
+  ],
+  // Zip downloads: each reads up to a megabyte of files from the database.
+  "skill-download": [
+    [30, "1 m"],
+    [300, "1 d"],
   ],
 } satisfies Record<string, [number, Duration][]>;
 

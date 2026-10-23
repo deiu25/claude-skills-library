@@ -4,7 +4,7 @@
 |---|---|
 | Owner | Badulescu Andrei ([@deiu25](https://github.com/deiu25)) |
 | Decided | 2026-10-10 |
-| Next phase | P5 |
+| Next phase | P6 |
 
 The curated catalog stays as it is: static, hand-written, reviewed in git. Around it the site gains:
 - accounts;
@@ -37,7 +37,7 @@ Paste into a new Claude Code session in this repository:
 | P2 | Header, GitHub sign-in, legal pages, static guards | done |
 | P3 | Account security and data | done |
 | P4 | Own skills (SKILL.md) and security scan | done |
-| P5 | Skill files | todo |
+| P5 | Skill files | done |
 | P6 | Showcase and profiles | todo |
 | P7 | Moderation | todo |
 | P8 | Sellers (Stripe test mode) | todo |
@@ -361,7 +361,7 @@ Every phase merges to `main`, which is production, so each one keeps these rules
 - **Ships:**
   - `pull <handle>/<slug>` for own and bought skills, and `check`.
   - "Outdated" badges:
-    - For global `npx skills` installs, `skillFolderHash` appears to be the GitHub tree SHA of the skill folder (confirm in the `skills` CLI source). One recursive tree call per repository, cached for an hour with `GITHUB_TOKEN`, covers them all.
+    - For global `npx skills` installs from GitHub, `skillFolderHash` is the GitHub tree SHA of the skill folder (read in the `skills` 1.7.2 source in P5). One recursive tree call per repository, cached for an hour with `GITHUB_TOKEN`, covers them all.
     - Plugins compare `version` with their marketplace.
     - Platform skills compare `content_hash`.
     - `npx skills` installs inside projects show "unknown".

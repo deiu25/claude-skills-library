@@ -4,11 +4,11 @@ const SEVERITY_LABELS: Record<Finding["severity"], string> = { low: "Low", mediu
 
 interface FindingListProps {
   findings: Finding[];
-  /** Makes each finding a button that shows its line in the editor. */
+  /** Makes each SKILL.md finding a button that shows its line in the editor. */
   onSelect?: (line: number) => void;
 }
 
-/** The scan's findings, in line order: what was found, where, and why it matters. */
+/** The scan's findings, SKILL.md first, then file by file in line order: what was found, where, and why it matters. */
 export function FindingList({ findings, onSelect }: FindingListProps) {
   return (
     <ul className="divide-y divide-line">
@@ -19,16 +19,16 @@ export function FindingList({ findings, onSelect }: FindingListProps) {
               <span className={`text-sm text-foreground ${finding.severity === "high" || finding.severity === "critical" ? "font-semibold" : "font-medium"}`}>
                 {RULE_LABELS[finding.rule]}
               </span>
-              <span className="text-xs tabular-nums text-faint">
-                Line {finding.line} · {SEVERITY_LABELS[finding.severity]}
+              <span className="min-w-0 break-all text-xs tabular-nums text-faint">
+                <span className="font-mono">{finding.path ?? "SKILL.md"}</span>, line {finding.line} · {SEVERITY_LABELS[finding.severity]}
               </span>
             </span>
             <span className="mt-1 block text-pretty text-sm leading-relaxed text-muted">{finding.message}</span>
           </>
         );
         return (
-          <li key={`${finding.rule}-${finding.line}-${finding.message}`}>
-            {onSelect ? (
+          <li key={`${finding.path ?? ""}-${finding.rule}-${finding.line}-${finding.message}`}>
+            {onSelect && !finding.path ? (
               <button
                 type="button"
                 onClick={() => onSelect(finding.line)}

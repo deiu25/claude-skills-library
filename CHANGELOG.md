@@ -6,6 +6,16 @@ The format follows [Keep a Changelog 2.0.0](https://keepachangelog.com/en/2.0.0/
 
 ## [Unreleased]
 
+### 2026-10-23
+
+#### Added
+
+- Your skills: upload a skill's whole folder, with its scripts, references and assets, up to 200 files and 1 MB. Every text file is scanned like SKILL.md, scripts that start with #! stay executable, and any version downloads as a zip ready to unpack into ~/.claude/skills.
+
+#### Changed
+
+- The privacy policy covers the files you upload with a skill and the count of skill downloads Upstash keeps to slow down abuse. Your data export gives the download address of every saved version, and the record of saves and downloads now says exactly when it expires.
+
 ### 2026-10-22
 
 #### Added

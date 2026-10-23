@@ -30,7 +30,7 @@ Anything above 0 points to "GitHub stats missing" below.
 
 On the Hobby plan, Instant Rollback reaches only the deployment right before the current one. For anything older, `git revert` the bad commit and push.
 
-A rollback never undoes a migration. Migrations only add tables and columns, so the previous deployment keeps working on the newer schema. To undo a schema change, write a new migration and ship it.
+A rollback never undoes a migration. Migrations only add tables and columns, so the previous deployment keeps working on the newer schema. One exception: `0004` rewrote `skill_version.content_hash` as a folder hash, so a deployment from before P5 stores a new version on every save, unchanged or not, and without the skill's files. To undo a schema change, write a new migration and ship it.
 
 ## Environment variables
 
@@ -45,7 +45,7 @@ A rollback never undoes a migration. Migrations only add tables and columns, so 
 | `ACCOUNTS_ALLOWLIST` | Production and Preview | Comma-separated addresses that may sign up while sign-up is closed. |
 | `NEXT_PUBLIC_ACCOUNTS_OPEN` | Production and Preview, changed together with `ACCOUNTS_OPEN` | `true` shows the header's "Sign in" link. It is built into the pages, so it changes only with a redeploy. |
 | `CRON_SECRET` | Production only | Vercel Cron sends it as `Authorization: Bearer <secret>`; without it the daily cleanup refuses to run. At least 32 random characters: `openssl rand -base64 32`. |
-| `KV_REST_API_URL`, `KV_REST_API_TOKEN` | Added by the Upstash for Redis integration for Production and Preview; `UPSTASH_REDIS_REST_URL` and `_TOKEN` work too | Rate limits for Server Actions, such as saving a skill. They fail closed in production: without them, or with Redis down, every save answers "Too many changes" and the log says `Rate limit refused a request` or `Rate limit check failed`. |
+| `KV_REST_API_URL`, `KV_REST_API_TOKEN` | Added by the Upstash for Redis integration for Production and Preview; `UPSTASH_REDIS_REST_URL` and `_TOKEN` work too | Rate limits for Server Actions, such as saving a skill, and for skill downloads. They fail closed in production: without them, or with Redis down, every save answers "Saving is unavailable for a moment", every download answers 503, and the log says `Rate limit refused a request` or `Rate limit check failed`. |
 | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | Production only, from the production OAuth app; `.env.local` from a second app for `localhost:3000`. Never Preview: GitHub callback URLs cannot be wildcards | Turn on GitHub sign-in. Each app's callback URL is `<origin>/api/auth/callback/github`. Without both variables the sign-in pages show no GitHub button. |
 
 The Neon integration also adds `PG*` and `POSTGRES_*` variables; the app reads only the two above. Auth takes its base URL from the request host, checked against Vercel's own `VERCEL_PROJECT_PRODUCTION_URL`, `VERCEL_BRANCH_URL` and `VERCEL_URL`, so no `BETTER_AUTH_URL` is needed.

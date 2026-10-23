@@ -82,7 +82,7 @@ Described in [PRODUCT.md](PRODUCT.md#users): Claude Code users choosing skills, 
 Each line becomes its own section here when its [ROADMAP.md](ROADMAP.md) phase ships.
 
 - **FR-18** Accounts: email and password with verification and reset, GitHub sign-in, two-factor, passkeys, active sessions, data export and account deletion (P1–P3).
-- **FR-19** Private skills: a user writes a SKILL.md, keeps its versions and sees a security scan of each one (P4, shipped), then uploads a whole skill folder (P5).
+- **FR-19** Private skills: a user writes a SKILL.md or uploads a whole skill folder, keeps its versions, sees a security scan of each one and downloads any version as a zip (P4–P5, shipped).
 - **FR-20** Community: public profiles and skill pages, a Community browse kept apart from the catalog, reports and moderation (P6–P7).
 - **FR-21** Selling: sellers onboard with Stripe, buyers pay by card and download what they bought, and a refund revokes access (P8, P9, P13).
 - **FR-22** Library: skills saved from the catalog, Community, GitHub or any URL; projects; global and per-project installs; export as an install prompt (P10).
