@@ -4,7 +4,7 @@
 |---|---|
 | Owner | Badulescu Andrei ([@deiu25](https://github.com/deiu25)) |
 | Decided | 2026-10-10 |
-| Next phase | P6 |
+| Next phase | P7 |
 
 The curated catalog stays as it is: static, hand-written, reviewed in git. Around it the site gains:
 - accounts;
@@ -38,7 +38,7 @@ Paste into a new Claude Code session in this repository:
 | P3 | Account security and data | done |
 | P4 | Own skills (SKILL.md) and security scan | done |
 | P5 | Skill files | done |
-| P6 | Showcase and profiles | todo |
+| P6 | Showcase and profiles | done |
 | P7 | Moderation | todo |
 | P8 | Sellers (Stripe test mode) | todo |
 | P9 | Checkout and entitlements (test mode) | todo |
@@ -97,7 +97,7 @@ Playbooks (P16–P20) are a second track. P16 needs nothing; each later playbook
 | Every route that exists today | Unchanged: static or ISR, with `/opengraph-image` rendered on demand. The five catalog pages add `export const dynamic = "error"` in P2 |
 | `/sign-in`, `/sign-up`, `/forgot-password`, `/reset-password`, `/two-factor` | In an `(auth)` route group. Static forms that call `/api/auth` from the browser; `/reset-password` renders per request because it reads the token |
 | `/dashboard/**` | Dynamic: skills, library, projects, playbooks, purchases, sales, settings, admin, org |
-| `/community`, `/u/[handle]`, `/u/[handle]/[slug]`, `/u/[handle]/stacks/[slug]`, `/u/[handle]/playbooks/[slug]` | ISR. `generateStaticParams` returns `[]` and writes call `revalidatePath`. A database error renders an empty state. While sign-up is closed, these routes return `notFound()` |
+| `/community`, `/u/[handle]`, `/u/[handle]/[slug]`, `/u/[handle]/stacks/[slug]`, `/u/[handle]/playbooks/[slug]` | ISR. `generateStaticParams` returns `[]` and writes call `revalidatePath` (P6: `revalidateCommunity()`). A database error during the build renders an empty state; at request time it throws, so ISR keeps serving the last page that rendered. While sign-up is closed, these routes return `notFound()` |
 | `/privacy`, `/terms`, `/terms/marketplace` | Static |
 | `/playbooks`, `/playbooks/[slug]` | Static, like the catalog pages, with `dynamic = "error"` (P16) |
 | `/api/auth/[...all]`, `/api/stripe/webhook`, `/api/v1/sync`, `/api/v1/library`, `/api/skills/[id]/download`, `/api/me/export` | Dynamic route handlers |
@@ -276,6 +276,7 @@ Every phase merges to `main`, which is production, so each one keeps these rules
   - An unpublished listing returns 404.
   - Listing pages are served as ISR.
   - `next build` passes with the database unreachable.
+- **Closed:** P6 shipped on 2026-10-23. Its pages answer 404 in production until sign-up opens; on a preview opened for the check, 49 flows passed. A skill's page shows SKILL.md as text, not rendered Markdown, after a review found nested input could hold a render for tens of seconds. The sitemap renders per request, because Next 16.2 deploys a `sitemap.ts` with `revalidate` to Vercel as a static file (vercel/next.js#99055).
 
 ### P7 — Moderation
 - **Ships:**
@@ -283,13 +284,17 @@ Every phase merges to `main`, which is production, so each one keeps these rules
     - a `report` table and a report form;
     - a statement of reasons with every removal;
     - an abuse contact.
-  - The `admin` plugin with `adminUserIds`, and `/dashboard/admin` to unlist and ban.
+  - The `admin` plugin with `adminUserIds`, and `/dashboard/admin` to unlist and ban. A removal sets the skill's status to `removed` and calls `revalidateCommunity()`, and a ban hides the user's skills the same way (ARCHITECTURE.md, invariant 23).
   - Preview databases branched from a seeded `dev` branch instead of production, for example with `neondatabase/create-branch-action`. /privacy's sentences on test copies of the database then change to match.
 - **Done when:**
   - A report reaches the admin.
   - A removal sends its reason.
   - A banned user cannot sign in.
 - Delete accounts left unverified for a week: until then a stranger's sign-up holds the address and any username it set.
+- Before sign-up opens, from the P6 reviews:
+  - A Vercel Firewall rate-limit rule on `/api/skills/*/download` and `/sitemap.xml`, or a separate Upstash database for signed-out downloads, so a flood cannot spend the quota the Server Actions' limits share (ARCHITECTURE.md, Known limits).
+  - Next.js 16.4.1 or later: 16.2 is open to GHSA-p3m5-59mp-jv5r, a CPU exhaustion through Server Actions.
+  - Hold a username for a while after a rename or a deletion, so its old addresses cannot pass to someone else.
 - Sign-up can open from this point (`ACCOUNTS_OPEN=true`).
 
 ### P8 — Sellers (Stripe test mode)

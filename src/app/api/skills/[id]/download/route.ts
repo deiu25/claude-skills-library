@@ -1,21 +1,25 @@
 import { getSession } from "@/lib/auth/session";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, visitorKey } from "@/lib/rate-limit";
 import { folderName, zipVersion } from "@/lib/skills/archive";
-import { getVersionArchive } from "@/lib/skills/queries";
+import { findVersionArchive } from "@/lib/skills/queries";
 
 /**
- * A version of the signed-in user's own skill as a zip: the latest, or `?version=<n>`. Someone
- * else's skill answers 404, the same as one that does not exist.
+ * A version of a skill as a zip: the owner's latest, or `?version=<n>`, and for anyone else the
+ * latest version of a published skill. A skill they cannot have answers 404 when signed in, the
+ * same as one that does not exist, and 401 when signed out.
  */
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();
-  if (!session) return new Response(null, { status: 401 });
-  const limit = await rateLimit("skill-download", session.user.id);
-  if (limit !== "ok") return new Response(null, { status: limit === "limited" ? 429 : 503 });
-
+  const refused = new Response(null, { status: session ? 404 : 401 });
   const version = new URL(request.url).searchParams.get("version");
-  const archive = await getVersionArchive(session.user.id, (await params).id, version === null ? undefined : Number(version));
-  if (!archive) return new Response(null, { status: 404 });
+  const found = await findVersionArchive(session?.user ?? null, (await params).id, version === null ? undefined : Number(version));
+  if (!found) return refused;
+
+  // Checked once the download is known to be allowed, so a visitor's request that fails anyway sends nothing to Upstash.
+  const limit = await rateLimit("skill-download", session ? session.user.id : visitorKey(request));
+  if (limit !== "ok") return new Response(null, { status: limit === "limited" ? 429 : 503 });
+  const archive = await found.read();
+  if (!archive) return refused;
 
   return new Response(Buffer.from(zipVersion(archive)), {
     headers: {

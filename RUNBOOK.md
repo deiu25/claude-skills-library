@@ -41,9 +41,9 @@ A rollback never undoes a migration. Migrations only add tables and columns, so 
 | `DATABASE_URL_UNPOOLED` | Added by the Neon integration | Direct connection, used only by `npm run db:migrate`. |
 | `BETTER_AUTH_SECRET` | Production and Preview; `.env.local` | Signs sessions and email links, and encrypts two-factor secrets, backup codes and GitHub tokens. At least 32 random characters: `openssl rand -base64 32`. Replacing it signs everyone out, voids open links and makes what it encrypted unreadable, so two-factor users could not finish a password sign-in. To rotate, set `BETTER_AUTH_SECRETS=1:<new secret>` and keep the old value here: the first entry signs and encrypts, the old one still decrypts. |
 | `RESEND_API_KEY`, `EMAIL_FROM` | Production and Preview | Send verification and reset emails. Resend's test sender `onboarding@resend.dev` delivers only to the Resend account owner's address. |
-| `ACCOUNTS_OPEN` | Production and Preview | `true` opens sign-up to everyone. Any other value keeps it closed. |
+| `ACCOUNTS_OPEN` | Production and Preview | `true` opens sign-up to everyone, and with it the Community pages and downloads of published skills; any other value keeps all three closed, and the Community pages answer 404. Those pages are cached, so they follow a change only after a redeploy. |
 | `ACCOUNTS_ALLOWLIST` | Production and Preview | Comma-separated addresses that may sign up while sign-up is closed. |
-| `NEXT_PUBLIC_ACCOUNTS_OPEN` | Production and Preview, changed together with `ACCOUNTS_OPEN` | `true` shows the header's "Sign in" link. It is built into the pages, so it changes only with a redeploy. |
+| `NEXT_PUBLIC_ACCOUNTS_OPEN` | Production and Preview, changed together with `ACCOUNTS_OPEN` | `true` shows the header's "Sign in" and "Community" links. It is built into the pages, so it changes only with a redeploy. |
 | `CRON_SECRET` | Production only | Vercel Cron sends it as `Authorization: Bearer <secret>`; without it the daily cleanup refuses to run. At least 32 random characters: `openssl rand -base64 32`. |
 | `KV_REST_API_URL`, `KV_REST_API_TOKEN` | Added by the Upstash for Redis integration for Production and Preview; `UPSTASH_REDIS_REST_URL` and `_TOKEN` work too | Rate limits for Server Actions, such as saving a skill, and for skill downloads. They fail closed in production: without them, or with Redis down, every save answers "Saving is unavailable for a moment", every download answers 503, and the log says `Rate limit refused a request` or `Rate limit check failed`. |
 | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | Production only, from the production OAuth app; `.env.local` from a second app for `localhost:3000`. Never Preview: GitHub callback URLs cannot be wildcards | Turn on GitHub sign-in. Each app's callback URL is `<origin>/api/auth/callback/github`. Without both variables the sign-in pages show no GitHub button. |
@@ -98,3 +98,7 @@ Passkeys bind to the host that registered them, so every passkey stops working o
 ### Wrong or harmful catalog entry
 
 Fix the file in `src/data/skills/`, or delete it together with its import and array entry in `src/data/skills/index.ts`, then push to `main`. If the entry's source is malicious or hijacked, remove it before anything else: `/install-all.txt` would ask Claude Code to install it.
+
+### Harmful Community skill
+
+Until P7 builds removal into an admin page, take a published skill down by hand. In the Neon console, run `update skill set status = 'removed' where id = '<id>'`: its download stops at once, and its owner can no longer publish it. Its pages, its author's profile and `/community` keep their cached copies until the next write that touches Community, so redeploy the production deployment (Vercel, Deployments, the current one, Redeploy): a new deployment starts with an empty cache. Write to the author with the reason, as the terms promise. The id is in the page's download address, `/api/skills/<id>/download`.

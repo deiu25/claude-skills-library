@@ -12,7 +12,7 @@ export default function TermsPage() {
   return (
     <>
       <h1 className="text-balance text-3xl font-semibold text-foreground sm:text-4xl">Terms of use</h1>
-      <p className="text-sm text-faint">Last updated 22 October 2026</p>
+      <p className="text-sm text-faint">Last updated 23 October 2026</p>
       <p>
         These terms apply when you use the Claude Skills Library at {SITE_URL.replace("https://", "")}.
         How we handle personal data is in the <Link href="/privacy">privacy policy</Link>.
@@ -42,7 +42,8 @@ export default function TermsPage() {
       <p>
         A free, hand-curated catalog of Claude Code skills, plugins and MCP servers made by other people:
         what each one does, when to use it and how to install it, with exports of the catalog for people
-        and for agents. Browsing needs no account. Accounts are invite-only for now.
+        and for agents. Account holders can also keep their own skills and publish them in Community, apart
+        from the catalog. Browsing needs no account. Accounts are invite-only for now.
       </p>
 
       <h2>Skills made by others</h2>
@@ -50,6 +51,11 @@ export default function TermsPage() {
         <li>
           Every entry describes software that other people make and publish. Its name, description and
           content belong to its authors, under their own licences.
+        </li>
+        <li>
+          Skills in Community are published by account holders, not chosen by us, and nobody reviews them
+          before they appear. An automated check flags some risky patterns in each version; it cannot show
+          that a skill is safe.
         </li>
         <li>
           Install and update commands are copied from each project’s own documentation on the day the
@@ -80,6 +86,36 @@ export default function TermsPage() {
         <li>You can stop using your account at any time, and delete it yourself in your account settings.</li>
       </ul>
 
+      <h2>Publishing a skill</h2>
+      <ul>
+        <li>
+          Your skills are private until you publish one, as unlisted or public. You keep every right you have
+          in it. While it is published, you give us a free, worldwide, non-exclusive licence to store, copy,
+          show and distribute it on this site: on its page, as a download, in Community and on your profile.
+          The licence ends when you make the skill private or delete it.
+        </li>
+        <li>
+          A skill keeps the licence its files give it, if any. We give no one any right in it beyond
+          downloading it from this site.
+        </li>
+        <li>
+          Publish only what you have the right to publish, and describe truthfully what it does. A published
+          skill must not contain malware, harm a computer in ways its description does not disclose, hide
+          instructions from the people who read it, carry anyone’s secrets, credentials or personal data,
+          infringe anyone’s rights, or break the law.
+        </li>
+        <li>
+          An automated security check runs on every saved version. A version with a critical finding cannot
+          be published, and saving one makes a published skill private again. The check is not a review:
+          passing it does not make a skill safe or lawful.
+        </li>
+        <li>
+          We may unpublish or remove a skill that breaks these terms or the law, and we tell its author why
+          by email. To report one, write to <a href={`mailto:${OPERATOR.email}`}>{OPERATOR.email}</a> with
+          its address and what is wrong with it.
+        </li>
+      </ul>
+
       <h2>Acceptable use</h2>
       <p>
         Do not attack or overload the site, test its security without our written permission, or try to
@@ -101,8 +137,8 @@ export default function TermsPage() {
           but we cannot promise either at every moment.
         </li>
         <li>
-          We are not responsible for software made by others that you install from a link or command found
-          here, or for what it does on your computer.
+          We are not responsible for software made by others that you install from a link, command or
+          download found here, or for what it does on your computer.
         </li>
         <li>
           Nothing in these terms limits liability that the law does not allow us to limit, such as for harm

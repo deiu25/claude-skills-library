@@ -11,10 +11,12 @@ The format follows [Keep a Changelog 2.0.0](https://keepachangelog.com/en/2.0.0/
 #### Added
 
 - Your skills: upload a skill's whole folder, with its scripts, references and assets, up to 200 files and 1 MB. Every text file is scanned like SKILL.md, scripts that start with #! stay executable, and any version downloads as a zip ready to unpack into ~/.claude/skills.
+- Your skills: publish a skill as unlisted or public. Its page shows its description, SKILL.md, files and scan, with a download and the command that installs it; a public skill is also listed in Community and on your profile. A version with a critical finding cannot be published. Community opens to visitors when sign-up does.
 
 #### Changed
 
 - The privacy policy covers the files you upload with a skill and the count of skill downloads Upstash keeps to slow down abuse. Your data export gives the download address of every saved version, and the record of saves and downloads now says exactly when it expires.
+- The privacy policy and the terms of use cover publishing a skill: what its page shows, the licence that lets the site show and distribute it, what a published skill must not contain, and how a download without an account is counted.
 
 ### 2026-10-22
 

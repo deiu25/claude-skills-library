@@ -75,7 +75,7 @@ Described in [PRODUCT.md](PRODUCT.md#users): Claude Code users choosing skills, 
 ### Machine endpoints
 
 - **FR-16** `/skills.json` (a versioned JSON catalog with star counts), `/llms.txt` (llmstxt.org format) and `/install-all.txt` (a prompt Claude Code runs), all static and regenerated with the site.
-- **FR-17** `/sitemap.xml` lists every skill page, and `/robots.txt` allows all crawlers.
+- **FR-17** `/sitemap.xml` lists every skill page and, once sign-up opens, every public Community page, and `/robots.txt` allows all crawlers.
 
 ### Accounts and user content (planned)
 
@@ -83,7 +83,7 @@ Each line becomes its own section here when its [ROADMAP.md](ROADMAP.md) phase s
 
 - **FR-18** Accounts: email and password with verification and reset, GitHub sign-in, two-factor, passkeys, active sessions, data export and account deletion (P1–P3).
 - **FR-19** Private skills: a user writes a SKILL.md or uploads a whole skill folder, keeps its versions, sees a security scan of each one and downloads any version as a zip (P4–P5, shipped).
-- **FR-20** Community: public profiles and skill pages, a Community browse kept apart from the catalog, reports and moderation (P6–P7).
+- **FR-20** Community: a user publishes a skill as unlisted or public, unless its latest version has a critical finding; public profiles and skill pages with the scan, the files, SKILL.md and a download; a Community browse with search and category filters, kept apart from the catalog and open once sign-up is (P6, shipped); reports and moderation (P7).
 - **FR-21** Selling: sellers onboard with Stripe, buyers pay by card and download what they bought, and a refund revokes access (P8, P9, P13).
 - **FR-22** Library: skills saved from the catalog, Community, GitHub or any URL; projects; global and per-project installs; export as an install prompt (P10).
 - **FR-23** Sync CLI: an `npx` command authenticated with an API key reports installed skills, pulls owned skills and flags outdated ones (P11–P12).

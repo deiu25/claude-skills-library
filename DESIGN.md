@@ -277,7 +277,18 @@ Five radii, one job each: cards and panels 14px; buttons and the theme toggle 10
 - **Risk badge:** a 12px pill that names the scan's highest severity in words, never by color alone. "No findings" takes Emerald Tint and Text-Safe Emerald; low, medium and high climb from a Line to a Foreground border and to weight 600; critical inverts to a Foreground fill with Page text. No badge or message says "safe".
 - **Editor:** category and tags above a mono SKILL.md textarea, then Files, then the Check box (Surface, 1px line, 8px radius): the live risk badge, the frontmatter's state, and one row per finding with the rule, its file and line, and severity. Pressing a SKILL.md finding selects its line in the textarea.
 - **Files:** a title with the count and size against the 1 MB limit, then the files in a Surface box (1px line, 8px radius) that scrolls past 22rem: one row per file with its mono path, "Executable" in Muted, "Binary, not scanned" and the size in Faint. Below it, ghost "Upload folder" and "Remove files" buttons, and a Muted line saying what the next save does with a folder chosen since the last one.
-- **Lists and versions** follow the settings lists; the current version is marked in Text-Safe Emerald, and an old version opens read-only with its scan, its files and its SKILL.md in a terminal block. A skill's page and each version's page carry a ghost "Download .zip" beside the title. Deleting a skill is a ghost button that asks once more in place, with a standing caution.
+- **Lists and versions** follow the settings lists; the current version is marked in Text-Safe Emerald, and an old version opens read-only with its scan, its files and its SKILL.md in a terminal block. A skill's page and each version's page carry a ghost "Download .zip" beside the title. Deleting a skill is a ghost button that asks once more in place, with a standing caution. In the list, a published skill's meta line starts with "Public" or "Unlisted" in Text-Safe Emerald.
+- **Visibility:** a settings section. State first: "Published, public" or "Published, unlisted" with the emerald check and the page's mono address below, or "Private". Then the three choices as radio rows in one Surface box (1px line, 8px radius, divided by 1px lines), each a 14px label over a 12px Faint hint, and a primary "Save visibility" enabled only once the choice differs. When publishing is not possible yet (no username, a critical finding), the unlisted and public rows are disabled and a standing caution says why.
+
+### Community
+
+What users publish lives apart from the catalog and says so.
+
+- **Community label:** a pill with a 1px line, 12px Muted text and the Phosphor `UsersThree` icon, beside a page's title, never above it. `/community` needs none: its title is the label.
+- **Cards:** the skill card's shape without stats: the mono name and the category pill, the description clamped to three lines, then "by <handle> · <date>" in 12px Faint, the handle mono and Muted. Dates are absolute ("23 Oct 2026"), because the pages are cached for hours.
+- **`/community`:** the 1280px grid page: the title, a one-paragraph intro that says nobody reviews these skills, then the search field, the category chips (only when more than one category is present) and the grid. Its empty state is the dashboard's: icon, title, one sentence, a ghost button.
+- **Profile (`/u/<handle>`):** the mono handle with the Community label, the bio in Muted, the count in 12px mono Faint, then the cards.
+- **Skill page (`/u/<handle>/<name>`):** the 896px reading page. The mono title with the category pill and the Community label; the description at 18px; a meta row with the author (a link only when the skill is public), the version and date, and the risk badge. Then a standing caution, Install (a ghost "Download .zip" beside the title, and the real curl and unzip command in a terminal block), Scan and Files in Surface boxes, SKILL.md as written in a terminal block (real file content, as the Terminal Block rule asks, with bidirectional controls written out as `[U+202E]`), and a footer with the tags and, on a public skill, "Propose it for the curated catalog". An author's text is never rendered as Markdown: the page shows what Claude reads.
 
 ### Menus
 
@@ -289,7 +300,7 @@ Five radii, one job each: cards and panels 14px; buttons and the theme toggle 10
 
 ### Navigation
 
-- A sticky header on thin material: the mono wordmark on the left, then Browse skills, Recommend and Report (the last two from `sm`), the GitHub source link, the theme toggle and the account control. The current section carries `aria-current`.
+- A sticky header on thin material: the mono wordmark on the left, then Browse skills, Community (from `md`, once sign-up opens), Recommend and Report (from `sm`), the GitHub source link, the theme toggle and the account control. The current section carries `aria-current`.
 - **Account control:** a "Sign in" link while sign-up is open, or the account button in a browser that has signed in. Its 44px slot is reserved before hydration, so the row never shifts. While sign-up is open, the GitHub link shows only from `sm`, so the row fits 375px.
 - **Footer:** the licence line, the operator's identification in 12px Faint, and links at least 44px tall.
 

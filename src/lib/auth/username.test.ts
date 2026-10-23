@@ -20,7 +20,7 @@ describe("usernameProblem", () => {
   });
 
   it("refuses route names and names that pass for the site", () => {
-    for (const name of ["dashboard", "sign-in", "admin", "claude", "anthropic", "u"]) {
+    for (const name of ["dashboard", "sign-in", "admin", "claude", "anthropic", "u", "skillcellar", "claude-skills-library"]) {
       expect(isValidUsername(name), name).toBe(false);
     }
     expect(usernameProblem("settings")).toMatch(/reserved/);
