@@ -13,6 +13,8 @@ export const metadata: Metadata = {
 };
 
 const EMPTY = "rounded-[8px] border border-line bg-surface px-4 py-3 text-sm text-muted";
+const ROW_LINK =
+  "inline-flex min-h-11 shrink-0 items-center rounded-[8px] px-3 text-sm text-muted transition-colors hover:bg-surface-raised hover:text-foreground";
 
 /** Reports and decisions, for the ids in ADMIN_USER_IDS. Anyone else gets a 404. */
 export default async function AdminPage() {
@@ -66,7 +68,17 @@ export default async function AdminPage() {
                       {account.handle && <p className="truncate text-xs text-faint">{account.email}</p>}
                       {account.reason && <p className="mt-1 text-pretty text-xs leading-relaxed text-muted">{account.reason}</p>}
                     </div>
-                    <LiftSuspension userId={account.id} name={account.handle ?? account.email} />
+                    <div className="flex shrink-0 flex-col items-end sm:flex-row sm:items-start">
+                      {/* An <a>, not <Link>: a prefetch would download the export. */}
+                      <a
+                        href={`/api/admin/export/${encodeURIComponent(account.id)}`}
+                        aria-label={`Download the data of ${account.handle ?? account.email}`}
+                        className={ROW_LINK}
+                      >
+                        Download its data
+                      </a>
+                      <LiftSuspension userId={account.id} name={account.handle ?? account.email} />
+                    </div>
                   </li>
                 ))}
               </ul>

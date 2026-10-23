@@ -117,7 +117,22 @@ Moderation happens at `/dashboard/admin`, for the ids in `ADMIN_USER_IDS`; the d
 - **A report by email** to the contact address: answer at once that it arrived, as the terms promise. If it holds, paste the skill's address or the account's `@username` into Take down, which emails the author the reason; then write to whoever reported with the outcome. If it does not hold, write to them that you will not act and why.
 - **A harmful skill nobody reported:** Take down, with the skill's address. Take down reaches only published skills; an account is named only as `@username`, so a pasted profile address suspends nobody.
 - **Contesting a decision:** the author or the reporter writes to the contact address. Review it, and answer. To lift a suspension, use "Lift suspension" under Suspended accounts. To restore a removed skill, in the Neon console run `update skill set status = 'draft', visibility = 'private', removal_reason = null where id = '<id>'`, then tell its author they can publish it again; the id is in its download address, `/api/skills/<id>/download`.
-- A suspension and a removal have no end date until you lift or undo them, and a suspended account cannot sign in to export or delete its data: do either for it on request, within a month, as /privacy promises.
+- A suspension and a removal have no end date until you lift or undo them. A suspended account cannot sign in to export or delete its data, so do either for it on request, within a month, as /privacy promises:
+  - **A copy of its data:** "Download its data" on its row under Suspended accounts gives the JSON its own export would; email it to the account's address.
+  - **Deleting it:** in the Neon console on `main`, find its id (`select id from "user" where email = '<address>'`) and run the statements below with that id in place of `<id>`. They do what deleting the account in settings does: hold its username for 90 days, keep its newest three holds, and delete its skills, its email links and the account. Its skills are hidden already, so no page needs a refresh.
+
+```sql
+begin;
+insert into username_hold (username, user_id, held_until)
+  select username, id, now() + interval '90 days' from "user" where id = '<id>' and username is not null
+  on conflict (username) do update set user_id = excluded.user_id, held_until = excluded.held_until;
+delete from username_hold where user_id = '<id>' and username not in
+  (select username from username_hold where user_id = '<id>' order by held_until desc limit 3);
+delete from skill where owner_id = '<id>';
+delete from verification where value = '<id>' or value like '%"id":"<id>"%';
+delete from "user" where id = '<id>';
+commit;
+```
 
 ### Edge rate limit
 

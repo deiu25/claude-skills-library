@@ -169,6 +169,12 @@ export async function getSuspendedAccounts(): Promise<SuspendedAccount[]> {
     .limit(200);
 }
 
+/** Whether an account exists and is suspended. */
+export async function isSuspended(userId: string): Promise<boolean> {
+  const [row] = await db.select({ banned: user.banned }).from(user).where(eq(user.id, userId));
+  return row?.banned === true;
+}
+
 /** A published skill the take-down form names by its address. A private one is on nobody's screen. */
 export async function findSkillByAddress(handle: string, slug: string): Promise<{ id: string } | null> {
   const [row] = await db
