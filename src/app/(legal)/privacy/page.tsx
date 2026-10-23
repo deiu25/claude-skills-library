@@ -128,7 +128,8 @@ export default function PrivacyPage() {
         A public skill is also listed in Community and in the sitemap we give search engines, and your
         profile page shows your username, your bio and your public skills. An unlisted skill appears only at
         its own address, and the page asks search engines not to index it. A skill you make private or
-        delete leaves its page the next time the page is opened. Copies that others made while it was
+        delete normally leaves its page the next time the page is opened, and within an hour at the
+        latest, and its download stops at once. Copies that others made while it was
         published, such as a download or a search engine’s cached page, are out of our reach.
       </p>
 
