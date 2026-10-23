@@ -5,9 +5,18 @@ How to operate the production site. Hosting: Vercel, project `claude-skills-libr
 ## Deploy
 
 - A push to `main` builds and deploys to production, and a push to any other branch builds a preview. Vercel cancels the build when the commits since that branch's last successful deployment change only root-level Markdown, `e2e/`, `.claude/` or `.github/` (`scripts/vercel-ignore-build.sh`, run as `vercel.json`'s `ignoreCommand`): the deployment shows as Canceled and the previous one stays live. A branch's first push and a redeploy always build.
-- To ship: run `npm test && npm run lint && npx tsc --noEmit && npm run build && npm run test:e2e`, merge the branch into `main` and push. There is no other deploy step. The e2e suite builds and serves the site on port 3000 itself, so stop any dev server first. Once a branch is merged or dropped, delete it on GitHub (`git push origin --delete <branch>`) and delete its preview database, a copy of production that every pushed branch gets: `neon branches delete preview/<branch> --project-id <Neon project id>`, or on the Neon console's Branches page. Neon would otherwise keep it until Vercel's retention policy deletes the branch's last preview, 30 days or more later, and /privacy promises it is gone within a day after the change goes live or is dropped. The previews themselves stay, without a database, until retention removes them. Neon's Branches page should then list only `main` and branches in progress. On 2026-10-22, with 10 database branches, every new preview failed with "Resource provisioning failed".
+- To ship: run `npm test && npm run lint && npx tsc --noEmit && npm run build && npm run test:e2e`, merge the branch into `main` and push. There is no other deploy step. The e2e suite builds and serves the site on port 3000 itself, so stop any dev server first. Once a branch is merged or dropped, delete it on GitHub (`git push origin --delete <branch>`) and delete its preview database, a branch of `dev` that every pushed branch gets: `neon branches delete preview/<branch> --project-id <Neon project id>`, or on the Neon console's Branches page. Neon would otherwise keep it until Vercel's retention policy deletes the branch's last preview, 30 days or more later, and the project allows 10 database branches: on 2026-10-22, with 10, every new preview failed with "Resource provisioning failed". The previews themselves stay, without a database, until retention removes them. Neon's Branches page should then list only `main`, `dev` and branches in progress.
 - The build command in `vercel.json` applies pending migrations (`npm run db:migrate`) before `next build` whenever `DATABASE_URL_UNPOOLED` is set. A failed migration fails the deploy. Previews migrate their own Neon branch.
-- `vercel.json` also schedules `/api/cron/cleanup` once a day (Hobby runs it within the hour of 03:00 UTC). It deletes expired sessions and email links, rate-limit rows unused for a day and skills left without an owner, and answers 401 until `CRON_SECRET` is set in Production.
+- `vercel.json` also schedules `/api/cron/cleanup` once a day (Hobby runs it within the hour of 03:00 UTC). It deletes expired sessions and email links, rate-limit rows unused for a day, skills left without an owner, accounts not confirmed within 7 days, ended username holds and reports decided more than a year ago, and answers 401 until `CRON_SECRET` is set in Production.
+
+## Preview databases
+
+Neon's Vercel integration gives each preview its own database branch, cut from the Neon project's default branch. That branch is `dev`: made-up accounts and skills from `scripts/seed-dev.mjs`, never a copy of production, which /privacy promises. Production uses `main`, the integration's production branch (Neon console → Integrations → Vercel → Settings → Production branch); changing the default branch leaves it there.
+
+- `dev` holds `dev-admin` (`admin@example.com`, the admin `ADMIN_USER_IDS` names in Preview) and `dev-author` (`author@example.com`, with a public and an unlisted skill). Neither has a password. To sign in on a preview, give one a password on that preview's own branch, as the phase checks do; never on `dev` itself.
+- After a merge that adds a migration, bring `dev` up to date so previews build faster: `DATABASE_URL_UNPOOLED="$(neon connection-string dev --project-id <Neon project id>)" npm run db:migrate`, from an up-to-date `main`.
+- To make `dev` again: `neon branches create --project-id <Neon project id> --name dev --parent main --schema-only` copies production's tables without their rows, and leaves drizzle's ledger empty. Record the migrations production already has, so the next migrate applies only newer ones: on `dev`, `insert into drizzle.__drizzle_migrations (hash, created_at) values ('recorded by hand', <the "when" of main's newest entry in drizzle/meta/_journal.json>)`. Then seed it with `DATABASE_URL_UNPOOLED=<dev's connection string> node scripts/seed-dev.mjs`, which refuses a database holding any account outside example.com, and set it as the default: `neon branches set-default dev --project-id <Neon project id>`.
+- Never set `main` as the default branch while previews are on: every new preview would get a copy of production's accounts.
 
 ## Verify a deploy
 
@@ -43,6 +52,7 @@ A rollback never undoes a migration. Migrations only add tables and columns, so 
 | `RESEND_API_KEY`, `EMAIL_FROM` | Production and Preview | Send verification and reset emails. Resend's test sender `onboarding@resend.dev` delivers only to the Resend account owner's address. |
 | `ACCOUNTS_OPEN` | Production and Preview | `true` opens sign-up to everyone, and with it the Community pages and downloads of published skills; any other value keeps all three closed, and the Community pages answer 404. Those pages are cached, so they follow a change only after a redeploy. |
 | `ACCOUNTS_ALLOWLIST` | Production and Preview | Comma-separated addresses that may sign up while sign-up is closed. |
+| `ADMIN_USER_IDS` | Production (the owner's user id) and Preview (`dev-admin`, the seeded admin) | Comma-separated user ids that may open `/dashboard/admin` and moderate. Anyone else gets a 404 there. Not a secret; a user's id is in their data export. |
 | `NEXT_PUBLIC_ACCOUNTS_OPEN` | Production and Preview, changed together with `ACCOUNTS_OPEN` | `true` shows the header's "Sign in" and "Community" links. It is built into the pages, so it changes only with a redeploy. |
 | `CRON_SECRET` | Production only | Vercel Cron sends it as `Authorization: Bearer <secret>`; without it the daily cleanup refuses to run. At least 32 random characters: `openssl rand -base64 32`. |
 | `KV_REST_API_URL`, `KV_REST_API_TOKEN` | Added by the Upstash for Redis integration for Production and Preview; `UPSTASH_REDIS_REST_URL` and `_TOKEN` work too | Rate limits for Server Actions, such as saving a skill, and for skill downloads. They fail closed in production: without them, or with Redis down, every save answers "Saving is unavailable for a moment", every download answers 503, and the log says `Rate limit refused a request` or `Rate limit check failed`. |
@@ -68,7 +78,7 @@ Cards show no stars, or a skill page says "GitHub stats are temporarily unavaila
 
 The previous production deployment stays live. Read the build log in Vercel, reproduce it with `npm run build`, and fix it on a branch.
 
-If the log stops at `npm run db:migrate`, the migration failed and its error is printed just above. Reproduce it against a Neon branch made from production with `DATABASE_URL_UNPOOLED=<branch url> npm run db:migrate`, never against production itself. That branch is a copy of production: delete it within a day after the fix ships, as /privacy promises.
+If the log stops at `npm run db:migrate`, the migration failed and its error is printed just above. Reproduce it against a Neon branch made from production with `DATABASE_URL_UNPOOLED=<branch url> npm run db:migrate`, never against production itself. That branch is a copy of production: delete it within a day after the fix ships or is dropped, as /privacy promises.
 
 ### Account requests fail
 
@@ -99,6 +109,35 @@ Passkeys bind to the host that registered them, so every passkey stops working o
 
 Fix the file in `src/data/skills/`, or delete it together with its import and array entry in `src/data/skills/index.ts`, then push to `main`. If the entry's source is malicious or hijacked, remove it before anything else: `/install-all.txt` would ask Claude Code to install it.
 
-### Harmful Community skill
+### Reports and moderation
 
-Until P7 builds removal into an admin page, take a published skill down by hand. In the Neon console, run `update skill set status = 'removed' where id = '<id>'`: its download stops at once, and its owner can no longer publish it. Its pages, its author's profile and `/community` keep their cached copies until the next write that touches Community, so redeploy the production deployment (Vercel, Deployments, the current one, Redeploy): a new deployment starts with an empty cache. Write to the author with the reason, as the terms promise. The id is in the page's download address, `/api/skills/<id>/download`.
+Moderation happens at `/dashboard/admin`, for the ids in `ADMIN_USER_IDS`; the dashboard links to it. Every decision there emails its reason to the account it affects and the outcome to whoever reported, and marks the Community pages stale, so nothing needs a redeploy.
+
+- **A report from the form** arrives as an email to every admin and waits under Reports. Choose "Remove the skill", "Suspend its author" (or "Suspend the account" for a profile) or "Dismiss the report". Removing or suspending asks for the ground and the reason, which the account receives word for word: say what breaks which rule, and for illegal content, name the law.
+- **A report by email** to the contact address: answer at once that it arrived, as the terms promise. If it holds, paste the skill's address or the account's `@username` into Take down, which emails the author the reason; then write to whoever reported with the outcome. If it does not hold, write to them that you will not act and why.
+- **A harmful skill nobody reported:** Take down, with the skill's address. Take down reaches only published skills; an account is named only as `@username`, so a pasted profile address suspends nobody.
+- **Contesting a decision:** the author or the reporter writes to the contact address. Review it, and answer. To lift a suspension, use "Lift suspension" under Suspended accounts. To restore a removed skill, in the Neon console run `update skill set status = 'draft', visibility = 'private', removal_reason = null where id = '<id>'`, then tell its author they can publish it again; the id is in its download address, `/api/skills/<id>/download`.
+- A suspension and a removal have no end date until you lift or undo them. A suspended account cannot sign in to export or delete its data, so do either for it on request, within a month, as /privacy promises:
+  - Act only on a request sent from the account's own address.
+  - **A copy of its data:** "Download its data" on its row under Suspended accounts gives the JSON its own export would. The download addresses in it need the owner signed in, so fetch each version it lists from `/api/admin/export/<user id>?skill=<skill id>&version=<n>`, signed in as an admin, and email the JSON and the zips to the account's address.
+  - **Deleting it:** in the Neon console on `main`, find its id (`select id from "user" where email = '<address>'`) and run the statements below with that id in place of `<id>`. They do what deleting the account in settings does: hold its username for 90 days, keep its newest three holds, and delete its skills, its email links and the account. The first statement stops the whole block unless the account is suspended. Its skills are hidden already, so no page needs a refresh.
+
+```sql
+begin;
+do $$ begin
+  if not exists (select 1 from "user" where id = '<id>' and banned) then raise exception 'not a suspended account'; end if;
+end $$;
+insert into username_hold (username, user_id, held_until)
+  select username, id, now() + interval '90 days' from "user" where id = '<id>' and username is not null
+  on conflict (username) do update set user_id = excluded.user_id, held_until = excluded.held_until;
+delete from username_hold where user_id = '<id>' and username not in
+  (select username from username_hold where user_id = '<id>' order by held_until desc limit 3);
+delete from skill where owner_id = '<id>';
+delete from verification where value = '<id>' or value like '%"id":"<id>"%';
+delete from "user" where id = '<id>';
+commit;
+```
+
+### Edge rate limit
+
+A Vercel Firewall rule, "Downloads and sitemap rate limit", answers 429 when one IP sends more than 20 requests a minute to `/api/skills/*/download` or `/sitemap.xml`, before a function runs, so a flood spends neither function time nor the Upstash commands the Server Actions' limits share. Hobby allows one such rule per project. The rule lives in the dashboard, not in the repository: Firewall shows whether it exists, and until it does a flood reaches the functions and Upstash. To create it: Firewall → Configure → New Rule; If Request Path matches the regular expression `^/(api/skills/[^/]+/download|sitemap\.xml)$`, Then Rate Limit, Fixed Window, 60 seconds, 20 requests, key IP, action 429; Save, then Review Changes and Publish. Firewall → the rule shows what it blocked.

@@ -57,7 +57,7 @@ export function ProfileForm({ name, username, bio }: ProfileFormProps) {
         required={username !== null}
         defaultValue={username ?? ""}
         className="input-base font-mono"
-        hint="Your handle on public pages. Letters, digits and single hyphens, 3 to 30 characters."
+        hint="Your handle on public pages. Letters, digits and single hyphens, 3 to 30 characters. A handle you change stays reserved for you for 90 days."
       />
       <Field
         label="Bio"

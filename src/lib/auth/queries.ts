@@ -1,7 +1,7 @@
 import "server-only";
 import { and, asc, desc, eq, gt, isNotNull } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { account, passkey, session, user } from "@/lib/db/schema";
+import { account, passkey, session, user, usernameHold } from "@/lib/db/schema";
 
 // Reads for the account settings page and the data export. Each one takes the signed-in user's id
 // from the caller, which got it from requireUser(); none returns a token, hash or key.
@@ -78,12 +78,14 @@ export async function getAccountExport(userId: string) {
       bio: user.bio,
       image: user.image,
       twoFactorEnabled: user.twoFactorEnabled,
+      suspended: user.banned,
+      suspensionReason: user.banReason,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     })
     .from(user)
     .where(eq(user.id, userId));
-  const [accounts, sessions, passkeys] = await Promise.all([
+  const [accounts, sessions, passkeys, reservedUsernames] = await Promise.all([
     db
       .select({
         provider: account.providerId,
@@ -114,6 +116,10 @@ export async function getAccountExport(userId: string) {
       })
       .from(passkey)
       .where(eq(passkey.userId, userId)),
+    db
+      .select({ username: usernameHold.username, heldUntil: usernameHold.heldUntil })
+      .from(usernameHold)
+      .where(eq(usernameHold.userId, userId)),
   ]);
-  return { profile, signInMethods: accounts, sessions, passkeys };
+  return { profile, signInMethods: accounts, sessions, passkeys, reservedUsernames };
 }

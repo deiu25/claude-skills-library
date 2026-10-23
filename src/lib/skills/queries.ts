@@ -75,6 +75,8 @@ export interface OwnedSkill {
   slug: string;
   visibility: Visibility;
   status: string;
+  /** Why an admin removed it, when its status is "removed". */
+  removalReason: string | null;
   /** The owner's username, which a published skill's address starts with. */
   username: string | null;
   versions: VersionSummary[];
@@ -102,6 +104,7 @@ export const getOwnedSkill = cache(async (skillId: string): Promise<OwnedSkill> 
       slug: skill.slug,
       visibility: skill.visibility,
       status: skill.status,
+      removalReason: skill.removalReason,
       username: user.username,
     })
     .from(skill)
@@ -130,6 +133,7 @@ export const getOwnedSkill = cache(async (skillId: string): Promise<OwnedSkill> 
     slug: row.slug,
     visibility: row.visibility as Visibility,
     status: row.status,
+    removalReason: row.removalReason,
     username: row.username,
     versions: versions.map((version) => ({ ...version, risk: version.risk as Risk })),
     skillMd: latest.skillMd,
@@ -185,14 +189,15 @@ export async function findVersionArchive(
   // Signed out, only a published skill can be downloaded, and only once Community is open.
   if (!viewer && !isSignUpOpen()) return null;
   const [row] = await db
-    .select({ ownerId: skill.ownerId, visibility: skill.visibility, status: skill.status })
+    .select({ ownerId: skill.ownerId, visibility: skill.visibility, status: skill.status, ownerSuspended: user.banned })
     .from(skill)
+    .leftJoin(user, eq(user.id, skill.ownerId))
     .where(eq(skill.id, skillId));
   if (!row) return null;
   if (canEdit(viewer, row)) return { read: () => readVersionArchive(skillId, version, false) };
   // Others get only the latest version: an older one may hold what a later save fixed, such as a
-  // finding that blocks publishing.
-  if (version !== undefined || !isSignUpOpen() || !canRead(viewer, row)) return null;
+  // finding that blocks publishing. A suspended owner's skills are hidden, as on their pages.
+  if (version !== undefined || !isSignUpOpen() || row.ownerSuspended || !canRead(viewer, row)) return null;
   return { read: () => readVersionArchive(skillId, undefined, true) };
 }
 
@@ -214,9 +219,14 @@ async function readVersionArchive(skillId: string, version: number | undefined, 
         version === undefined ? undefined : eq(skillVersion.version, version),
         // Checked again in the statement that picks the version: a save that unpublished the skill
         // since the access check, such as one with a critical finding, is never served to others.
-        // As on its pages, it also needs an owner with a username.
+        // As on its pages, it also needs an owner with a username who is not suspended.
         publishedOnly
-          ? and(eq(skill.status, "published"), inArray(skill.visibility, ["public", "unlisted"]), isNotNull(user.username))
+          ? and(
+              eq(skill.status, "published"),
+              inArray(skill.visibility, ["public", "unlisted"]),
+              isNotNull(user.username),
+              sql`${user.banned} is not true`,
+            )
           : undefined,
       ),
     )
@@ -247,6 +257,7 @@ export async function getSkillsExport(userId: string) {
         tags: skill.tags,
         visibility: skill.visibility,
         status: skill.status,
+        removalReason: skill.removalReason,
         createdAt: skill.createdAt,
         updatedAt: skill.updatedAt,
       })

@@ -4,7 +4,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
-import { twoFactor, username } from "better-auth/plugins";
+import { admin, twoFactor, username, USERNAME_ERROR_CODES } from "better-auth/plugins";
 import { and, eq, like, or } from "drizzle-orm";
 import { revalidateCommunity } from "@/lib/community/revalidate";
 import { db } from "@/lib/db";
@@ -18,12 +18,14 @@ import {
   sendEmail,
 } from "@/lib/email";
 import { SITE_NAME } from "@/lib/site";
+import { adminUserIds } from "./admin";
 import { isSignUpAllowed } from "./allowlist";
 import { generateBackupCodes } from "./backup-codes";
 import { githubCredentials } from "./github";
 import { requirePasskeyUserVerification } from "./passkey";
 import { cleanProfile } from "./profile";
 import { isValidUsername } from "./username";
+import { holdUsername, isUsernameHeld } from "./username-hold";
 
 // Exact hosts from Vercel's system variables, so every preview URL works without BETTER_AUTH_URL.
 // Never a wildcard: "*.vercel.app" would trust every Vercel deployment as an origin.
@@ -50,6 +52,9 @@ const passkeyNotVerified = () =>
     code: "PASSKEY_NOT_USER_VERIFIED",
     message: "This passkey did not check that it is you.",
   });
+
+// The username plugin's own error for a taken name, so a held name answers like one in use.
+const usernameTaken = () => APIError.from("BAD_REQUEST", USERNAME_ERROR_CODES.USERNAME_IS_ALREADY_TAKEN);
 
 export const auth = betterAuth({
   appName: SITE_NAME,
@@ -119,7 +124,10 @@ export const auth = betterAuth({
       },
       // Skills reference their owner with ON DELETE SET NULL, so that a sold one can outlive its
       // author. Until anything can be bought, deleting an account deletes all of its skills.
+      // Its username stays held, so the addresses of what it published pass to nobody else.
       beforeDelete: async (user) => {
+        const { username } = user as typeof user & { username?: string | null };
+        if (username) await holdUsername(username, user.id);
         await db.delete(skill).where(eq(skill.ownerId, user.id));
         revalidateCommunity();
       },
@@ -151,11 +159,14 @@ export const auth = betterAuth({
       "/update-user": { window: 60, max: 10 },
     },
   },
-  // Usernames are handles, never a sign-in name. Verification links go out only from the email
-  // change flow, never on request. The rest return tokens or keys the pages never need: the
-  // settings page reads sessions and passkeys on the server and revokes sessions by id.
+  // Usernames are handles, never a sign-in name, and the settings form checks one on save, where a
+  // held name is refused too. Verification links go out only from the email change flow, never on
+  // request. The rest return tokens or keys the pages never need: the settings page reads sessions
+  // and passkeys on the server and revokes sessions by id. Moderation runs through Server Actions
+  // on /dashboard/admin, so no admin endpoint answers over HTTP.
   disabledPaths: [
     "/sign-in/username",
+    "/is-username-available",
     "/send-verification-email",
     "/list-sessions",
     "/revoke-session",
@@ -164,15 +175,36 @@ export const auth = betterAuth({
     "/get-access-token",
     "/refresh-token",
     "/passkey/list-user-passkeys",
+    "/admin/set-role",
+    "/admin/get-user",
+    "/admin/create-user",
+    "/admin/update-user",
+    "/admin/list-users",
+    "/admin/list-user-sessions",
+    "/admin/unban-user",
+    "/admin/ban-user",
+    "/admin/impersonate-user",
+    "/admin/stop-impersonating",
+    "/admin/revoke-user-session",
+    "/admin/revoke-user-sessions",
+    "/admin/remove-user",
+    "/admin/set-user-password",
+    "/admin/has-permission",
   ],
   // Unexpected errors reach the route handler, which logs them without their query parameters.
   // A failed GitHub sign-in lands on /sign-in?error=<code>, which the page turns into a message.
   onAPIError: { throw: true, errorURL: "/sign-in" },
   hooks: {
     // Sign-up stores the server's own random password, whatever the request sent: nobody ever
-    // knows it, and the account's real password is chosen from the emailed link.
+    // knows it, and the account's real password is chosen from the emailed link. It refuses a
+    // username, which is chosen in the settings, and an empty name here, before Better Auth answers
+    // a taken address alike: a refusal after that point would tell the two apart.
     before: createAuthMiddleware(async (ctx) => {
       if (ctx.path !== "/sign-up/email") return;
+      if (ctx.body?.username !== undefined) {
+        throw new APIError("BAD_REQUEST", { code: "USERNAME_AT_SIGN_UP", message: "Choose a username in your settings once the account exists." });
+      }
+      cleanedProfile({ name: ctx.body?.name });
       return { context: { body: { ...ctx.body, password: randomBytes(32).toString("base64url") } } };
     }),
     after: requirePasskeyUserVerification,
@@ -189,15 +221,25 @@ export const auth = betterAuth({
               message: "Sign-up is invite-only for now.",
             });
           }
-          return { data: cleanedProfile(user) };
+          // No role is stored: admins are the ids in ADMIN_USER_IDS. Better Auth's generic answer
+          // to a sign-up with a taken address shows no role either, so the two answers stay alike.
+          return { data: { ...cleanedProfile(user), role: null } };
         },
       },
       update: {
-        before: async (user) => {
+        before: async (user, ctx) => {
           // Published skills' addresses start with the username: once chosen, it can change but
           // not go back to none.
           if (user.username === null || user.username === "") {
             throw new APIError("BAD_REQUEST", { code: "USERNAME_REQUIRED", message: "A username, once chosen, can change but not be removed." });
+          }
+          // A rename gives up the old username into a hold, and a name another account gave up
+          // within its hold cannot be taken. Usernames change only through /update-user, which
+          // runs as the account's own session.
+          const current = ctx?.context.session?.user;
+          if (typeof user.username === "string" && current && user.username !== current.username) {
+            if (await isUsernameHeld(user.username, current.id)) throw usernameTaken();
+            if (current.username) await holdUsername(current.username, current.id);
           }
           return { data: cleanedProfile(user) };
         },
@@ -237,6 +279,9 @@ export const auth = betterAuth({
         },
       },
     }),
+    // A suspended account cannot start a session by any sign-in method, and suspending one ends
+    // its sessions. The forms show their own text for BANNED_USER.
+    admin({ adminUserIds: adminUserIds(), bannedUserMessage: "This account is suspended." }),
     // Must stay last: it applies cookies set by auth.api calls inside Server Actions.
     nextCookies(),
   ],

@@ -10,13 +10,20 @@ The format follows [Keep a Changelog 2.0.0](https://keepachangelog.com/en/2.0.0/
 
 #### Added
 
+- Community: report a skill or a profile from its page. A person decides every report, and its sender gets a receipt and then the decision by email. Without an account, a report can be sent by email.
+- Moderation: a skill that breaks the terms or the law can be removed, and an account suspended. Its author gets the reason and how to contest it by email; a suspended account cannot sign in, and its skills are hidden.
 - Your skills: upload a skill's whole folder, with its scripts, references and assets, up to 200 files and 1 MB. Every text file is scanned like SKILL.md, scripts that start with #! stay executable, and any version downloads as a zip ready to unpack into ~/.claude/skills.
 - Your skills: publish a skill as unlisted or public. Its page shows its description, SKILL.md, files and scan, with a download and the command that installs it; a public skill is also listed in Community and on your profile. A version with a critical finding cannot be published. Community opens to visitors when sign-up does.
 
 #### Changed
 
+- The terms of use describe reports and moderation, and name the site's contact point under the EU Digital Services Act. A username you change or give up with a deleted account stays reserved for 90 days, and an account whose email address is not confirmed within 7 days is deleted. The privacy policy covers both, with reports and the reasons for decisions, and says that changes are now tested on made-up accounts instead of a copy of the database.
 - The privacy policy covers the files you upload with a skill and the count of skill downloads Upstash keeps to slow down abuse. Your data export gives the download address of every saved version, and the record of saves and downloads now says exactly when it expires.
 - The privacy policy and the terms of use cover publishing a skill: what its page shows, the licence that lets the site show and distribute it, what a published skill must not contain, and how a download without an account is counted.
+
+#### Security
+
+- Next.js 16.4.3, which fixes a way to exhaust the server's CPU through Server Actions (GHSA-p3m5-59mp-jv5r).
 
 ### 2026-10-22
 

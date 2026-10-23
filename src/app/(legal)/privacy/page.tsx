@@ -100,13 +100,32 @@ export default function PrivacyPage() {
           download it, until you publish it.
         </li>
         <li>
-          <strong>Skill saves and downloads:</strong> your account’s id and a count of your recent saves and
-          skill downloads, used only to slow down repeated ones.
+          <strong>Skill saves, downloads and reports:</strong> your account’s id and a count of your recent
+          saves, skill downloads and reports, used only to slow down repeated ones.
         </li>
         <li>
           <strong>Email links:</strong> the links that finish a new account, reset your password, change
           your email address or delete your account. The links to finish an account, reset a password or
           delete an account are stored only as a hash; the links for an email change are not stored.
+        </li>
+        <li>
+          <strong>Reports you send:</strong> the skill or profile you report, the reason you choose, what you
+          write about it, your account, and what we decided and when. We never tell the account you report
+          who reported it.
+        </li>
+        <li>
+          <strong>If we act on your skill or account:</strong> the reason we gave for removing a skill, and
+          whether your account is suspended and why.
+        </li>
+        <li>
+          <strong>Reports about your skills or profile:</strong> what the person who reported them chose and
+          wrote, and what we decided. They come from other people.
+        </li>
+        <li>
+          <strong>Old usernames:</strong> when you change your username, the old one stays reserved for
+          your account. When you delete your account, its username, and up to two earlier ones still reserved
+          for it, stay reserved, no longer tied to any account. Nobody else can take a username while it is
+          reserved.
         </li>
       </ul>
 
@@ -128,8 +147,8 @@ export default function PrivacyPage() {
         A public skill is also listed in Community and in the sitemap we give search engines, and your
         profile page shows your username, your bio and your public skills. An unlisted skill appears only at
         its own address, and the page asks search engines not to index it. A skill you make private or
-        delete normally leaves its page the next time the page is opened, and within an hour at the
-        latest, and its download stops at once. Copies that others made while it was
+        delete, or that we remove or hide with a suspended account, normally leaves its page the next time
+        the page is opened, and within an hour at the latest, and its download stops at once. Copies that others made while it was
         published, such as a download or a search engine’s cached page, are out of our reach.
       </p>
 
@@ -144,15 +163,31 @@ export default function PrivacyPage() {
           for (performance of a contract, GDPR art. 6(1)(b)).
         </li>
         <li>
+          To receive reports, decide them, act on what we find ourselves, tell whoever reported what we
+          decided, tell whoever is affected what we decided and why, and keep a record of reports and
+          decisions. Receiving and answering reports of illegal content, and the reasons we send with every
+          removal or suspension, whether for illegal content or for a breach of the terms, are legal
+          obligations under the EU Digital Services Act (Regulation (EU) 2022/2065, art. 16 and 17; GDPR art.
+          6(1)(c)). Receiving, deciding and answering reports of other breaches of the terms, acting on our
+          own review, and keeping the record are our legitimate interest in a safe service (art. 6(1)(f)), and you can object to
+          them.
+        </li>
+        <li>
+          To keep a username from passing to someone else while links to its pages are still around, through
+          the reserved old usernames. This is our legitimate interest in preventing impersonation (art.
+          6(1)(f)), and you can object to it.
+        </li>
+        <li>
           To protect accounts from takeover and abuse, through the IP address and user agent on your
           sessions, the sign-in attempt counters, the count of wrong two-factor codes and the record of
-          skill saves and downloads. This is our
+          skill saves, downloads and reports. This is our
           legitimate interest in keeping accounts
           secure and the service available (art. 6(1)(f)), and you can object to it.
         </li>
         <li>
-          To test changes to the site on a copy of the database before they go live, so that a change does
-          not break your account or lose your skills. This is our legitimate interest in a working service
+          To find out why a change failed against the real database, on a copy of it, so that the fix does
+          not break your account or lose your skills. We test changes before they go live on a database of
+          made-up accounts, never on a copy of yours. This is our legitimate interest in a working service
           (art. 6(1)(f)), and you can object to it.
         </li>
         <li>
@@ -171,7 +206,8 @@ export default function PrivacyPage() {
         <li>
           Your profile and sign-in methods (password hash, GitHub link, two-factor settings, passkeys):
           until your account is deleted. You can delete it yourself in your account settings, or email us
-          and we delete it within one month.
+          and we delete it within one month. An account whose email address is not confirmed within 7 days
+          of sign-up is deleted then, within a day.
         </li>
         <li>
           A session: deleted when you sign out, or sign it out from your account settings. A session you
@@ -187,15 +223,28 @@ export default function PrivacyPage() {
         </li>
         <li>
           Sign-in attempt counters: deleted once a counter has gone unused for a day. The record of skill
-          saves and downloads expires on its own no more than two days and one second after your last
-          save or download.
+          saves, downloads and reports expires on its own no more than two days and one second after your
+          last one.
+        </li>
+        <li>
+          Reports: until a year after we decide them, then deleted within a day; a report we have not
+          decided yet stays until we do. A report stays if the skill or account it names is deleted, and if
+          you delete your account, it stays without the link to your account.
+        </li>
+        <li>
+          The reason for removing a skill: until the skill is deleted. A suspension and its reason: until we
+          lift it, or the account is deleted.
+        </li>
+        <li>
+          An old username: reserved for 90 days, or until your account gives up three newer ones, then deleted
+          within a day.
         </li>
         <li>
           Copies: our email provider keeps each email it sends for 30 days, and our database provider keeps
-          a 6-hour restore history, so deleted data leaves its backups within 6 hours. When we test a change
-          to the site before it goes live, our database provider makes a full copy of the database for the test.
-          Data changed or deleted after the copy is made, a deleted account included, stays in the copy as
-          it was until we delete the copy, within a day after the change goes live or is dropped.
+          a 6-hour restore history, so deleted data leaves its backups within 6 hours. Only when we need to
+          find out why a change failed against the real database does our database provider make a full
+          copy of it. Data changed or deleted after the copy is made, a deleted account included, stays in
+          the copy as it was until we delete the copy, within a day after the fix goes live or is dropped.
         </li>
       </ul>
 
@@ -216,9 +265,9 @@ export default function PrivacyPage() {
           own service is used, as a controller in its own right.
         </li>
         <li>
-          <strong>Upstash, Inc.</strong> (United States): keeps the record of skill saves and downloads, by
-          account, or by a keyed hash of the IP address for a download without an account, provided through
-          the Vercel Marketplace.
+          <strong>Upstash, Inc.</strong> (United States): keeps the record of skill saves, downloads and
+          reports, by account, or by a keyed hash of the IP address for a download without an account,
+          provided through the Vercel Marketplace.
         </li>
         <li>
           <strong>GitHub, Inc.</strong> (United States), only if you sign in with GitHub. GitHub shares
@@ -236,9 +285,11 @@ export default function PrivacyPage() {
         You can ask us for a copy of your data, to correct it, to delete it, to restrict its use, or to
         receive it in a portable format, and you can object to processing based on our legitimate
         interest. Write to <a href={`mailto:${OPERATOR.email}`}>{OPERATOR.email}</a>; we answer within
-        one month. Signed in, you can also download a copy of your data and delete your account yourself,
-        in your account settings. For every saved version of a skill, the copy gives the address where it
-        downloads as a zip with its files; the skill&rsquo;s pages have the same downloads.
+        one month. Signed in, you can also download a copy of what your account holds and delete your account yourself,
+        in your account settings; a suspended account cannot sign in, so it writes to us instead. For every
+        saved version of a skill, the copy gives the address where it downloads as a zip with its files;
+        the skill&rsquo;s pages have the same downloads. A suspended account, which cannot sign in to use
+        those addresses, gets the zips with its copy.
       </p>
       <p>
         If you think we handle your data unlawfully, you can complain to the Romanian data protection

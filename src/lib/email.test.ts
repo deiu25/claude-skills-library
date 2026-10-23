@@ -4,9 +4,15 @@ import {
   changeEmailConfirmationEmail,
   deleteAccountEmail,
   newEmailAddressEmail,
+  newReportEmail,
   passkeyAddedEmail,
   passwordLinkEmail,
+  removalEmail,
+  reportDecisionEmail,
+  reportReceivedEmail,
+  suspensionEmail,
 } from "./email";
+import { OPERATOR, SITE_URL } from "./site";
 
 // The URL Better Auth builds for a password link: /reset-password/<token>?callbackURL=<redirectTo>.
 const link = (redirectTo: string) =>
@@ -51,5 +57,51 @@ describe("account emails", () => {
     const added = passkeyAddedEmail("ada@example.com");
     expect(added.to).toBe("ada@example.com");
     expect(added.subject).toMatch(/passkey was added/);
+  });
+});
+
+describe("moderation emails", () => {
+  const address = `${SITE_URL}/u/bob/pdf-forms`;
+
+  it("confirm a report to its sender, and tell an admin without quoting it", () => {
+    const receipt = reportReceivedEmail("ada@example.com", address);
+    expect(receipt.to).toBe("ada@example.com");
+    expect(receipt.text).toContain(address);
+
+    const notice = newReportEmail("admin@example.com");
+    expect(notice.text).toContain(`${SITE_URL}/dashboard/admin`);
+    expect(notice.text).not.toContain(address);
+  });
+
+  it("send a report's sender the decision and how to contest it", () => {
+    const acted = reportDecisionEmail("ada@example.com", address, "acted");
+    expect(acted.text).toMatch(/^We acted on your report/);
+    const dismissed = reportDecisionEmail("ada@example.com", address, "dismissed");
+    expect(dismissed.text).toMatch(/decided not to act/);
+    const gone = reportDecisionEmail("ada@example.com", address, "gone");
+    expect(gone.text).toMatch(/no longer on .* when we reviewed it/);
+    for (const email of [acted, dismissed, gone]) {
+      expect(email.text).toContain(OPERATOR.email);
+      expect(email.text).toContain(`${SITE_URL}/terms`);
+    }
+  });
+
+  it("state the reasons for a removal or a suspension, as the Digital Services Act asks", () => {
+    const statement = { reason: "Breaks the terms of use: install.sh uploads ~/.ssh to a remote server.", onReport: true };
+    const removal = removalEmail("bob@example.com", "pdf-forms", statement);
+    const suspension = suspensionEmail("bob@example.com", { ...statement, onReport: false });
+    expect(removal.subject).toContain("pdf-forms");
+    for (const email of [removal, suspension]) {
+      expect(email.to).toBe("bob@example.com");
+      // What happened, where and for how long; why; who decided and how; and the way to contest it.
+      expect(email.text).toMatch(/everywhere, with no end date/);
+      expect(email.text).toContain(`Why: ${statement.reason}`);
+      expect(email.text).toMatch(/A person made this decision; no automated system took it\./);
+      expect(email.text).toContain(OPERATOR.email);
+      // The sender address is Resend's test address for now, so nothing may ask for a reply.
+      expect(email.text).not.toMatch(/reply/i);
+    }
+    expect(removal.text).toContain("after a report");
+    expect(suspension.text).toContain("on our own review");
   });
 });

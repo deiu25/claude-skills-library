@@ -1,6 +1,6 @@
 import { getSession } from "@/lib/auth/session";
 import { rateLimit, visitorKey } from "@/lib/rate-limit";
-import { folderName, zipVersion } from "@/lib/skills/archive";
+import { zipResponse } from "@/lib/skills/archive";
 import { findVersionArchive } from "@/lib/skills/queries";
 
 /**
@@ -20,13 +20,5 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   if (limit !== "ok") return new Response(null, { status: limit === "limited" ? 429 : 503 });
   const archive = await found.read();
   if (!archive) return refused;
-
-  return new Response(Buffer.from(zipVersion(archive)), {
-    headers: {
-      "Content-Type": "application/zip",
-      "Content-Disposition": `attachment; filename="${folderName(archive.name)}-v${archive.version}.zip"`,
-      "Cache-Control": "private, no-store",
-      "X-Content-Type-Options": "nosniff",
-    },
-  });
+  return zipResponse(archive);
 }

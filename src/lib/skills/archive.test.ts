@@ -1,6 +1,6 @@
 import { unzipSync } from "fflate";
 import { describe, expect, it } from "vitest";
-import { zipVersion } from "./archive";
+import { zipResponse, zipVersion } from "./archive";
 
 const text = (value: string) => new TextEncoder().encode(value);
 
@@ -56,5 +56,15 @@ describe("zipVersion", () => {
 
   it("never lets a name that was not checked choose a path in the archive", () => {
     expect(Object.keys(unzipSync(zipVersion({ ...VERSION, name: "../evil", files: [] })))).toEqual(["skill/SKILL.md"]);
+  });
+});
+
+describe("zipResponse", () => {
+  it("serves the zip as a download named after the skill and its version, never cached", async () => {
+    const response = zipResponse({ ...VERSION, version: 3 });
+    expect(response.headers.get("Content-Type")).toBe("application/zip");
+    expect(response.headers.get("Content-Disposition")).toBe('attachment; filename="pdf-tools-v3.zip"');
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+    expect(Object.keys(unzipSync(new Uint8Array(await response.arrayBuffer())))).toContain("pdf-tools/SKILL.md");
   });
 });

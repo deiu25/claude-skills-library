@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, check, customType, integer, jsonb, pgTable, primaryKey, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
+import { boolean, check, customType, integer, jsonb, pgTable, primaryKey, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import type { Finding } from "../skills/scan";
 import { user } from "./auth-schema";
 
@@ -19,6 +19,8 @@ export const skill = pgTable(
     tags: text("tags").array().notNull().default(sql`'{}'::text[]`),
     visibility: text("visibility").notNull().default("private"),
     status: text("status").notNull().default("draft"),
+    // Why an admin removed it, as its owner was told; null unless the status is "removed".
+    removalReason: text("removal_reason"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
@@ -73,3 +75,43 @@ export const skillFile = pgTable(
     check("skill_file_path_check", sql`${table.path} !~ '(^|/)\\.{0,2}(/|$)' and strpos(${table.path}, '\\') = 0`),
   ],
 );
+
+/** A notice that a published skill or a profile breaks the terms or the law, and what an admin decided. */
+export const report = pgTable(
+  "report",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    // SET NULL: the record of what was reported and decided outlives the sender's account.
+    reporterId: text("reporter_id").references(() => user.id, { onDelete: "set null" }),
+    // A skill's id, or a user's id for a profile. No foreign key: the record outlives its target.
+    targetType: text("target_type").notNull(),
+    targetId: text("target_id").notNull(),
+    reason: text("reason").notNull(),
+    details: text("details").notNull(),
+    status: text("status").notNull().default("open"),
+    resolvedBy: text("resolved_by").references(() => user.id, { onDelete: "set null" }),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    check("report_target_type_check", sql`${table.targetType} in ('skill', 'user')`),
+    check(
+      "report_reason_check",
+      sql`${table.reason} in ('malware', 'hidden-instructions', 'personal-data', 'rights', 'illegal', 'other')`,
+    ),
+    check("report_status_check", sql`${table.status} in ('open', 'actioned', 'dismissed')`),
+    // A second report of the same target by the same sender adds nothing while the first is open.
+    uniqueIndex("report_open_unique").on(table.reporterId, table.targetType, table.targetId).where(sql`${table.status} = 'open'`),
+  ],
+);
+
+/**
+ * A username given up by a rename or an account deletion, kept from everyone else until the hold
+ * ends, so its old addresses cannot pass to someone else.
+ */
+export const usernameHold = pgTable("username_hold", {
+  username: text("username").primaryKey(),
+  // The account that gave it up, which may take it back; null once that account is deleted.
+  userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
+  heldUntil: timestamp("held_until", { withTimezone: true }).notNull(),
+});

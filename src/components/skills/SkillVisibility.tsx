@@ -21,6 +21,8 @@ interface SkillVisibilityProps {
   skillId: string;
   visibility: Visibility;
   status: string;
+  /** Why an admin removed it, for a removed skill. */
+  removalReason: string | null;
   /** Where its page is, without the scheme, once the owner has a username. */
   address: string | null;
   /** Why it cannot be published now, or null. */
@@ -30,7 +32,7 @@ interface SkillVisibilityProps {
 }
 
 /** Who can see a skill: the state first, then the choice. */
-export function SkillVisibility({ skillId, visibility, status, address, blocked, communityOpen }: SkillVisibilityProps) {
+export function SkillVisibility({ skillId, visibility, status, removalReason, address, blocked, communityOpen }: SkillVisibilityProps) {
   const action = useMemo(() => keepDraftOnFailure(setSkillVisibility.bind(null, skillId)), [skillId]);
   const [state, formAction, pending] = useActionState(action, null);
   const [choice, setChoice] = useState(visibility);
@@ -70,6 +72,11 @@ export function SkillVisibility({ skillId, visibility, status, address, blocked,
           {published && <CheckCircle size={18} className="text-accent" aria-hidden />}
           {removed ? "Removed from the site" : published ? `Published, ${visibility}` : "Private"}
         </p>
+        {removed && (
+          <p className="text-pretty text-sm leading-relaxed text-muted">
+            {removalReason ? `${removalReason} ` : ""}We emailed you the reason and how to contest it.
+          </p>
+        )}
         {published && address && (
           <p className="break-all text-sm text-muted">
             {communityOpen ? (

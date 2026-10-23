@@ -34,3 +34,15 @@ export function zipVersion({ name, createdAt, skillMd, files }: ZipInput): Uint8
   for (const file of files) entries[`${folder}/${file.path}`] = entry(file.content, file.executable);
   return zipSync(entries);
 }
+
+/** A version's zip as a download, named after the skill and its version. */
+export function zipResponse(archive: ZipInput & { version: number }): Response {
+  return new Response(Buffer.from(zipVersion(archive)), {
+    headers: {
+      "Content-Type": "application/zip",
+      "Content-Disposition": `attachment; filename="${folderName(archive.name)}-v${archive.version}.zip"`,
+      "Cache-Control": "private, no-store",
+      "X-Content-Type-Options": "nosniff",
+    },
+  });
+}

@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SignedInMarker } from "@/components/auth/SignedInMarker";
 import { SignOutButton } from "@/components/auth/SignOutButton";
+import { isAdmin } from "@/lib/auth/admin";
 import { requireUser } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
@@ -33,6 +34,11 @@ export default async function DashboardPage() {
           <Link href="/dashboard/settings" className="btn btn-ghost text-sm">
             Settings
           </Link>
+          {isAdmin(user.id) && (
+            <Link href="/dashboard/admin" className="btn btn-ghost text-sm">
+              Moderation
+            </Link>
+          )}
           <SignOutButton className="btn btn-ghost text-sm" />
         </div>
         {/* Every sign-in lands here: email, the verification link and GitHub. */}
