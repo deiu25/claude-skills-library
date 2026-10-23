@@ -124,7 +124,7 @@ export function reportReceivedEmail(to: string, address: string): EmailMessage {
     subject: `We received your report`,
     text: `We received your report about ${address}.
 
-A person will review it, and we will email you what we decide. There is nothing else you need to do.
+A person will decide on it, and we will email you the decision. There is nothing else you need to do.
 `,
   };
 }

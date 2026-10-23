@@ -88,8 +88,8 @@ export default function TermsPage() {
         <li>
           When you change your username, the old one stays reserved for 90 days, and in that time only your
           account can take it back; it is released early once you have given up three newer usernames. When
-          you delete your account, its username, and any earlier ones still reserved for it, stay reserved
-          for nobody until their 90 days end. Either way, while a username is reserved, its old addresses do
+          you delete your account, its username, and up to two earlier ones still reserved for it, stay
+          reserved for nobody until their 90 days end. Either way, while a username is reserved, its old addresses do
           not lead to someone else.
         </li>
         <li>

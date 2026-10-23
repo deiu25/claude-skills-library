@@ -123,8 +123,8 @@ export default function PrivacyPage() {
         </li>
         <li>
           <strong>Old usernames:</strong> when you change your username, the old one stays reserved for
-          your account. When you delete your account, its username, and any earlier ones still reserved for
-          it, stay reserved, no longer tied to any account. Nobody else can take a username while it is
+          your account. When you delete your account, its username, and up to two earlier ones still reserved
+          for it, stay reserved, no longer tied to any account. Nobody else can take a username while it is
           reserved.
         </li>
       </ul>
@@ -168,8 +168,8 @@ export default function PrivacyPage() {
           decisions. Receiving and answering reports of illegal content, and the reasons we send with every
           removal or suspension, whether for illegal content or for a breach of the terms, are legal
           obligations under the EU Digital Services Act (Regulation (EU) 2022/2065, art. 16 and 17; GDPR art.
-          6(1)(c)). Deciding reports of other breaches of the terms, acting on our own review, and keeping
-          the record are our legitimate interest in a safe service (art. 6(1)(f)), and you can object to
+          6(1)(c)). Receiving, deciding and answering reports of other breaches of the terms, acting on our
+          own review, and keeping the record are our legitimate interest in a safe service (art. 6(1)(f)), and you can object to
           them.
         </li>
         <li>
@@ -285,7 +285,7 @@ export default function PrivacyPage() {
         You can ask us for a copy of your data, to correct it, to delete it, to restrict its use, or to
         receive it in a portable format, and you can object to processing based on our legitimate
         interest. Write to <a href={`mailto:${OPERATOR.email}`}>{OPERATOR.email}</a>; we answer within
-        one month. Signed in, you can also download a copy of your data and delete your account yourself,
+        one month. Signed in, you can also download a copy of what your account holds and delete your account yourself,
         in your account settings; a suspended account cannot sign in, so it writes to us instead. For every
         saved version of a skill, the copy gives the address where it downloads as a zip with its files;
         the skill&rsquo;s pages have the same downloads.

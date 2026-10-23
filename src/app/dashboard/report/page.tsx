@@ -40,7 +40,7 @@ export default async function ReportPage({ searchParams }: PageProps) {
 
   if (!session) {
     return (
-      <Page title={`Report a ${noun}`} intro="A person reviews every report, and we email you what we decide.">
+      <Page title={`Report a ${noun}`} intro="A person decides every report, and we email you what we decide.">
         <FormMessage tone="warning">
           Sign in to send a report from your account.{" "}
           <Link href="/sign-in" className={LINK}>
@@ -65,7 +65,7 @@ export default async function ReportPage({ searchParams }: PageProps) {
       intro={
         <>
           Tell us what is wrong with <span className="break-all font-mono text-foreground">{target.name}</span>. A person
-          reviews every report, and we email you what we decide.
+          decides every report, and we email you what we decide.
         </>
       }
     >

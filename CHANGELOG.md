@@ -10,7 +10,7 @@ The format follows [Keep a Changelog 2.0.0](https://keepachangelog.com/en/2.0.0/
 
 #### Added
 
-- Community: report a skill or a profile from its page. A person reviews every report, and its sender gets a receipt and then the decision by email. Without an account, a report can be sent by email.
+- Community: report a skill or a profile from its page. A person decides every report, and its sender gets a receipt and then the decision by email. Without an account, a report can be sent by email.
 - Moderation: a skill that breaks the terms or the law can be removed, and an account suspended. Its author gets the reason and how to contest it by email; a suspended account cannot sign in, and its skills are hidden.
 - Your skills: upload a skill's whole folder, with its scripts, references and assets, up to 200 files and 1 MB. Every text file is scanned like SKILL.md, scripts that start with #! stay executable, and any version downloads as a zip ready to unpack into ~/.claude/skills.
 - Your skills: publish a skill as unlisted or public. Its page shows its description, SKILL.md, files and scan, with a download and the command that installs it; a public skill is also listed in Community and on your profile. A version with a critical finding cannot be published. Community opens to visitors when sign-up does.
