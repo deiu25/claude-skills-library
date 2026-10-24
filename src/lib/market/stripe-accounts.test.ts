@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   closeSellerAccount,
   createDashboardLink,
@@ -38,6 +38,20 @@ const asStripe = (fake: ReturnType<typeof fakeStripe>) => fake as unknown as Str
 const seller = { userId: "user-1", email: "seller@example.com", name: "Seller", country: "RO" };
 
 describe("createSellerAccount", () => {
+  beforeEach(() => vi.useFakeTimers({ now: new Date("2026-10-24T23:59:00Z") }));
+  afterEach(() => vi.useRealTimers());
+
+  it("keys the request by user, country and UTC day, so a reset account can be opened again the next day", async () => {
+    const stripe = fakeStripe({ v2: { id: "acct_v2" } });
+    await createSellerAccount(asStripe(stripe), seller);
+    vi.setSystemTime(new Date("2026-10-25T00:01:00Z"));
+    await createSellerAccount(asStripe(stripe), seller);
+    expect(stripe.v2.core.accounts.create.mock.calls.map((call) => (call as unknown[])[1])).toEqual([
+      { idempotencyKey: "seller-account:user-1:RO:2026-10-24" },
+      { idempotencyKey: "seller-account:user-1:RO:2026-10-25" },
+    ]);
+  });
+
   it("opens an Express recipient account with Accounts v2, the platform covering fees and losses", async () => {
     const stripe = fakeStripe({ v2: { id: "acct_v2" } });
     expect(await createSellerAccount(asStripe(stripe), seller)).toBe("acct_v2");
@@ -51,7 +65,7 @@ describe("createSellerAccount", () => {
         configuration: { recipient: { capabilities: { stripe_balance: { stripe_transfers: { requested: true } } } } },
         metadata: { user_id: "user-1" },
       },
-      { idempotencyKey: "seller-account:user-1:RO" },
+      { idempotencyKey: "seller-account:user-1:RO:2026-10-24" },
     );
     expect(stripe.accounts.create).not.toHaveBeenCalled();
   });
@@ -72,7 +86,7 @@ describe("createSellerAccount", () => {
         capabilities: { transfers: { requested: true } },
         metadata: { user_id: "user-1" },
       },
-      { idempotencyKey: "seller-account:user-1:RO:v1" },
+      { idempotencyKey: "seller-account:user-1:RO:2026-10-24:v1" },
     );
   });
 

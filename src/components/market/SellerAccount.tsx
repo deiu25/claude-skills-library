@@ -35,8 +35,8 @@ const STATES: Record<Seller["status"], { title: string; detail: ReactNode; actio
     action: "continue",
   },
   missing: {
-    title: "Stripe no longer has this account",
-    detail: <>Stripe closed it, or it belongs to a Stripe setup this site no longer uses. Write to us at {contact} and we will let you start again.</>,
+    title: "This Stripe account can no longer be used",
+    detail: <>It was closed, or it belongs to a Stripe setup this site no longer uses. Write to us at {contact} and we will help you set it up again.</>,
     action: null,
   },
   rejected: {
@@ -50,8 +50,8 @@ const STATES: Record<Seller["status"], { title: string; detail: ReactNode; actio
     action: null,
   },
   unknown: {
-    title: "We could not reach Stripe",
-    detail: "Reload this page in a moment to see where your account stands.",
+    title: "We could not check with Stripe just now",
+    detail: "Reload this page later to see where your account stands.",
     action: "reopen",
   },
 };

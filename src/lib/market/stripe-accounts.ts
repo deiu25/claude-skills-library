@@ -30,10 +30,12 @@ export interface NewSeller {
 /**
  * Opens the Stripe account a seller is paid into: the Express Dashboard, the platform collecting
  * fees and covering losses, as destination charges need, and the recipient configuration, which
- * only receives transfers. Keyed per user and country, so a repeated request opens no second one.
+ * only receives transfers. Keyed per user, country and UTC day, so a repeated request that day opens
+ * no second one, while a seller whose account was reset can open a new one the next day: Accounts
+ * v2 replays a key for 30 days, and would hand back the old account.
  */
 export async function createSellerAccount(stripe: Stripe, seller: NewSeller): Promise<string> {
-  const idempotencyKey = `seller-account:${seller.userId}:${seller.country}`;
+  const idempotencyKey = `seller-account:${seller.userId}:${seller.country}:${new Date().toISOString().slice(0, 10)}`;
   try {
     const account = await stripe.v2.core.accounts.create(
       {

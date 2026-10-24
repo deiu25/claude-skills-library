@@ -24,8 +24,10 @@ const SIGNED_OUT = "You are signed out. Sign in again, then try once more.";
 const NOT_SET_UP = "Selling is not available on this site yet.";
 const TOO_MANY = "Too many requests in a short time. Wait a minute, then try again.";
 const UNAVAILABLE = "This is unavailable for a moment. Try again shortly.";
-const STRIPE_FAILED = "Stripe did not answer. Try again in a moment.";
-const STRIPE_REFUSED = `Stripe could not set up your account. If this happens again, write to us at ${OPERATOR.email}.`;
+const FAILED = "This did not work. Try again in a moment.";
+const STRIPE_FAILED = "Stripe could not do this just now. Try again in a moment.";
+const SETUP_REFUSED = `Stripe could not set up your account. If this happens again, write to us at ${OPERATOR.email}.`;
+const DASHBOARD_REFUSED = `Stripe could not open your dashboard. If this happens again, write to us at ${OPERATOR.email}.`;
 const NOT_FOUND = "We could not find this skill. It may have been deleted.";
 
 type SignedInUser = { id: string; email: string; name: string };
@@ -39,14 +41,17 @@ async function signedIn(limit: LimitName): Promise<{ user: SignedInUser } | { er
   return { user: session.user };
 }
 
-/** What a seller reads when a Stripe request fails: a refusal will fail again, a lost answer may not. */
-const stripeFailure = (error: unknown) =>
-  error instanceof Stripe.errors.StripeInvalidRequestError || error instanceof Stripe.errors.StripePermissionError ? STRIPE_REFUSED : STRIPE_FAILED;
+/** What a seller reads when a request fails: a refusal by Stripe will fail again, a lost answer may not. */
+function failure(error: unknown, refused: string) {
+  if (error instanceof Stripe.errors.StripeInvalidRequestError || error instanceof Stripe.errors.StripePermissionError) return refused;
+  return error instanceof Stripe.errors.StripeError ? STRIPE_FAILED : FAILED;
+}
 
 /**
  * The user's Stripe account id, opening one in the country they chose when they have none. Stripe
- * is called outside any transaction: the row's key keeps one account per user, and an account
- * opened by a second request at the same moment, for another country, is closed again.
+ * is called outside any transaction: the row's key keeps one account per user, and an account a
+ * second request opened at the same moment under another key (another country, or past midnight
+ * UTC) is closed again.
  */
 async function sellerAccountFor(
   stripe: Stripe,
@@ -100,7 +105,7 @@ export async function startSelling(_previous: MarketActionState, formData: FormD
     console.error("Seller onboarding failed:", errorCode(error));
     // An account stored before the link failed: the page then offers to continue, not to pick a country.
     if (account && "opened" in account && account.opened) revalidatePath("/dashboard/sales");
-    return { ok: false, error: stripeFailure(error) };
+    return { ok: false, error: failure(error, SETUP_REFUSED) };
   }
   redirect(url);
 }
@@ -121,7 +126,7 @@ export async function openStripeDashboard(): Promise<MarketActionState> {
     url = row?.ready ? await createDashboardLink(stripe, row.stripeAccountId) : null;
   } catch (error) {
     console.error("Stripe dashboard link failed:", errorCode(error));
-    return { ok: false, error: stripeFailure(error) };
+    return { ok: false, error: failure(error, DASHBOARD_REFUSED) };
   }
   if (!url) return { ok: false, error: "Finish setting up selling first." };
   redirect(url);

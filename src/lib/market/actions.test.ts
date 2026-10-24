@@ -136,14 +136,15 @@ describe("startSelling", () => {
 
   it("logs the id of an account Stripe opened but the database did not store", async () => {
     results.push([], Object.assign(new Error("insert failed"), { code: "57P01" }));
-    expect(await startSelling(null, country("RO"))).toEqual({ ok: false, error: "Stripe did not answer. Try again in a moment." });
+    // A database failure is not Stripe's, so the message does not blame Stripe.
+    expect(await startSelling(null, country("RO"))).toEqual({ ok: false, error: "This did not work. Try again in a moment." });
     expect(console.error).toHaveBeenCalledWith("Seller account not stored:", "acct_new", "57P01");
   });
 
   it("refreshes the page when only the link failed, so it offers to continue instead of a new country", async () => {
     results.push([], [{ id: "acct_new" }]);
     stripeAccounts.createOnboardingLink.mockRejectedValue(new Stripe.errors.StripeConnectionError({ message: "socket hang up" }));
-    expect(await startSelling(null, country("RO"))).toEqual({ ok: false, error: "Stripe did not answer. Try again in a moment." });
+    expect(await startSelling(null, country("RO"))).toEqual({ ok: false, error: "Stripe could not do this just now. Try again in a moment." });
     expect(revalidatePath).toHaveBeenCalledWith("/dashboard/sales");
   });
 
@@ -163,6 +164,15 @@ describe("openStripeDashboard", () => {
     results.push([{ stripeAccountId: "acct_1", ready: true }]);
     await expect(openStripeDashboard()).rejects.toThrow("NEXT_REDIRECT https://connect.stripe.com/express/acct_x/login");
     expect(stripeAccounts.createDashboardLink).toHaveBeenCalledWith(STRIPE, "acct_1");
+  });
+
+  it("says Stripe refused the dashboard, not the set-up, when the login link is refused", async () => {
+    results.push([{ stripeAccountId: "acct_1", ready: true }]);
+    stripeAccounts.createDashboardLink.mockRejectedValue(refused());
+    expect(await openStripeDashboard()).toEqual({
+      ok: false,
+      error: expect.stringMatching(/^Stripe could not open your dashboard\. If this happens again, write to us at /),
+    });
   });
 
   it("refuses a seller Stripe has not accepted, and a user with no seller account", async () => {

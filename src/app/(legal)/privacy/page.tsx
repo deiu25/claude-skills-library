@@ -299,8 +299,8 @@ export default function PrivacyPage() {
           you and to pay you, such as your identity and your bank account. This site never stores those
           details, though Stripe may share some of them with us, as the agreement you accept there allows.
           Stripe uses them as a controller in its own right, under that agreement, the Stripe Connected
-          Account Agreement, and Stripe’s privacy policy. From Stripe we use only where your account stands,
-          such as whether Stripe has accepted it, and we keep only whether it has.
+          Account Agreement, and Stripe’s privacy policy. From Stripe we keep only your Stripe account’s id
+          and whether Stripe has accepted it; we also read where your account stands, to show it to you.
         </li>
       </ul>
       <p>
