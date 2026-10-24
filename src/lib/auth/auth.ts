@@ -8,6 +8,7 @@ import { admin, twoFactor, username, USERNAME_ERROR_CODES } from "better-auth/pl
 import { and, eq, like, or } from "drizzle-orm";
 import { revalidateCommunity } from "@/lib/community/revalidate";
 import { db } from "@/lib/db";
+import { closeStripeAccountOf } from "@/lib/market/deletion";
 import { account, skill, user as userTable, verification } from "@/lib/db/schema";
 import {
   changeEmailConfirmationEmail,
@@ -22,19 +23,11 @@ import { adminUserIds } from "./admin";
 import { isSignUpAllowed } from "./allowlist";
 import { generateBackupCodes } from "./backup-codes";
 import { githubCredentials } from "./github";
+import { allowedHosts, onVercel } from "./hosts";
 import { requirePasskeyUserVerification } from "./passkey";
 import { cleanProfile } from "./profile";
 import { isValidUsername } from "./username";
 import { holdUsername, isUsernameHeld } from "./username-hold";
-
-// Exact hosts from Vercel's system variables, so every preview URL works without BETTER_AUTH_URL.
-// Never a wildcard: "*.vercel.app" would trust every Vercel deployment as an origin.
-const onVercel = process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview";
-const allowedHosts = onVercel
-  ? [process.env.VERCEL_PROJECT_PRODUCTION_URL, process.env.VERCEL_BRANCH_URL, process.env.VERCEL_URL].filter(
-      (host): host is string => Boolean(host),
-    )
-  : ["localhost:3000"];
 
 const github = githubCredentials();
 
@@ -124,11 +117,13 @@ export const auth = betterAuth({
       },
       // Skills reference their owner with ON DELETE SET NULL, so that a sold one can outlive its
       // author. Until anything can be bought, deleting an account deletes all of its skills.
-      // Its username stays held, so the addresses of what it published pass to nobody else.
+      // Its username stays held, so the addresses of what it published pass to nobody else, and
+      // the Stripe account it sold through is closed.
       beforeDelete: async (user) => {
         const { username } = user as typeof user & { username?: string | null };
         if (username) await holdUsername(username, user.id);
         await db.delete(skill).where(eq(skill.ownerId, user.id));
+        await closeStripeAccountOf(user.id);
         revalidateCommunity();
       },
       // Sessions, accounts, passkeys and two-factor rows go with the user; email links and

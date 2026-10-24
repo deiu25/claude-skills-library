@@ -1,13 +1,18 @@
 import { ArrowLeft, DownloadSimple } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
+import { SkillPrice } from "@/components/market/SkillPrice";
 import { SettingsSection } from "@/components/settings/SettingsSection";
 import { isSignUpOpen } from "@/lib/auth/allowlist";
+import { requireUser } from "@/lib/auth/session";
 import { listingPath } from "@/lib/community/links";
 import { formatRelativeDate } from "@/lib/github";
+import { isReadySeller } from "@/lib/market/queries";
+import { formatPrice, PRICE_MAX_CENTS, PRICE_MIN_CENTS, priceInputValue } from "@/lib/market/schemas";
 import { SITE_URL } from "@/lib/site";
 import { visibilityProblem } from "@/lib/skills/access";
 import { getOwnedSkill } from "@/lib/skills/queries";
 import { VERSIONS_KEPT } from "@/lib/skills/schemas";
+import { isSellingAvailable } from "@/lib/stripe";
 import { DeleteSkill } from "./DeleteSkill";
 import { RiskBadge } from "./RiskBadge";
 import { SkillEditor } from "./SkillEditor";
@@ -20,6 +25,8 @@ export async function SkillWorkspace({ skillId }: { skillId: string }) {
   const skill = await getOwnedSkill(skillId);
   const [latest] = skill.versions;
   const blocked = visibilityProblem("public", { status: skill.status, version: latest.version, risk: latest.risk, username: skill.username });
+  const selling = isSellingAvailable();
+  const readySeller = selling && (await isReadySeller((await requireUser()).id));
 
   return (
     <>
@@ -75,6 +82,33 @@ export async function SkillWorkspace({ skillId }: { skillId: string }) {
             communityOpen={isSignUpOpen()}
           />
         </SettingsSection>
+        {selling && (
+          <SettingsSection
+            id="price"
+            title="Price"
+            description="What a buyer pays for the skill, in euros. Checkout is not open yet, so nobody can buy it so far."
+          >
+            {skill.status === "removed" ? (
+              <p className="text-pretty text-sm leading-relaxed text-muted">A removed skill cannot be sold.</p>
+            ) : readySeller ? (
+              <SkillPrice
+                skillId={skill.id}
+                price={skill.priceCents === null ? null : formatPrice(skill.priceCents)}
+                inputValue={skill.priceCents === null ? "" : priceInputValue(skill.priceCents)}
+                hint={`From ${formatPrice(PRICE_MIN_CENTS)} to ${formatPrice(PRICE_MAX_CENTS)}, such as 9 or 9.99.`}
+              />
+            ) : (
+              <div className="space-y-4">
+                <p className="text-pretty text-sm leading-relaxed text-muted">
+                  Set up selling first, so that Stripe can pay you for the skill.
+                </p>
+                <Link href="/dashboard/sales" className="btn btn-ghost text-sm">
+                  Set up selling
+                </Link>
+              </div>
+            )}
+          </SettingsSection>
+        )}
         <SettingsSection
           id="versions"
           title="Versions"

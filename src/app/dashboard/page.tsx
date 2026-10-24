@@ -6,6 +6,7 @@ import { SignedInMarker } from "@/components/auth/SignedInMarker";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { isAdmin } from "@/lib/auth/admin";
 import { requireUser } from "@/lib/auth/session";
+import { isSellingAvailable } from "@/lib/stripe";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -31,6 +32,11 @@ export default async function DashboardPage() {
           <Link href="/dashboard/skills" className="btn btn-ghost text-sm">
             Your skills
           </Link>
+          {isSellingAvailable() && (
+            <Link href="/dashboard/sales" className="btn btn-ghost text-sm">
+              Sales
+            </Link>
+          )}
           <Link href="/dashboard/settings" className="btn btn-ghost text-sm">
             Settings
           </Link>
