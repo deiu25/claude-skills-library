@@ -57,6 +57,7 @@ A rollback never undoes a migration. Migrations only add tables and columns, so 
 | `CRON_SECRET` | Production only | Vercel Cron sends it as `Authorization: Bearer <secret>`; without it the daily cleanup refuses to run. At least 32 random characters: `openssl rand -base64 32`. |
 | `KV_REST_API_URL`, `KV_REST_API_TOKEN` | Added by the Upstash for Redis integration for Production and Preview; `UPSTASH_REDIS_REST_URL` and `_TOKEN` work too | Rate limits for Server Actions, such as saving a skill, and for skill downloads. They fail closed in production: without them, or with Redis down, every save answers "Saving is unavailable for a moment", every download answers 503, and the log says `Rate limit refused a request` or `Rate limit check failed`. |
 | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | Production only, from the production OAuth app; `.env.local` from a second app for `localhost:3000`. Never Preview: GitHub callback URLs cannot be wildcards | Turn on GitHub sign-in. Each app's callback URL is `<origin>/api/auth/callback/github`. Without both variables the sign-in pages show no GitHub button. |
+| `STRIPE_SECRET_KEY` | Production and Preview, as a sensitive variable; on the command line for `next dev` | The secret key of the Stripe sandbox "SkillCellar" (Stripe Dashboard → that sandbox → Developers → API keys). Only a test-mode key (`sk_test_`, `rk_test_`) is used: a live key turns selling off and logs `Selling is off: STRIPE_SECRET_KEY is not a test-mode key.` until P13. Without it there is no Sales page and no Price section. |
 
 The Neon integration also adds `PG*` and `POSTGRES_*` variables; the app reads only the two above. Auth takes its base URL from the request host, checked against Vercel's own `VERCEL_PROJECT_PRODUCTION_URL`, `VERCEL_BRANCH_URL` and `VERCEL_URL`, so no `BETTER_AUTH_URL` is needed.
 
@@ -120,7 +121,7 @@ Moderation happens at `/dashboard/admin`, for the ids in `ADMIN_USER_IDS`; the d
 - A suspension and a removal have no end date until you lift or undo them. A suspended account cannot sign in to export or delete its data, so do either for it on request, within a month, as /privacy promises:
   - Act only on a request sent from the account's own address.
   - **A copy of its data:** "Download its data" on its row under Suspended accounts gives the JSON its own export would. The download addresses in it need the owner signed in, so fetch each version it lists from `/api/admin/export/<user id>?skill=<skill id>&version=<n>`, signed in as an admin, and email the JSON and the zips to the account's address.
-  - **Deleting it:** in the Neon console on `main`, find its id (`select id from "user" where email = '<address>'`) and run the statements below with that id in place of `<id>`. They do what deleting the account in settings does: hold its username for 90 days, keep its newest three holds, and delete its skills, its email links and the account. The first statement stops the whole block unless the account is suspended. Its skills are hidden already, so no page needs a refresh.
+  - **Deleting it:** in the Neon console on `main`, find its id (`select id from "user" where email = '<address>'`). If it set up selling, `select stripe_account_id from seller_account where user_id = '<id>'` names its Stripe account: close that first, as "Selling" below says, because the statements delete the only record of it. Then run the statements below with the id in place of `<id>`. They do what deleting the account in settings does: hold its username for 90 days, keep its newest three holds, and delete its skills, its email links and the account. The first statement stops the whole block unless the account is suspended. Its skills are hidden already, so no page needs a refresh.
 
 ```sql
 begin;
@@ -137,6 +138,14 @@ delete from verification where value = '<id>' or value like '%"id":"<id>"%';
 delete from "user" where id = '<id>';
 commit;
 ```
+
+### Selling
+
+Selling runs in the Stripe sandbox "SkillCellar", under the company's Stripe account. Its Connect settings are the dashboard's, not the repository's: the platform profile (buyers purchase from the platform, which pays sellers and answers for refunds and chargebacks), the onboarding branding, and Onboarding options → Countries, which must match `src/lib/market/countries.ts`.
+
+- `Seller onboarding failed: <code>` or `Stripe account check failed: <code>`: Stripe refused or did not answer, or the database failed. A Stripe code shows in the sandbox's Workbench → API activity, and `StripeConnectionError` means Stripe did not answer. A five-character Postgres code or a network code such as `ETIMEDOUT` comes from the database; another error's name, from the database driver or the site's code.
+- `Stripe account not closed: acct_… <code>` (the Stripe account of a deleted user, which could not be closed, or a second account a parallel request opened) or `Seller account not stored: acct_… <code>` (Stripe opened an account the database then failed to record): if `select user_id from seller_account where stripe_account_id = 'acct_…'` finds no row, close that connected account through the API, `POST /v2/core/accounts/acct_…/close` with `applied_configurations: ["recipient"]`, as `closeSellerAccount` does; a seller's retry the same day may have stored it since. Hobby keeps these logs for an hour, `Stripe account not closed: unknown account` means the database read failed, so the log has no id, and an account Stripe opened while its answer was lost is not logged at all: a seller who tries again on a later day gets a new one. So close the same way any connected account in the sandbox that no `seller_account` row names and that was opened before today (UTC).
+- A seller whose Sales page says "This Stripe account can no longer be used" (it was closed, or `STRIPE_SECRET_KEY` now points at another sandbox): `delete from seller_account where user_id = '<id>'` lets them start again from the next day (UTC). The request that opens an account is keyed by user, country and day, and Accounts v2 hands back the same account for a key for 30 days.
 
 ### Edge rate limit
 
