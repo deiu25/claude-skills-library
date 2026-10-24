@@ -18,7 +18,7 @@ export default function MarketplaceTermsPage() {
       <p className="text-sm text-faint">Draft of 24 October 2026</p>
       <p>
         <strong>This is a draft.</strong> Selling runs in Stripe&rsquo;s test mode: nobody can buy a skill yet, and no
-        money moves. These pages say how selling is meant to work, so that you can try it. Before real payments start we
+        money moves. This page says how selling is meant to work, so that you can try it. Before real payments start we
         will publish the final marketplace terms, with the platform fee, taxes, refunds and what a buyer may do with a
         skill they bought, and email every account that set up selling at least two weeks before they apply. Until
         then, the <Link href="/terms">terms of use</Link> apply to everything you do here, selling included.
@@ -28,21 +28,23 @@ export default function MarketplaceTermsPage() {
       <ul>
         <li>
           Any account holder can set up selling on the Sales page of their dashboard. You choose the country you or your
-          business are based in, then open an account with Stripe, our payment provider, on Stripe&rsquo;s own pages.
+          business are based in; we then open your account with Stripe, our payment provider, and you finish it on
+          Stripe&rsquo;s own pages.
         </li>
         <li>
-          You can sell if you or your business are based in one of these countries, where Stripe opens seller accounts
-          for a platform in Romania, where we are based: {SELLER_COUNTRIES.map(([, name]) => name).join(", ")}.
+          You can set up selling if you or your business are based in one of these countries, the ones Stripe offers by
+          default to a platform in Romania, where we are based: {SELLER_COUNTRIES.map(([, name]) => name).join(", ")}.
         </li>
         <li>
-          Opening the account means you accept the{" "}
+          Finishing your account on Stripe&rsquo;s pages means you accept the{" "}
           <a href="https://stripe.com/legal/connect-account">Stripe Connected Account Agreement</a>, a contract between
-          you and Stripe. Stripe decides what it needs to verify you, and whether to open, restrict or close your
+          you and Stripe. Stripe decides what it needs to verify you, and whether to accept, restrict or close your
           account. We cannot change its decisions.
         </li>
         <li>
-          You can price your skills once Stripe can pay you. Your dashboard shows where your Stripe account stands, and
-          links to your Stripe dashboard, where you see your payouts and change your details.
+          You can price your skills once Stripe has accepted your account. Until then, your dashboard shows where your
+          Stripe account stands; from then on it links to your Stripe dashboard, where you see your payouts and change
+          your details.
         </li>
       </ul>
 
@@ -50,7 +52,8 @@ export default function MarketplaceTermsPage() {
       <ul>
         <li>
           You set a price for each skill, in euros, from {formatPrice(PRICE_MIN_CENTS)} to {formatPrice(PRICE_MAX_CENTS)}.
-          A skill without a price is free. You can change a price or make the skill free again at any time.
+          A skill without a price is free. You can change a price or make the skill free again at any time; a skill we
+          remove loses its price.
         </li>
         <li>
           While selling runs in test mode, a price is only stored with your skill and shown to you: it does not change
@@ -92,7 +95,7 @@ export default function MarketplaceTermsPage() {
       <h2>Stopping</h2>
       <ul>
         <li>You can stop selling a skill by making it free again.</li>
-        <li>Deleting your account deletes your skills and closes your Stripe account with us.</li>
+        <li>Deleting your account deletes your skills and asks Stripe to close your Stripe account.</li>
       </ul>
 
       <h2>Questions</h2>

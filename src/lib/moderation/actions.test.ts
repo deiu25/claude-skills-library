@@ -192,7 +192,7 @@ describe("moderation actions", () => {
     const result = await decideReport(REPORT_ID, null, form({ decision: "remove", ground: "terms", explanation: REASON }));
     expect(result).toMatchObject({ ok: true });
     expect(written("set")).toEqual([
-      { status: "removed", removalReason: `Breaks the terms of use: ${REASON}` },
+      { status: "removed", removalReason: `Breaks the terms of use: ${REASON}`, priceCents: null, currency: null },
       { status: "actioned", resolvedBy: "admin-1", resolvedAt: expect.any(Date) },
     ]);
     expect(revalidateCommunity).toHaveBeenCalled();

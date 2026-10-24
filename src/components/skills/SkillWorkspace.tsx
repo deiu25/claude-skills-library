@@ -6,7 +6,7 @@ import { isSignUpOpen } from "@/lib/auth/allowlist";
 import { requireUser } from "@/lib/auth/session";
 import { listingPath } from "@/lib/community/links";
 import { formatRelativeDate } from "@/lib/github";
-import { isReadySeller } from "@/lib/market/queries";
+import { sellerState } from "@/lib/market/queries";
 import { formatPrice, PRICE_MAX_CENTS, PRICE_MIN_CENTS, priceInputValue } from "@/lib/market/schemas";
 import { SITE_URL } from "@/lib/site";
 import { visibilityProblem } from "@/lib/skills/access";
@@ -26,7 +26,7 @@ export async function SkillWorkspace({ skillId }: { skillId: string }) {
   const [latest] = skill.versions;
   const blocked = visibilityProblem("public", { status: skill.status, version: latest.version, risk: latest.risk, username: skill.username });
   const selling = isSellingAvailable();
-  const readySeller = selling && (await isReadySeller((await requireUser()).id));
+  const seller = selling ? await sellerState((await requireUser()).id) : "none";
 
   return (
     <>
@@ -90,7 +90,7 @@ export async function SkillWorkspace({ skillId }: { skillId: string }) {
           >
             {skill.status === "removed" ? (
               <p className="text-pretty text-sm leading-relaxed text-muted">A removed skill cannot be sold.</p>
-            ) : readySeller ? (
+            ) : seller === "ready" ? (
               <SkillPrice
                 skillId={skill.id}
                 price={skill.priceCents === null ? null : formatPrice(skill.priceCents)}
@@ -100,10 +100,12 @@ export async function SkillWorkspace({ skillId }: { skillId: string }) {
             ) : (
               <div className="space-y-4">
                 <p className="text-pretty text-sm leading-relaxed text-muted">
-                  Set up selling first, so that Stripe can pay you for the skill.
+                  {seller === "none"
+                    ? "Set up selling first, so that Stripe can pay you for the skill."
+                    : "You can price it once Stripe has accepted your account. Sales shows where it stands."}
                 </p>
                 <Link href="/dashboard/sales" className="btn btn-ghost text-sm">
-                  Set up selling
+                  {seller === "none" ? "Set up selling" : "Open Sales"}
                 </Link>
               </div>
             )}

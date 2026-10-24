@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 import { sellerAccount } from "@/lib/db/schema";
 import { createOnboardingLink } from "@/lib/market/stripe-accounts";
 import { rateLimit } from "@/lib/rate-limit";
-import { getStripe, stripeCode } from "@/lib/stripe";
+import { errorCode, getStripe } from "@/lib/stripe";
 
 /**
  * Where Stripe sends a seller whose onboarding link expired or was already opened: a new link for
@@ -24,7 +24,7 @@ export async function GET(request: Request) {
   try {
     url = await createOnboardingLink(stripe, row.stripeAccountId, origin);
   } catch (error) {
-    console.error("Seller onboarding link failed:", stripeCode(error));
+    console.error("Seller onboarding link failed:", errorCode(error));
     redirect("/dashboard/sales");
   }
   redirect(url);

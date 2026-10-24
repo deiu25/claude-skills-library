@@ -136,8 +136,9 @@ export default function TermsPage() {
           selling and price your skills to try it.
         </li>
         <li>
-          To sell, you open an account with Stripe, our payment provider, from the Sales page of your
-          dashboard, and accept Stripe’s own agreement there. Stripe verifies who you are and pays you.
+          To sell, you start on the Sales page of your dashboard: we open your account with Stripe, our
+          payment provider, and you finish it on Stripe’s pages, where you accept Stripe’s own agreement.
+          Stripe verifies who you are, and will pay you once payments go live.
         </li>
         <li>
           How selling is meant to work, and what changes before real payments start, is in the{" "}

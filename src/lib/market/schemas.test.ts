@@ -54,7 +54,7 @@ describe("countrySchema", () => {
     expect(countrySchema.parse("CH")).toBe("CH");
   });
 
-  // The United States and Canada are possible on Stripe but not offered: US sellers bring Form 1099 reporting.
+  // The United States and Canada can be added in Stripe's Connect settings, but are not offered yet.
   it.each(["US", "CA", "IS", "ro", "JP", "", null])("refuses %j", (input) => {
     expect(countrySchema.safeParse(input).success).toBe(false);
   });

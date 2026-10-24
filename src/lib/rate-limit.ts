@@ -59,6 +59,11 @@ const LIMITS = {
     [5, "1 m"],
     [50, "1 d"],
   ],
+  // The Sales page's read of an account Stripe has not accepted yet, which a seller may reload while waiting.
+  "seller-status": [
+    [20, "1 m"],
+    [300, "1 d"],
+  ],
 } satisfies Record<string, [number, Duration][]>;
 
 export type LimitName = keyof typeof LIMITS;

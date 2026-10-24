@@ -3,7 +3,8 @@ import { eq } from "drizzle-orm";
 import { cache } from "react";
 import { db } from "@/lib/db";
 import { sellerAccount } from "@/lib/db/schema";
-import { getStripe, stripeCode } from "@/lib/stripe";
+import { rateLimit } from "@/lib/rate-limit";
+import { errorCode, getStripe } from "@/lib/stripe";
 import { transfersStatus, type TransfersStatus } from "./stripe-accounts";
 
 export interface Seller {
@@ -15,8 +16,8 @@ export interface Seller {
 
 /**
  * The user's seller account, or null before they start selling. One that is not ready yet is read
- * again from Stripe, which finishes its checks in its own time, and marked ready once Stripe lets it
- * receive transfers. A ready one is not asked again.
+ * again from Stripe, within a limit per user, since Stripe finishes its checks in its own time, and
+ * marked ready once Stripe lets it receive transfers. A ready one is not asked again.
  */
 export const getSeller = cache(async (userId: string): Promise<Seller | null> => {
   const [row] = await db
@@ -25,25 +26,25 @@ export const getSeller = cache(async (userId: string): Promise<Seller | null> =>
     .where(eq(sellerAccount.userId, userId));
   if (!row) return null;
   if (row.ready) return { country: row.country, ready: true, status: "active" };
+  const unknown = { country: row.country, ready: false, status: "unknown" } as const;
   const stripe = getStripe();
-  if (!stripe) return { country: row.country, ready: false, status: "unknown" };
-  let status: TransfersStatus;
+  if (!stripe || (await rateLimit("seller-status", userId)) !== "ok") return unknown;
   try {
-    status = await transfersStatus(stripe, row.stripeAccountId);
+    const status = await transfersStatus(stripe, row.stripeAccountId);
+    if (status === "active") {
+      await db.update(sellerAccount).set({ ready: true, updatedAt: new Date() }).where(eq(sellerAccount.userId, userId));
+    }
+    return { country: row.country, ready: status === "active", status };
   } catch (error) {
-    console.error("Stripe account check failed:", stripeCode(error));
-    return { country: row.country, ready: false, status: "unknown" };
+    console.error("Stripe account check failed:", errorCode(error));
+    return unknown;
   }
-  if (status === "active") {
-    await db.update(sellerAccount).set({ ready: true, updatedAt: new Date() }).where(eq(sellerAccount.userId, userId));
-  }
-  return { country: row.country, ready: status === "active", status };
 });
 
-/** Whether the user can set prices: their seller account is ready, as last read from Stripe. */
-export async function isReadySeller(userId: string): Promise<boolean> {
+/** Whether the user has a seller account, and whether Stripe has accepted it, as last read. */
+export async function sellerState(userId: string): Promise<"none" | "not-ready" | "ready"> {
   const [row] = await db.select({ ready: sellerAccount.ready }).from(sellerAccount).where(eq(sellerAccount.userId, userId));
-  return row?.ready ?? false;
+  return !row ? "none" : row.ready ? "ready" : "not-ready";
 }
 
 /** The user's seller account for /api/me/export, or null. */

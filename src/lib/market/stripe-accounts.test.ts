@@ -115,6 +115,19 @@ describe("transfersStatus", () => {
     },
   });
 
+  it("reports an account Stripe no longer has, or closed, as missing", async () => {
+    const notFound = new Stripe.errors.StripeInvalidRequestError({ type: "invalid_request_error", code: "not_found", statusCode: 404 });
+    expect(await transfersStatus(asStripe(fakeStripe({ v2: notFound })), "acct_1")).toBe("missing");
+    expect(await transfersStatus(asStripe(fakeStripe({ v2: { closed: true, ...v2Account("active") } })), "acct_1")).toBe("missing");
+    const invalid = new Stripe.errors.StripePermissionError({ type: "invalid_request_error", code: "account_invalid", statusCode: 403 });
+    expect(await transfersStatus(asStripe(fakeStripe({ v2: blocked(), v1: invalid })), "acct_1")).toBe("missing");
+  });
+
+  it("passes any other Stripe failure on", async () => {
+    const outage = new Stripe.errors.StripeAPIError({ type: "api_error", statusCode: 500 });
+    await expect(transfersStatus(asStripe(fakeStripe({ v2: outage })), "acct_1")).rejects.toBe(outage);
+  });
+
   it("counts restricted with nothing for the seller to do as pending, as right after onboarding", async () => {
     const verifying = v2Account("restricted", [{ code: "requirements_pending_verification", resolution: "no_resolution" }]);
     expect(await transfersStatus(asStripe(fakeStripe({ v2: verifying })), "acct_1")).toBe("pending");

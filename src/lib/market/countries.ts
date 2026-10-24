@@ -1,8 +1,8 @@
 // Where a seller can be paid from. The platform is in Romania, and these are the countries Stripe
 // onboards Express accounts in for it by default, receiving transfers: the EU, Liechtenstein,
 // Norway, Switzerland, the United Kingdom and Gibraltar (Connect settings, Onboarding options,
-// read 2026-10-24). Stripe also lets the platform add the United States, Canada and a few others,
-// but a US seller brings US tax reporting (Form 1099), so none of them is offered yet.
+// read 2026-10-24). The same settings can add the United States, Canada and a few others; none is
+// offered yet, since each needs the setting changed with this list, and a US seller brings Form 1099 reporting.
 export const SELLER_COUNTRIES = [
   ["AT", "Austria"],
   ["BE", "Belgium"],

@@ -198,7 +198,8 @@ async function removeSkill(adminId: string, skillId: string, reason: string): Pr
     removed = await db.transaction(async (tx) => {
       const [row] = await tx
         .update(skill)
-        .set({ status: "removed", removalReason: reason })
+        // A removed skill can never be sold, so its price goes with it.
+        .set({ status: "removed", removalReason: reason, priceCents: null, currency: null })
         .where(and(eq(skill.id, skillId), ne(skill.status, "removed")))
         .returning({ name: skill.name, ownerId: skill.ownerId });
       if (!row) return null;

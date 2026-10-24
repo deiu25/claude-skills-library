@@ -23,8 +23,8 @@ export default async function SalesPage() {
         <div className="space-y-3">
           <h1 className="text-balance text-3xl font-semibold text-foreground sm:text-4xl">Sales</h1>
           <p className="max-w-[60ch] text-pretty text-sm leading-relaxed text-muted sm:text-base">
-            Sell your skills through Stripe, which pays you. Checkout is not open yet, so nobody can buy a skill so far:
-            set up your account and your prices now.
+            Sell your skills through Stripe, which will pay you once checkout opens. Nobody can buy a skill yet: set up your
+            account and your prices now.
           </p>
         </div>
         <div className="mt-10 divide-y divide-line border-t border-line">

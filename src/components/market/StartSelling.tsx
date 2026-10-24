@@ -46,8 +46,7 @@ export function StartSelling({ hasAccount, label, primary }: StartSellingProps) 
             ))}
           </select>
           <p id="country-hint" className="text-pretty text-xs leading-relaxed text-faint">
-            Where you or your business are based. Stripe fixes it once your account opens, and pays out to a bank
-            account there.
+            Where you or your business are based. You cannot change it here once your account opens.
           </p>
         </div>
       )}

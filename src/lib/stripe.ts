@@ -27,8 +27,13 @@ export function getStripe(): Stripe | null {
 /** Whether selling can be set up here: a Stripe test key is configured. */
 export const isSellingAvailable = () => getStripe() !== null;
 
-/** A Stripe error's code for the log, never its message, which can quote what was sent. */
-export function stripeCode(error: unknown): string {
+/**
+ * A failure's code for the log, never its message, which can quote what was sent: Stripe's code,
+ * a Postgres error code (drizzle wraps the driver's error in `cause`), or the error's name.
+ */
+export function errorCode(error: unknown): string {
   if (error instanceof Stripe.errors.StripeError) return error.code ?? error.type;
+  const code = ((error instanceof Error && error.cause) || error) as { code?: unknown } | null;
+  if (typeof code?.code === "string") return code.code;
   return error instanceof Error ? error.name : "unknown error";
 }

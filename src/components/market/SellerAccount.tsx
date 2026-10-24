@@ -14,22 +14,30 @@ const contact = (
   </a>
 );
 
-/** Each state of a seller's Stripe account: what it is, what it means, and the way on. */
-const STATES: Record<Seller["status"], { title: string; detail: ReactNode; action: "continue" | "dashboard" | null }> = {
+/**
+ * Each state of a seller's Stripe account: what it is, what it means, and the way on. "continue"
+ * is a primary button, "reopen" a ghost one for a seller who may still want Stripe's form.
+ */
+const STATES: Record<Seller["status"], { title: string; detail: ReactNode; action: "continue" | "reopen" | "dashboard" | null }> = {
   active: {
     title: "Ready to sell",
-    detail: "Stripe can pay you for your sales. You can price your skills, and see your payouts and details on Stripe.",
+    detail: "Stripe has accepted your account. You can price your skills, and see your payouts and details on Stripe.",
     action: "dashboard",
   },
   pending: {
     title: "Stripe is checking your details",
-    detail: "There is nothing for you to do now. This page shows the result once Stripe has it.",
-    action: null,
+    detail: "Stripe needs nothing more from you for now and is checking what you sent. This page shows the result once Stripe has it.",
+    action: "reopen",
   },
   restricted: {
-    title: "Stripe needs more details",
-    detail: "Continue on Stripe to add what it asks for. It saves what you entered before.",
+    title: "Stripe has not accepted your account yet",
+    detail: "Continue on Stripe to see what it needs. It saves what you entered before.",
     action: "continue",
+  },
+  missing: {
+    title: "Stripe no longer has this account",
+    detail: <>Stripe closed it, or it belongs to a Stripe setup this site no longer uses. Write to us at {contact} and we will let you start again.</>,
+    action: null,
   },
   rejected: {
     title: "Stripe turned this account down",
@@ -44,7 +52,7 @@ const STATES: Record<Seller["status"], { title: string; detail: ReactNode; actio
   unknown: {
     title: "We could not reach Stripe",
     detail: "Reload this page in a moment to see where your account stands.",
-    action: "continue",
+    action: "reopen",
   },
 };
 
@@ -57,7 +65,7 @@ export async function SellerAccount({ userId }: { userId: string }) {
     <SettingsSection
       id="stripe"
       title="Stripe account"
-      description="Stripe verifies who you are and pays your sales out to your bank. We never see your bank details or your ID."
+      description="Stripe verifies who you are and, once payments go live, pays your sales out to your bank. You give your ID and bank details to Stripe; this site never stores them."
     >
       <div className="space-y-5">
         <FormMessage tone="warning">
@@ -78,7 +86,9 @@ export async function SellerAccount({ userId }: { userId: string }) {
               <p className="text-pretty text-sm leading-relaxed text-muted">{state.detail}</p>
               <p className="text-xs text-faint">Account country: {countryName(seller.country)}</p>
             </div>
-            {state.action === "continue" && <StartSelling hasAccount label="Continue on Stripe" primary={seller.status !== "unknown"} />}
+            {(state.action === "continue" || state.action === "reopen") && (
+              <StartSelling hasAccount label="Continue on Stripe" primary={state.action === "continue"} />
+            )}
             {state.action === "dashboard" && <StripeDashboardButton />}
           </>
         )}

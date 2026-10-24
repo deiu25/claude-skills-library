@@ -8,10 +8,17 @@ const V2_BLOCKED = "accounts_v2_access_blocked";
 
 const v2Blocked = (error: unknown) => error instanceof Stripe.errors.StripeError && error.code === V2_BLOCKED;
 
-/** Whether Stripe lets an account receive transfers, which is how a sale pays its seller. */
-export type TransfersStatus = "active" | "pending" | "restricted" | "rejected" | "unsupported";
+/** Stripe's answer for an account it does not have, such as one in another sandbox; v1 calls it account_invalid. */
+const accountMissing = (error: unknown) =>
+  error instanceof Stripe.errors.StripeError && (error.statusCode === 404 || error.code === "account_invalid");
 
-const STATUSES = new Set<string>(["active", "pending", "restricted", "rejected", "unsupported"]);
+/**
+ * Whether Stripe lets an account receive transfers, which is how a sale pays its seller, or
+ * "missing" when Stripe no longer has the account or closed it.
+ */
+export type TransfersStatus = "active" | "pending" | "restricted" | "rejected" | "unsupported" | "missing";
+
+const STATUSES = new Set<string>(["active", "pending", "restricted", "rejected", "unsupported", "missing"]);
 
 export interface NewSeller {
   userId: string;
@@ -82,6 +89,21 @@ export async function createOnboardingLink(stripe: Stripe, accountId: string, or
   return link.url;
 }
 
+async function v2Status(stripe: Stripe, accountId: string): Promise<string | undefined> {
+  const account = await stripe.v2.core.accounts.retrieve(accountId, { include: ["configuration.recipient"] });
+  if (account.closed) return "missing";
+  const transfers = account.configuration?.recipient?.capabilities?.stripe_balance?.stripe_transfers;
+  const waiting = Boolean(transfers?.status_details.length) && transfers?.status_details.every((detail) => detail.resolution === "no_resolution");
+  return transfers?.status === "restricted" && waiting ? "pending" : transfers?.status;
+}
+
+async function v1Status(stripe: Stripe, accountId: string): Promise<string | undefined> {
+  const account = await stripe.accounts.retrieve(accountId);
+  // v1 names a capability "active", "pending" or "inactive".
+  const waiting = !account.requirements?.currently_due?.length && Boolean(account.requirements?.pending_verification?.length);
+  return account.capabilities?.transfers === "inactive" ? (waiting ? "pending" : "restricted") : account.capabilities?.transfers;
+}
+
 /**
  * Where an account stands with Stripe on receiving transfers. Only "active" can be paid. Right
  * after onboarding Stripe reports "restricted" while it verifies what was sent; with nothing left
@@ -90,16 +112,16 @@ export async function createOnboardingLink(stripe: Stripe, accountId: string, or
 export async function transfersStatus(stripe: Stripe, accountId: string): Promise<TransfersStatus> {
   let status: string | undefined;
   try {
-    const account = await stripe.v2.core.accounts.retrieve(accountId, { include: ["configuration.recipient"] });
-    const transfers = account.configuration?.recipient?.capabilities?.stripe_balance?.stripe_transfers;
-    const waiting = Boolean(transfers?.status_details.length) && transfers?.status_details.every((detail) => detail.resolution === "no_resolution");
-    status = transfers?.status === "restricted" && waiting ? "pending" : transfers?.status;
+    status = await v2Status(stripe, accountId);
   } catch (error) {
+    if (accountMissing(error)) return "missing";
     if (!v2Blocked(error)) throw error;
-    const account = await stripe.accounts.retrieve(accountId);
-    // v1 names a capability "active", "pending" or "inactive".
-    const waiting = !account.requirements?.currently_due?.length && Boolean(account.requirements?.pending_verification?.length);
-    status = account.capabilities?.transfers === "inactive" ? (waiting ? "pending" : "restricted") : account.capabilities?.transfers;
+    try {
+      status = await v1Status(stripe, accountId);
+    } catch (fallbackError) {
+      if (accountMissing(fallbackError)) return "missing";
+      throw fallbackError;
+    }
   }
   return status && STATUSES.has(status) ? (status as TransfersStatus) : "restricted";
 }
