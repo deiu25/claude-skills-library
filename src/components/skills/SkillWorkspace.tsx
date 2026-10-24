@@ -84,7 +84,7 @@ export async function SkillWorkspace({ skillId }: { skillId: string }) {
         </SettingsSection>
         {selling && (
           <SettingsSection
-            id="price"
+            id="pricing"
             title="Price"
             description="What a buyer pays for the skill, in euros. Checkout is not open yet, so nobody can buy it so far."
           >

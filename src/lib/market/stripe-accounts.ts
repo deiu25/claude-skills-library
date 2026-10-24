@@ -82,17 +82,24 @@ export async function createOnboardingLink(stripe: Stripe, accountId: string, or
   return link.url;
 }
 
-/** Where an account stands with Stripe on receiving transfers. Only "active" can be paid. */
+/**
+ * Where an account stands with Stripe on receiving transfers. Only "active" can be paid. Right
+ * after onboarding Stripe reports "restricted" while it verifies what was sent; with nothing left
+ * for the seller to do, that counts as "pending".
+ */
 export async function transfersStatus(stripe: Stripe, accountId: string): Promise<TransfersStatus> {
   let status: string | undefined;
   try {
     const account = await stripe.v2.core.accounts.retrieve(accountId, { include: ["configuration.recipient"] });
-    status = account.configuration?.recipient?.capabilities?.stripe_balance?.stripe_transfers?.status;
+    const transfers = account.configuration?.recipient?.capabilities?.stripe_balance?.stripe_transfers;
+    const waiting = Boolean(transfers?.status_details.length) && transfers?.status_details.every((detail) => detail.resolution === "no_resolution");
+    status = transfers?.status === "restricted" && waiting ? "pending" : transfers?.status;
   } catch (error) {
     if (!v2Blocked(error)) throw error;
     const account = await stripe.accounts.retrieve(accountId);
     // v1 names a capability "active", "pending" or "inactive".
-    status = account.capabilities?.transfers === "inactive" ? "restricted" : account.capabilities?.transfers;
+    const waiting = !account.requirements?.currently_due?.length && Boolean(account.requirements?.pending_verification?.length);
+    status = account.capabilities?.transfers === "inactive" ? (waiting ? "pending" : "restricted") : account.capabilities?.transfers;
   }
   return status && STATUSES.has(status) ? (status as TransfersStatus) : "restricted";
 }

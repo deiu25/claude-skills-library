@@ -109,8 +109,25 @@ describe("createOnboardingLink", () => {
 });
 
 describe("transfersStatus", () => {
-  const v2Account = (status?: string) => ({
-    configuration: { recipient: { capabilities: { stripe_balance: { stripe_transfers: status ? { status } : undefined } } } },
+  const v2Account = (status?: string, statusDetails: { code: string; resolution: string }[] = []) => ({
+    configuration: {
+      recipient: { capabilities: { stripe_balance: { stripe_transfers: status ? { status, status_details: statusDetails } : undefined } } },
+    },
+  });
+
+  it("counts restricted with nothing for the seller to do as pending, as right after onboarding", async () => {
+    const verifying = v2Account("restricted", [{ code: "requirements_pending_verification", resolution: "no_resolution" }]);
+    expect(await transfersStatus(asStripe(fakeStripe({ v2: verifying })), "acct_1")).toBe("pending");
+    const missing = v2Account("restricted", [{ code: "requirements_past_due", resolution: "provide_info" }]);
+    expect(await transfersStatus(asStripe(fakeStripe({ v2: missing })), "acct_1")).toBe("restricted");
+  });
+
+  it("counts a v1 account Stripe is still verifying as pending", async () => {
+    const account = (requirements: object) => ({ capabilities: { transfers: "inactive" }, requirements });
+    const verifying = account({ currently_due: [], pending_verification: ["individual.id_number"] });
+    expect(await transfersStatus(asStripe(fakeStripe({ v2: blocked(), v1: verifying })), "acct_1")).toBe("pending");
+    const missing = account({ currently_due: ["external_account"], pending_verification: [] });
+    expect(await transfersStatus(asStripe(fakeStripe({ v2: blocked(), v1: missing })), "acct_1")).toBe("restricted");
   });
 
   it.each(["active", "pending", "restricted", "rejected", "unsupported"])("reads %s from the recipient configuration", async (status) => {
