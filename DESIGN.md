@@ -297,6 +297,11 @@ What users publish lives apart from the catalog and says so.
 - **Admin page (`/dashboard/admin`):** the settings layout: Reports, Take down, Suspended accounts. Each report opens with its reason as a 14px heading, a 12px Faint line naming the target (mono, linked while shown) and its sender, and the sender's words as text in a Surface box. Its decision is radio rows with a 12px Faint hint each; removing or suspending adds the ground as two radio rows and a "Reason" textarea. Every decision button is ghost, because removing and suspending are destructive. Suspended accounts follow the settings lists, with "Download its data", a plain link, and "Lift suspension" as the row actions.
 - **A removed skill** shows "Removed from the site" first in its Visibility section, then the reason the owner was given, in Muted.
 
+### Selling
+
+- **Sales page (`/dashboard/sales`):** the settings layout, with one section, "Stripe account". It opens with a standing caution that selling runs in Stripe's test mode, then the state first ("Not set up", "Ready to sell" with the emerald check, "Stripe is checking your details" and the others) with one Muted sentence and the account's country in 12px Faint. Not set up, a Country select with its hint precedes a primary "Continue to Stripe"; leaving for Stripe is marked with the Phosphor `ArrowSquareOut` at 16px. When Stripe needs more, "Continue on Stripe" is primary; while it is checking, or could not be asked, the same button is ghost. A ready seller gets a ghost "Open your Stripe dashboard".
+- **Price (a skill's page):** a settings section between Visibility and Versions. State first: the price ("€9.99") or "Free"; then "Price in euros" with its range as the hint, a primary "Save price" and, once priced, a ghost "Make it free". Until Stripe accepts the seller, one Muted sentence and a ghost "Set up selling" or "Open Sales".
+
 ### Menus
 
 - **Pattern:** a disclosure. A button with `aria-expanded` and `aria-controls` opens a panel below it, aligned to its right edge. Not `role="menu"`: the items are plain links and buttons reached with Tab.

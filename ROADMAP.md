@@ -4,7 +4,7 @@
 |---|---|
 | Owner | Badulescu Andrei ([@deiu25](https://github.com/deiu25)) |
 | Decided | 2026-10-10 |
-| Next phase | P8 |
+| Next phase | P9 |
 
 The curated catalog stays as it is: static, hand-written, reviewed in git. Around it the site gains:
 - accounts;
@@ -40,7 +40,7 @@ Paste into a new Claude Code session in this repository:
 | P5 | Skill files | done |
 | P6 | Showcase and profiles | done |
 | P7 | Moderation | done |
-| P8 | Sellers (Stripe test mode) | todo |
+| P8 | Sellers (Stripe test mode) | done |
 | P9 | Checkout and entitlements (test mode) | todo |
 | P10 | Library and projects | todo |
 | P11 | API keys and the sync CLI | todo |
@@ -312,9 +312,11 @@ Every phase merges to `main`, which is production, so each one keeps these rules
   - The Connect platform profile and a test `STRIPE_SECRET_KEY`.
   - The fee, once the accountant has advised.
 - **Done when:** a test seller shows as ready and a price saves.
+- **Closed:** P8 shipped on 2026-10-24, in the Stripe sandbox "SkillCellar" (platform in Romania). The Connect platform profile has buyers purchase from the platform, which pays each seller out (destination charges) and answers for refunds and chargebacks; onboarding is Stripe-hosted with the Express Dashboard, and `STRIPE_SECRET_KEY`, a test key, is set in Production and Preview. Accounts v2 answered every call, so the v1 fallback is tested only against fakes. On `next dev` against a branch of `dev`, a Romanian test seller went through Stripe's onboarding with Stripe's test data, showed as ready, and priced a skill (stored as 999 euro cents), and a German one was opened too. On the preview, on its own branch, a throwaway test user went through the same onboarding, showed as ready and saved a price; Stripe showed a CAPTCHA to a headless browser there, so that run went through the owner's Chrome. A correctness review, a security review and a per-sentence check of /privacy, /terms and /terms/marketplace found no critical or high issue; their fixes are in, and what waits for payments is listed under P9 and P13. The fee waits for the accountant.
 
 ### P9 — Checkout and entitlements (test mode)
 - **Ships:**
+  - From the P8 reviews: a seller is read as ready once and never again, so checkout checks the account with Stripe and the webhook follows Stripe's account events; a removed skill takes no price, but checkout checks the status too; a priced skill's download and its Community page text need the entitlement, or what is sold stays public.
   - A Buy button that checks ownership first.
   - Checkout with a destination charge and the application fee, `consent_collection`, and the waiver of the EU withdrawal right for digital content.
   - `/api/stripe/webhook`:
@@ -391,6 +393,7 @@ Any time after P9, once the paperwork is done.
     - the refund and withdrawal policy.
   - The consumer duties that start with the first sale: a link to www.anpc.ro and the SAL pictogram on the home page (OPANPC 72/2010, Ord. ANPC 449/2022), and the online withdrawal function (OUG 34/2014, as amended by OUG 18/2026).
   - The `PAYMENTS_LIVE` flag.
+  - From the P8 reviews: the Express Dashboard link only after a recent sign-in, as adding a passkey asks; a deleted account's Stripe account closed through a retried queue, not one try and a log line; a scheduled check that closes connected accounts no `seller_account` row names; a restricted live key, and previews on their own sandbox key.
 - **Owner:**
   - The accountant's sign-off and any registrations.
   - A paid Vercel plan, because Hobby is for non-commercial use.
@@ -518,7 +521,7 @@ Every phase checks the following, on top of its "Done when":
 ## Risks
 
 - **Tax.** EU VAT rules presume that a platform selling electronic services is itself the supplier (Article 9a, Implementing Regulation 282/2011). That points to VAT on the full price for EU consumers, paid through OSS, and to long record keeping. P13 needs an accountant's sign-off, and the fee waits for that advice.
-- **Stripe reach.** From a platform in the EEA, cross-border payouts reach sellers only in the US, UK, EEA, Canada and Switzerland, and only without `on_behalf_of`. Stripe acting as merchant of record does not support Connect. P8 confirms both.
+- **Stripe reach.** From a platform in the EEA, cross-border payouts reach sellers only in the US, UK, EEA, Canada and Switzerland, and only without `on_behalf_of`, and Stripe acting as merchant of record (Managed Payments) does not support Connect: both confirmed in Stripe's docs on 2026-10-24. Express onboarding for the platform offers 32 countries by default (`countries.ts`); the US, Canada and others can be added in the Connect settings.
 - **Domain.** skillcellar.com since 2026-10-22. Passkeys, OAuth callbacks and the email sender all bind to it, so another move breaks every passkey (RUNBOOK.md, "Moving the production domain").
 - **Supply chain.** A bought skill runs code on the buyer's machine. The scan, reports and a clear disclaimer reduce the risk. Plaintext cannot be copy-protected, and the seller terms must say so.
 - **Playbooks are instructions.** A shared playbook becomes text that Claude follows on someone else's machine. P18's scan gate, the SKILL.md preview before export, and reports reduce the risk. The CLI never runs a third-party install command.

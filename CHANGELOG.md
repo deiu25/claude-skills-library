@@ -6,6 +6,17 @@ The format follows [Keep a Changelog 2.0.0](https://keepachangelog.com/en/2.0.0/
 
 ## [Unreleased]
 
+### 2026-10-24
+
+#### Added
+
+- Selling, in Stripe's test mode: set up a Stripe account from the Sales page of your dashboard, finish it on Stripe, and price your skills in euros once Stripe can pay you. Nobody can buy a skill yet, and no money moves. Draft marketplace terms say how selling is meant to work.
+
+#### Changed
+
+- The privacy policy covers selling: what we keep, what we send Stripe and what Stripe collects itself, and that deleting your account asks Stripe to close your Stripe account. The terms of use describe selling in test mode and link the draft marketplace terms.
+- A skill that moderation removes loses its price.
+
 ### 2026-10-23
 
 #### Added

@@ -84,7 +84,7 @@ Each line becomes its own section here when its [ROADMAP.md](ROADMAP.md) phase s
 - **FR-18** Accounts: email and password with verification and reset, GitHub sign-in, two-factor, passkeys, active sessions, data export and account deletion (P1–P3).
 - **FR-19** Private skills: a user writes a SKILL.md or uploads a whole skill folder, keeps its versions, sees a security scan of each one and downloads any version as a zip (P4–P5, shipped).
 - **FR-20** Community: a user publishes a skill as unlisted or public, unless its latest version has a critical finding; public profiles and skill pages with the scan, the files, SKILL.md and a download; a Community browse with search and category filters, kept apart from the catalog and open once sign-up is (P6, shipped). Anyone can report a skill or a profile, signed in from its page or by email; an admin removes skills and suspends accounts, and every decision emails its reason to the account and its outcome to whoever reported (P7, shipped).
-- **FR-21** Selling: sellers onboard with Stripe, buyers pay by card and download what they bought, and a refund revokes access (P8, P9, P13).
+- **FR-21** Selling: sellers onboard with Stripe and price their skills in euros (P8, shipped in Stripe test mode); buyers pay by card and download what they bought, and a refund revokes access (P9, P13).
 - **FR-22** Library: skills saved from the catalog, Community, GitHub or any URL; projects; global and per-project installs; export as an install prompt (P10).
 - **FR-23** Sync CLI: an `npx` command authenticated with an API key reports installed skills, pulls owned skills and flags outdated ones (P11–P12).
 - **FR-24** Reviews from verified buyers and public project stacks (P14); teams that share private skills (P15).

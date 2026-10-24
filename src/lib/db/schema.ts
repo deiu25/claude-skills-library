@@ -21,6 +21,9 @@ export const skill = pgTable(
     status: text("status").notNull().default("draft"),
     // Why an admin removed it, as its owner was told; null unless the status is "removed".
     removalReason: text("removal_reason"),
+    // What a buyer pays, in the currency's smallest unit, as its seller set it; both null while it is free.
+    priceCents: integer("price_cents"),
+    currency: text("currency"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
@@ -28,7 +31,28 @@ export const skill = pgTable(
     unique("skill_owner_slug_unique").on(table.ownerId, table.slug),
     check("skill_visibility_check", sql`${table.visibility} in ('private', 'unlisted', 'public')`),
     check("skill_status_check", sql`${table.status} in ('draft', 'published', 'removed')`),
+    check("skill_price_cents_check", sql`${table.priceCents} > 0`),
+    check("skill_currency_check", sql`${table.currency} in ('eur')`),
+    check("skill_price_currency_check", sql`(${table.priceCents} is null) = (${table.currency} is null)`),
   ],
+);
+
+/** The Stripe account a user is paid into once they start selling: one per user, opened on Stripe. */
+export const sellerAccount = pgTable(
+  "seller_account",
+  {
+    userId: text("user_id")
+      .primaryKey()
+      .references(() => user.id, { onDelete: "cascade" }),
+    stripeAccountId: text("stripe_account_id").notNull().unique(),
+    // Whether Stripe lets the account receive the transfers its sales pay out, as last read from Stripe.
+    ready: boolean("ready").notNull().default(false),
+    // Where the seller is based, as an ISO 3166-1 code: Stripe fixes it when the account opens.
+    country: text("country").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [check("seller_account_country_check", sql`${table.country} ~ '^[A-Z]{2}$'`)],
 );
 
 /** One saved version of a skill, numbered from 1: its SKILL.md, the scan that ran on it and its files. Never edited after insert. */

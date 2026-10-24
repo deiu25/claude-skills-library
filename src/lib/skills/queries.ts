@@ -77,6 +77,8 @@ export interface OwnedSkill {
   status: string;
   /** Why an admin removed it, when its status is "removed". */
   removalReason: string | null;
+  /** What a buyer pays, in euro cents, or null while it is free. */
+  priceCents: number | null;
   /** The owner's username, which a published skill's address starts with. */
   username: string | null;
   versions: VersionSummary[];
@@ -105,6 +107,7 @@ export const getOwnedSkill = cache(async (skillId: string): Promise<OwnedSkill> 
       visibility: skill.visibility,
       status: skill.status,
       removalReason: skill.removalReason,
+      priceCents: skill.priceCents,
       username: user.username,
     })
     .from(skill)
@@ -134,6 +137,7 @@ export const getOwnedSkill = cache(async (skillId: string): Promise<OwnedSkill> 
     visibility: row.visibility as Visibility,
     status: row.status,
     removalReason: row.removalReason,
+    priceCents: row.priceCents,
     username: row.username,
     versions: versions.map((version) => ({ ...version, risk: version.risk as Risk })),
     skillMd: latest.skillMd,
@@ -258,6 +262,8 @@ export async function getSkillsExport(userId: string) {
         visibility: skill.visibility,
         status: skill.status,
         removalReason: skill.removalReason,
+        priceCents: skill.priceCents,
+        currency: skill.currency,
         createdAt: skill.createdAt,
         updatedAt: skill.updatedAt,
       })

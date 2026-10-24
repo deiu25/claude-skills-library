@@ -12,11 +12,11 @@ export default function PrivacyPage() {
   return (
     <>
       <h1 className="text-balance text-3xl font-semibold text-foreground sm:text-4xl">Privacy policy</h1>
-      <p className="text-sm text-faint">Last updated 23 October 2026</p>
+      <p className="text-sm text-faint">Last updated 24 October 2026</p>
       <p>
         This page says what the Claude Skills Library does with personal data. In short: browsing sets
-        no cookies and tracks nothing, and an account keeps only what it needs to sign you in safely and
-        the skills you write or upload, and shows other people only what you publish.
+        no cookies and tracks nothing, and an account keeps only what this page lists and shows other
+        people only what you publish.
       </p>
 
       <h2>Who is responsible</h2>
@@ -100,8 +100,15 @@ export default function PrivacyPage() {
           download it, until you publish it.
         </li>
         <li>
-          <strong>Skill saves, downloads and reports:</strong> your account’s id and a count of your recent
-          saves, skill downloads and reports, used only to slow down repeated ones.
+          <strong>Selling,</strong> if you set it up: the id of the Stripe account we open for you, the
+          country you choose for it, whether Stripe has accepted it, when you set it up and when that last
+          changed, and the price you give each skill. Selling runs in Stripe’s test mode for now, so no money
+          moves.
+        </li>
+        <li>
+          <strong>Skill saves, downloads, reports and selling:</strong> your account’s id and a count of your
+          recent saves (price changes included), skill downloads, reports and requests to Stripe about your
+          seller account, used only to slow down repeated ones.
         </li>
         <li>
           <strong>Email links:</strong> the links that finish a new account, reset your password, change
@@ -163,6 +170,11 @@ export default function PrivacyPage() {
           for (performance of a contract, GDPR art. 6(1)(b)).
         </li>
         <li>
+          To let you set up selling and price your skills, if you choose to: opening your Stripe account,
+          sending you to Stripe to finish it, showing you where it stands, keeping your prices, and asking
+          Stripe to close it when you delete your account. This is the service you asked for (art. 6(1)(b)).
+        </li>
+        <li>
           To receive reports, decide them, act on what we find ourselves, tell whoever reported what we
           decided, tell whoever is affected what we decided and why, and keep a record of reports and
           decisions. Receiving and answering reports of illegal content, and the reasons we send with every
@@ -180,7 +192,7 @@ export default function PrivacyPage() {
         <li>
           To protect accounts from takeover and abuse, through the IP address and user agent on your
           sessions, the sign-in attempt counters, the count of wrong two-factor codes and the record of
-          skill saves, downloads and reports. This is our
+          skill saves, downloads, reports and requests to Stripe. This is our
           legitimate interest in keeping accounts
           secure and the service available (art. 6(1)(f)), and you can object to it.
         </li>
@@ -222,9 +234,16 @@ export default function PrivacyPage() {
           deleted when a newer save leaves it outside the latest 20.
         </li>
         <li>
+          Selling: a skill’s price until you remove it, delete the skill, or we remove the skill, and the
+          record of your Stripe account until you delete your account. Deleting your account also asks
+          Stripe to close your Stripe account. Stripe keeps the closed account’s record, with the email
+          address, name and account id we sent and what it collected itself, as its own privacy policy and
+          the law require.
+        </li>
+        <li>
           Sign-in attempt counters: deleted once a counter has gone unused for a day. The record of skill
-          saves, downloads and reports expires on its own no more than two days and one second after your
-          last one.
+          saves, downloads, reports and requests to Stripe expires on its own no more than two days and one
+          second after your last one.
         </li>
         <li>
           Reports: until a year after we decide them, then deleted within a day; a report we have not
@@ -265,19 +284,31 @@ export default function PrivacyPage() {
           own service is used, as a controller in its own right.
         </li>
         <li>
-          <strong>Upstash, Inc.</strong> (United States): keeps the record of skill saves, downloads and
-          reports, by account, or by a keyed hash of the IP address for a download without an account,
-          provided through the Vercel Marketplace.
+          <strong>Upstash, Inc.</strong> (United States): keeps the record of skill saves, downloads,
+          reports and requests to Stripe, by account, or by a keyed hash of the IP address for a download
+          without an account, provided through the Vercel Marketplace.
         </li>
         <li>
           <strong>GitHub, Inc.</strong> (United States), only if you sign in with GitHub. GitHub shares
           your profile with us when you allow it, and its own privacy statement covers what GitHub does.
         </li>
+        <li>
+          <strong>Stripe Payments Europe, Limited</strong> (Ireland), our payment provider, only if you set up
+          selling. To open your Stripe account we send Stripe your email address, your name, the country you
+          choose and your account’s id. On Stripe’s own pages you then give Stripe what it asks for to verify
+          you and to pay you, such as your identity and your bank account. This site never stores those
+          details, though Stripe may share some of them with us, as the agreement you accept there allows.
+          Stripe uses them as a controller in its own right, under that agreement, the Stripe Connected
+          Account Agreement, and Stripe’s privacy policy. From Stripe we keep only your Stripe account’s id
+          and whether Stripe has accepted it; we also read where your account stands, to show it to you.
+        </li>
       </ul>
       <p>
         Vercel, Neon, Resend and Upstash process data in the United States. These transfers rely on the
         European Commission’s Standard Contractual Clauses in each provider’s data processing terms, and
-        on the EU–US Data Privacy Framework where the provider is certified under it.
+        on the EU–US Data Privacy Framework where the provider is certified under it. Stripe also transfers
+        data outside the EEA, including to the United States and India, relying on the Standard Contractual
+        Clauses and, for Stripe, LLC in the United States, on the Data Privacy Framework.
       </p>
 
       <h2>Your rights</h2>

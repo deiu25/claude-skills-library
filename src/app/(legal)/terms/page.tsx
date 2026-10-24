@@ -12,7 +12,7 @@ export default function TermsPage() {
   return (
     <>
       <h1 className="text-balance text-3xl font-semibold text-foreground sm:text-4xl">Terms of use</h1>
-      <p className="text-sm text-faint">Last updated 23 October 2026</p>
+      <p className="text-sm text-faint">Last updated 24 October 2026</p>
       <p>
         These terms apply when you use the Claude Skills Library at {SITE_URL.replace("https://", "")}.
         How we handle personal data is in the <Link href="/privacy">privacy policy</Link>.
@@ -43,7 +43,8 @@ export default function TermsPage() {
         A free, hand-curated catalog of Claude Code skills, plugins and MCP servers made by other people:
         what each one does, when to use it and how to install it, with exports of the catalog for people
         and for agents. Account holders can also keep their own skills and publish them in Community, apart
-        from the catalog. Browsing needs no account. Accounts are invite-only for now.
+        from the catalog, and try selling them while selling runs in test mode. Browsing needs no account.
+        Accounts are invite-only for now.
       </p>
 
       <h2>Skills made by others</h2>
@@ -125,6 +126,24 @@ export default function TermsPage() {
           We may remove a skill that breaks these terms or the law: its page and its download go, and its
           author can no longer publish it. We email its author the reason and how to contest it. How to
           report a skill is under “Reports and moderation”.
+        </li>
+      </ul>
+
+      <h2>Selling skills</h2>
+      <ul>
+        <li>
+          Selling runs in Stripe’s test mode: nobody can buy a skill yet, and no money moves. You can set up
+          selling and price your skills to try it.
+        </li>
+        <li>
+          To sell, you start on the Sales page of your dashboard: we open your account with Stripe, our
+          payment provider, and you finish it on Stripe’s pages, where you accept Stripe’s own agreement.
+          Stripe verifies who you are, and will pay you once payments go live.
+        </li>
+        <li>
+          How selling is meant to work, and what changes before real payments start, is in the{" "}
+          <Link href="/terms/marketplace">draft marketplace terms</Link>. They are a draft: until the final
+          version applies, these terms of use cover selling too.
         </li>
       </ul>
 
